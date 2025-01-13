@@ -311,3 +311,61 @@ def convert_to_mp4(input_video: str) -> None:
             f"The input video '{input_video}' is already in MP4 format. No conversion needed."
         )
     return output_video
+
+
+def shorten_video_opencv(
+    input_video: str, start_time: float, end_time: float, output_video: str
+):
+    """
+    使用 OpenCV 截取视频的指定时间段。
+
+    :param input_video: 输入视频路径
+    :param start_time: 截取开始的时间（单位：秒）
+    :param end_time: 截取结束的时间（单位：秒）
+    :param output_video: 输出视频路径
+    """
+    # 打开视频文件
+    cap = cv2.VideoCapture(input_video)
+
+    # 获取视频的帧率
+    fps = cap.get(cv2.CAP_PROP_FPS)
+
+    # 计算起始帧和结束帧
+    start_frame = int(start_time * fps)
+    end_frame = int(end_time * fps)
+
+    # 获取视频的宽度和高度
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+    # 创建一个 VideoWriter 对象，输出视频
+    fourcc = cv2.VideoWriter_fourcc(*"h264")  # 使用 'mp4v' 编码器
+    out = cv2.VideoWriter(output_video, fourcc, fps, (width, height))
+
+    # 跳到起始帧
+    cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
+
+    current_frame = start_frame
+
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break  # 如果没有更多帧，退出循环
+
+        if current_frame >= end_frame:
+            break  # 如果到达结束帧，停止读取视频
+
+        out.write(frame)  # 写入输出视频文件
+        current_frame += 1
+
+    # 释放资源
+    cap.release()
+    out.release()
+    print(f"视频截取完成，保存为 {output_video}")
+
+
+if __name__ == "__main__":
+    # 使用示例
+    shorten_video_opencv(
+        "650-1-x1_particle_video.mp4", 0, 5, "x_video.mp4"
+    )  # 截取从10秒到30秒的视频部分

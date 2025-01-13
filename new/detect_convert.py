@@ -20,7 +20,6 @@ initial_result_path = os.path.join(track_base_path)
 os.makedirs(initial_result_path, exist_ok=True)
 # video
 video_path, video_name = find_video_files(track_base_path)
-print(f"video_path: {video_path}")
 base_name, _ = os.path.splitext(video_name)
 new_video_name = base_name + ".mp4"
 
@@ -46,11 +45,6 @@ def convert_results(
         y_center = float(result[2]) * image_height  # 中心点 y 坐标
         width = float(result[3]) * image_width  # 物体的宽度
         height = float(result[4]) * image_height  # 物体的高度
-        try:
-            id = int(result[5])  # 物体 ID
-        except IndexError:
-            print("当前为检测文件,需要使用追踪文件")
-            break
         # 计算边框的左上角和右下角坐标
         x1 = round(x_center - width / 2)
         y1 = round(y_center - height / 2)
@@ -59,7 +53,7 @@ def convert_results(
 
         detection = {
             "class": "particle",
-            "confidence": 0.5,  # 假设置信度为 0.5，实际数据应来自检测文件
+            "confidence": 0,
             "bbox": [x1, y1, x2, y2],
             "Center": [round(x_center), round(y_center)],
             "file_path": new_video_name,
