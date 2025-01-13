@@ -237,9 +237,64 @@ def find_video_files(directory):
 
     # 获取文件夹中的所有文件
     video_files = []
+    video_name = None
     for filename in os.listdir(directory):
         # 检查文件是否为视频文件
         if filename.endswith(video_extensions):
             video_files.append(os.path.join(directory, filename))
+            video_name = filename
 
-    return video_files, filename
+    return video_files, video_name
+
+
+def convert_to_mp4(input_video: str, output_video: str) -> None:
+    """
+    将输入的视频文件转换为 .mp4 格式。如果输入文件已为 .mp4 格式，则不进行转换。
+
+    :param input_video: 输入视频文件路径（包括文件名和扩展名）
+    :param output_video: 输出视频文件路径（应以 .mp4 结尾）
+    """
+    # 检查输入视频文件是否为 MP4 格式
+    if not input_video.lower().endswith(".mp4"):
+        print(f"The input video '{input_video}' is not in MP4 format.")
+        print("Proceeding to convert the video to MP4 format.")
+
+        # 打开输入视频文件
+        cap = cv2.VideoCapture(input_video)
+
+        # 检查视频是否成功打开
+        if not cap.isOpened():
+            print("Error: Couldn't open the video file.")
+            return
+
+        # 获取视频的宽度、高度和帧率
+        frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        frame_rate = cap.get(cv2.CAP_PROP_FPS)
+
+        # 创建 VideoWriter 对象，指定输出文件，编码器，帧率和帧大小
+        fourcc = cv2.VideoWriter_fourcc(*"h264")  # 'h264' 编码器，适用于 .mp4 文件
+        out = cv2.VideoWriter(
+            output_video, fourcc, frame_rate, (frame_width, frame_height)
+        )
+
+        # 循环读取每一帧并写入输出视频
+        while cap.isOpened():
+            ret, frame = cap.read()
+
+            if not ret:
+                break  # 如果视频读完，退出循环
+
+            # 将每一帧写入输出视频文件
+            out.write(frame)
+
+        # 释放资源
+        cap.release()
+        out.release()
+
+        print(f"Video conversion complete. Saved as '{output_video}'.")
+
+    else:
+        print(
+            f"The input video '{input_video}' is already in MP4 format. No conversion needed."
+        )

@@ -94,10 +94,7 @@ def convert_results(
             classify_cat = classify_cat.item()  # 将 Tensor 转换为 Python 标量
             object_data["Category"] = classify_cat
             print("classify_cat:", classify_cat)
-        # 绘制红色矩形框
-        cv2.rectangle(
-            output_image, (x1, y1), (x2, y2), (0, 0, 255), 1
-        )  # 红色矩形框，线宽为 2
+        cv2.rectangle(output_image, (x1, y1), (x2, y2), (0, 0, 255), 1)
 
         text = f"id:{id} cat:{classify_cat}"
         font = cv2.FONT_HERSHEY_SIMPLEX
@@ -137,24 +134,25 @@ def convert_results(
 
 
 def main(classify=True):
-    model_e = efficientnet_b1(weights=EfficientNet_B1_Weights.DEFAULT)
-    model_e.classifier[1] = nn.Linear(model_e.classifier[1].in_features, 2)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if classify:
+        model_e = efficientnet_b1(weights=EfficientNet_B1_Weights.DEFAULT)
+        model_e.classifier[1] = nn.Linear(model_e.classifier[1].in_features, 2)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    model_e = model_e.to(device)
-    model_e.load_state_dict(
-        torch.load("best_model (10).pth", map_location=device)
-    )  # without_generate.pth  best_model (10).pth
-    transform = transforms.Compose(
-        [
-            transforms.Resize((224, 224)),  # 调整图像大小
-            transforms.ToTensor(),  # 转换为Tensor
-            transforms.Normalize(
-                mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-            ),  # 归一化
-        ]
-    )
-    model_e.eval()  # 设置模型为推理模式
+        model_e = model_e.to(device)
+        model_e.load_state_dict(
+            torch.load("best_model (10).pth", map_location=device)
+        )  # without_generate.pth  best_model (10).pth
+        transform = transforms.Compose(
+            [
+                transforms.Resize((224, 224)),  # 调整图像大小
+                transforms.ToTensor(),  # 转换为Tensor
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),  # 归一化
+            ]
+        )
+        model_e.eval()  # 设置模型为推理模式
     for index, filename in enumerate(
         sorted(
             os.listdir(track_data_path),

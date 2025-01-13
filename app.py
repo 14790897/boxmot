@@ -78,7 +78,7 @@ def process_with_subcommand(
         x_output_video = f"{output_name}_x_particle_video.mp4"
         images_to_video(x_output_directory, x_output_video, frame_rate)
         x_input_video_path = x_output_video
-    # 调用脚本
+
     y_command = [
         "python",
         "tracking/track.py",
@@ -126,6 +126,10 @@ def process_with_subcommand(
 
 def post_process():
     scripts = [
+        [
+            "python",
+            "new/convert.py",
+        ],
         [
             "python",
             "new/1_extract.py",
