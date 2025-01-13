@@ -254,13 +254,14 @@ def convert_to_mp4(input_video: str) -> None:
     :param input_video: 输入视频文件路径（包括文件名和扩展名）
     :return: 转换后的 .mp4 文件路径
     """
+    input_video = os.path.normpath(input_video)
+    output_video = os.path.splitext(input_video)[0] + ".mp4"
     # 检查输入视频文件是否为 MP4 格式
     if not input_video.lower().endswith(".mp4"):
         print(f"The input video '{input_video}' is not in MP4 format.")
         print("Proceeding to convert the video to MP4 format.")
 
         # 构造转换后的 .mp4 文件路径，使用原始文件路径，但修改扩展名为 .mp4
-        output_video = os.path.splitext(input_video)[0] + ".mp4"
 
         # 如果目标文件已经存在，先删除它（直接替换）
         if os.path.exists(output_video):
@@ -273,6 +274,8 @@ def convert_to_mp4(input_video: str) -> None:
         # 检查视频是否成功打开
         if not cap.isOpened():
             print("Error: Couldn't open the video file.")
+            error_code = cap.get(cv2.CAP_PROP_FOURCC)
+            print(f"Error Code: {error_code}")
             return
 
         # 获取视频的宽度、高度和帧率
@@ -302,8 +305,7 @@ def convert_to_mp4(input_video: str) -> None:
 
         print(f"Video conversion complete. Saved as '{output_video}'.")
 
-        # 替换原始的 input_video 文件
-        os.replace(output_video, input_video)
+        os.remove(input_video)
         print("The input video has been replaced with the converted MP4 file.")
 
     else:
@@ -366,6 +368,7 @@ def shorten_video_opencv(
 
 if __name__ == "__main__":
     # 使用示例
-    shorten_video_opencv(
-        "650-1-x1_particle_video.mp4", 0, 5, "x_video.mp4"
-    )  # 截取从10秒到30秒的视频部分
+    # shorten_video_opencv(
+    #     "650-1-x1_particle_video.mp4", 0, 5, "x_video.mp4"
+    # )
+    convert_to_mp4(r"xy1-650-S14-2_particle_video.avi")

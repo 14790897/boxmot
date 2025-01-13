@@ -1,6 +1,6 @@
 import json
 import os
-from new.process_utils import get_latest_folder, find_video_files, extract_frame
+from .process_utils import get_latest_folder, find_video_files, extract_frame
 import cv2
 from PIL import Image
 
@@ -10,20 +10,6 @@ import torch.nn as nn
 from torchvision import models
 from torchvision import transforms
 
-image_width = 768
-image_height = 1024
-base_path = "runs/track"
-track_data_path = os.path.join(get_latest_folder(base_path), "labels")
-track_base_path = get_latest_folder(base_path)
-# result
-initial_result_directory = "initial_result"
-initial_result_path = os.path.join(track_base_path, initial_result_directory)
-os.makedirs(initial_result_path, exist_ok=True)
-# video
-video_path, video_name = find_video_files(track_base_path)
-base_name, _ = os.path.splitext(video_name)
-new_video_name = base_name + ".mp4"
-
 
 def convert_results(
     detection_results,
@@ -31,6 +17,7 @@ def convert_results(
     image_height,
     initial_result_path,
     frame,
+    new_video_name,
     classify=True,
     model_e=None,
     device=None,
@@ -129,7 +116,21 @@ def convert_results(
             print(f"物体 {id} 的数据已保存到 {output_file} (空文件初始化)")
 
 
-def main(classify=True):
+def main_convert(classify=True):
+
+    image_width = 768
+    image_height = 1024
+    base_path = "runs/track"
+    track_data_path = os.path.join(get_latest_folder(base_path), "labels")
+    track_base_path = get_latest_folder(base_path)
+    # result
+    initial_result_directory = "initial_result"
+    initial_result_path = os.path.join(track_base_path, initial_result_directory)
+    os.makedirs(initial_result_path, exist_ok=True)
+    # video
+    video_path, video_name = find_video_files(track_base_path)
+    base_name, _ = os.path.splitext(video_name)
+    new_video_name = base_name + ".mp4"
     if classify:
         model_e = efficientnet_b1(weights=EfficientNet_B1_Weights.DEFAULT)
         model_e.classifier[1] = nn.Linear(model_e.classifier[1].in_features, 2)
@@ -170,6 +171,7 @@ def main(classify=True):
             image_height,
             initial_result_path,
             index + 1,
+            new_video_name,
             classify,
             model_e,
             device,
@@ -178,4 +180,4 @@ def main(classify=True):
 
 
 if __name__ == "__main__":
-    main()
+    main_convert()

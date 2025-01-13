@@ -1,6 +1,6 @@
 import json
 import os
-from new.process_utils import get_latest_folder, find_video_files, extract_frame
+from process_utils import get_latest_folder, find_video_files, extract_frame
 import cv2
 from PIL import Image
 

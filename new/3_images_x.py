@@ -19,7 +19,8 @@ from process_utils import (
 
 # 旋流器右边的两条线
 line_dict = {"1": (269, 49, 269, 328), "2": (269, 328, 250, 638)}
-initial_result_directory = "initial_result"
+base_path = "runs/track"
+initial_result_directory = os.path.join(get_latest_folder(base_path), "initial_result")
 stats_file_path = os.path.join(initial_result_directory, "all_stats.json")
 current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 

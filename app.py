@@ -1,26 +1,18 @@
 import gradio as gr
 import subprocess
 import os, json, shutil, re
+import sys
+
 from pathlib import Path
 from new.batch import process_images_in_directory, rename_files_in_directory
 from new.x_batch import tiff_to_jpeg
 from new.y_make_images_2_video import images_to_video, delete_invalid_jpg_files
 from new.x_make_images_2_video import images_to_video as x_images_to_video
-from new.process_utils import convert_to_mp4
+from new.process_utils import convert_to_mp4, get_latest_folder
+from new.convert import main_convert
 
 # 视频输出目录
-base_path = r"runs\detect"
-initial_result_directory = "initial_result"
-
-
-# 获取最新文件夹的函数
-def get_latest_folder(base_path):
-    entries = [os.path.join(base_path, entry) for entry in os.listdir(base_path)]
-    folders = [entry for entry in entries if os.path.isdir(entry)]
-    if not folders:
-        raise FileNotFoundError(f"No folders found in {base_path}")
-    latest_folder = max(folders, key=os.path.getmtime)
-    return latest_folder
+base_path = r"runs/track"
 
 
 def remove_chinese(text):
@@ -34,6 +26,7 @@ def process_with_subcommand(
     x_uploaded_video_path=None,
     y_folder_path=None,
     x_folder_path=None,
+    classify_checkbox=True,
 ):
     y_input_video_path = None
     if input_type == "upload video":
@@ -81,7 +74,7 @@ def process_with_subcommand(
         x_input_video_path = x_output_video
 
     y_command = [
-        "python",
+        sys.executable,
         "tracking/track.py",
         "--yolo-model",
         "yolov8-particle-best.pt",  # 使用的 YOLO 模型
@@ -98,7 +91,7 @@ def process_with_subcommand(
         "0.1",  # IOU 阈值
     ]
     x_command = [
-        "python",
+        sys.executable,
         "tracking/track.py",
         "--yolo-model",
         "yolov8_best.pt",  # 使用的 YOLO 模型
@@ -110,7 +103,9 @@ def process_with_subcommand(
         "--conf",
         "0.1",  # 置信度阈值
         "--iou",
-        "0.1",  # IOU 阈值
+        "0.01",  # IOU 阈值
+        "--project",
+        "runs_x_me/detect",
     ]
     try:
         subprocess.run(y_command, check=True)
@@ -120,17 +115,18 @@ def process_with_subcommand(
 
     output_path = os.path.join(
         get_latest_folder(base_path),
-        os.path.basename(y_input_video_path),
+        os.path.basename(os.path.splitext(y_input_video_path)[0] + ".avi"),
     )
     output_path = convert_to_mp4(output_path)
-    return output_path
+    txt_result = post_process(classify_checkbox)
+    return output_path, txt_result
 
 
-def post_process():
+def post_process(classify):
     scripts = [
         [
             "python",
-            "new/convert.py",
+            "new/detect_convert.py",
         ],
         [
             "python",
@@ -146,6 +142,7 @@ def post_process():
         ],
         ["python", "new/4_end.py"],
     ]
+    main_convert(classify)
     for script in scripts:
         try:
             print(f"正在执行脚本: {script[1]}...")
@@ -154,6 +151,8 @@ def post_process():
         except subprocess.CalledProcessError as e:
             print(f"脚本 {script[1]} 执行失败，错误:\n{e.stderr}")
             break
+    latest_folder_path = get_latest_folder(base_path)
+    initial_result_directory = os.path.join(latest_folder_path, "initial_result")
     calculation_results_path = os.path.join(
         initial_result_directory, "calculation_results.json"
     )
@@ -217,10 +216,10 @@ with gr.Blocks() as demo:
         with gr.Column(scale=1):  # 右侧视频框
             video_output = gr.Video(label="处理后的视频")
 
-    process_button = gr.Button("开始处理")
-    post_process_button = gr.Button("后处理")
-    text_output = gr.Textbox(label="输出结果")
-    post_process_button.click(fn=post_process, inputs=None, outputs=text_output)
+    classify_checkbox = gr.Checkbox(label="classify", value=True)
+    process_button = gr.Button("start process")
+    # post_process_button = gr.Button("post process")
+    text_output = gr.Textbox(label="result", type="text", lines=10)
     process_button.click(
         fn=process_with_subcommand,
         inputs=[
@@ -229,14 +228,18 @@ with gr.Blocks() as demo:
             x_uploaded_video,
             y_folder_input,
             x_folder_input,
+            classify_checkbox,
         ],
-        outputs=video_output,
+        outputs=[video_output, text_output],
     )
+    # post_process_button.click(
+    #     fn=post_process, inputs=classify_checkbox, outputs=text_output
+    # )
     # 上传处理后的视频的按钮
-    y_uploaded_video = gr.File(
-        label="上传处理后的视频", file_types=[".mp4", ".avi", ".mov"]
-    )
-    y_uploaded_video.change(
-        fn=lambda x: x, inputs=y_uploaded_video, outputs=video_output
-    )
+    # y_uploaded_video = gr.File(
+    #     label="上传处理后的视频", file_types=[".mp4", ".avi", ".mov"]
+    # )
+    # y_uploaded_video.change(
+    #     fn=lambda x: x, inputs=y_uploaded_video, outputs=video_output
+    # )
 demo.launch(debug=True)

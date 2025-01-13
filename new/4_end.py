@@ -3,8 +3,12 @@
 import math
 import json
 import os
+from process_utils import (
+    get_latest_folder,
+)
 
-initial_result_directory = "initial_result"
+base_path = "runs/track"
+initial_result_directory = os.path.join(get_latest_folder(base_path), "initial_result")
 stats_file_path = os.path.join(initial_result_directory, "all_stats.json")
 calculation_results_path = os.path.join(
     initial_result_directory, "calculation_results.json"
