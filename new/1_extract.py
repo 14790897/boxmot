@@ -2,6 +2,7 @@
 # 先过滤掉只维持一帧的状态然后排除掉最后几帧,因为最后几帧它已经开始往后面旋转所以不能使用这个数据而且看不清
 import json
 import os
+import copy
 import shutil
 from collections import defaultdict, OrderedDict
 from process_utils import (
@@ -189,6 +190,8 @@ def process_data():
             0
         ]  # 这里使用第一和最后出现的数据计算公转速度
         last_appear = initial_id_data_with_range[-1]
+        if not category_changes:#如果没有变化就跳过
+            category_changes = copy.deepcopy(initial_id_data)
         first_change = category_changes[0]
         last_change = category_changes[-1]
         first_appear_x_coord = (

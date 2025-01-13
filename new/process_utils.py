@@ -189,7 +189,10 @@ def find_changes_within_range(
         center_x = (box[0] + box[2]) / 2  # 计算水平中心坐标
         if mid_left <= center_x <= mid_right:
             changes_in_range.append(change)
-
+    if not changes_in_range:
+        print(
+            f"No changes found within the range ({mid_left:.2f} to {mid_right:.2f})."
+        )
     return changes_in_range
 
 
