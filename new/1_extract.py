@@ -119,10 +119,10 @@ def process_data():
         last_appear_x_coord = (last_appear["Box"][0] + last_appear["Box"][2]) / 2
         last_appear_y_coord = (last_appear["Box"][1] + last_appear["Box"][3]) / 2
         # 添加新的过滤条件：如果最后帧的Y坐标高于第一帧(顶部是0)，跳过
-        if last_appear_y_coord < first_appear_y_coord:
-            print(f"ID {i}: Last frame is higher than the first frame, skipping.")
-            shutil.rmtree(id_path)  # 删除文件夹
-            continue
+        # if last_appear_y_coord < first_appear_y_coord:
+        #     print(f"ID {i}: Last frame is higher than the first frame, skipping.")
+        #     shutil.rmtree(id_path)  # 删除文件夹
+        #     continue
         first_appear_coordinates = (first_appear_x_coord, first_appear_y_coord)
         last_appear_coordinates = (last_appear_x_coord, last_appear_y_coord)
         # 检查点是否在同一侧，如果是则删除文件夹

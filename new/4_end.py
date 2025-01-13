@@ -91,13 +91,16 @@ for key, value in all_stats.items():
         orbital_rev = (8000 * (alpha1 + alpha2)) / (
             total_frames_revolution - 1
         )  # 减一是因为这个才是真正时间
-        abs_rotation = (changes * 3.1416 * 8000) / 2 / (total_frames_rotation - 1)
-        rel_rotation = orbital_rev + abs_rotation
+
         if not_use:
             # print(f"跳过编号为 {key} 的条目,因为误差较大")
-            result = f"id: {key}, revloution: {orbital_rev:.2f}rad/s, not_use_revolution: {not_use_revolution}"
+            abs_rotation = 0
+            rel_rotation = 0
+            result = f"id: {key}, revolution: {orbital_rev:.2f} rad/s" if not not_use_revolution else f"id: {key}, revolution: {orbital_rev:.2f} rad/s, not_use_revolution"
         else:
-            result = f"id: {key}, revloution: {orbital_rev:.2f}rad/s，rotation: {abs_rotation:.2f}rad/s, relative: {rel_rotation:.2f}rad/s, height: {(closest_point.get("Box")[1]+closest_point.get("Box")[3])/2}, not_use_revolution: {not_use_revolution}"
+            abs_rotation = (changes * 3.1416 * 8000) / 2 / (total_frames_rotation - 1)
+            rel_rotation = orbital_rev + abs_rotation
+            result = f"id: {key}, revolution: {orbital_rev:.2f}rad/s，rotation: {abs_rotation:.2f}rad/s, relative: {rel_rotation:.2f}rad/s, height: {(closest_point.get("Box")[1]+closest_point.get("Box")[3])/2}, not_use_revolution: {not_use_revolution}"
         all_stats[key].update(
             {
                 "orbital_rev": orbital_rev,
