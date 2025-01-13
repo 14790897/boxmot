@@ -65,7 +65,8 @@ for k, v in all_stats.items():
                         x_data[frame_name]["detections"]
                     )
                 else:
-                    print(f"Frame {frame_name} not found in detections")
+                    # print(f"Frame {frame_name} not found in detections")
+                    pass
 
             except KeyError:
                 print(f"No detections found for frame: {frame_name}")
@@ -194,8 +195,8 @@ for k, v in all_stats.items():
             cv2.imwrite(output_image_path, min_margin_image)
             print(f"边距最小的结果图像已保存到 {output_image_path}")
         else:
-            print(f"{k}没有找到符合条件的检测结果,设置为0")
-            all_stats[str(id)].update({"margin": 0, "timestamp": current_time})
+            print(f"{k}没有找到符合条件的检测结果,设置为8")
+            all_stats[str(id)].update({"margin": 8, "timestamp": current_time,"not_use_revolution":True})
             # shutil.rmtree(id_path)
     except FileNotFoundError:
         # 如果文件不存在，捕获异常并跳过

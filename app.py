@@ -82,13 +82,12 @@ def process_with_subcommand(
         y_input_video_path,  # 输入视频路径
         "--save",  # 保存结果
         "--save-txt",  # 保存文本文件
-        "--save-id-crops",  # 保存裁剪后的图像
         "--tracking-method",
         "bytetrack",  # 跟踪方法
         "--conf",
-        "0.1",  # 置信度阈值
+        "0.01",  # 置信度阈值
         "--iou",
-        "0.1",  # IOU 阈值
+        "0.01",  # IOU 阈值
     ]
     x_command = [
         sys.executable,
@@ -99,9 +98,8 @@ def process_with_subcommand(
         x_input_video_path,  # 输入视频路径
         "--save",  # 保存结果
         "--save-txt",  # 保存文本文件
-        "--save-id-crops",  # 保存裁剪后的图像
         "--conf",
-        "0.1",  # 置信度阈值
+        "0.01",
         "--iou",
         "0.01",  # IOU 阈值
         "--project",

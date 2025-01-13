@@ -26,6 +26,7 @@ calculation_results = []
 for key, value in all_stats.items():
     try:
         not_use = value.get("not_use", False)
+        not_use_revolution = value.get("not_use_revolution", False)
         # if not_use:
         #     # print(f"跳过编号为 {key} 的条目,因为误差较大")
         #     continue
@@ -63,13 +64,15 @@ for key, value in all_stats.items():
             # radius = max(d1, d2)
             radius = (
                 inner_diameter / 2
-            )  # 我觉得这里直接设置为半径是更好因为他那边可能真的是他暂时没有出现这个粒子
+            ) - 8  # 我觉得这里直接设置为半径是更好因为他那边可能真的是他暂时没有出现这个粒子
+            not_use_revolution = True
             print(
                 f"{key} 的 d1 大于 radius, d1: {d1_with_range_revolution}, radius: {radius}, d1_origin: {d1_origin}, margin: {margin}"
             )
         if radius < d2_origin:
             # radius = max(d1, d2)
-            radius = inner_diameter / 2
+            radius = inner_diameter / 2 - 8
+            not_use_revolution = True
             print(
                 f"{key} 的 d2 大于 radius, d2: {d2_with_range_revolution}, radius: {radius}, d2_origin: {d2_origin}, margin: {margin}"
             )
@@ -92,14 +95,15 @@ for key, value in all_stats.items():
         rel_rotation = orbital_rev + abs_rotation
         if not_use:
             # print(f"跳过编号为 {key} 的条目,因为误差较大")
-            result = f"id: {key}, revloution: {orbital_rev:.2f}rad/s"
+            result = f"id: {key}, revloution: {orbital_rev:.2f}rad/s, not_use_revolution: {not_use_revolution}"
         else:
-            result = f"id: {key}, revloution: {orbital_rev:.2f}rad/s，rotation: {abs_rotation:.2f}rad/s, relative: {rel_rotation:.2f}rad/s, height: {(closest_point.get("Box")[1]+closest_point.get("Box")[3])/2}"
+            result = f"id: {key}, revloution: {orbital_rev:.2f}rad/s，rotation: {abs_rotation:.2f}rad/s, relative: {rel_rotation:.2f}rad/s, height: {(closest_point.get("Box")[1]+closest_point.get("Box")[3])/2}, not_use_revolution: {not_use_revolution}"
         all_stats[key].update(
             {
                 "orbital_rev": orbital_rev,
                 "abs_rotation": abs_rotation,
                 "rel_rotation": rel_rotation,
+                "not_use_revolution": not_use_revolution,
             }
         )
         print(result)
