@@ -6,6 +6,7 @@ from new.batch import process_images_in_directory, rename_files_in_directory
 from new.x_batch import tiff_to_jpeg
 from new.y_make_images_2_video import images_to_video, delete_invalid_jpg_files
 from new.x_make_images_2_video import images_to_video as x_images_to_video
+from new.process_utils import convert_to_mp4
 
 # 视频输出目录
 base_path = r"runs\detect"
@@ -121,6 +122,7 @@ def process_with_subcommand(
         get_latest_folder(base_path),
         os.path.basename(y_input_video_path),
     )
+    output_path = convert_to_mp4(output_path)
     return output_path
 
 

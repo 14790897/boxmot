@@ -247,17 +247,25 @@ def find_video_files(directory):
     return video_files, video_name
 
 
-def convert_to_mp4(input_video: str, output_video: str) -> None:
+def convert_to_mp4(input_video: str) -> None:
     """
-    将输入的视频文件转换为 .mp4 格式。如果输入文件已为 .mp4 格式，则不进行转换。
+    将输入的视频文件直接转换为 .mp4 格式，并替换原文件。如果输入文件已为 .mp4 格式，则不进行转换。
 
     :param input_video: 输入视频文件路径（包括文件名和扩展名）
-    :param output_video: 输出视频文件路径（应以 .mp4 结尾）
+    :return: 转换后的 .mp4 文件路径
     """
     # 检查输入视频文件是否为 MP4 格式
     if not input_video.lower().endswith(".mp4"):
         print(f"The input video '{input_video}' is not in MP4 format.")
         print("Proceeding to convert the video to MP4 format.")
+
+        # 构造转换后的 .mp4 文件路径，使用原始文件路径，但修改扩展名为 .mp4
+        output_video = os.path.splitext(input_video)[0] + ".mp4"
+
+        # 如果目标文件已经存在，先删除它（直接替换）
+        if os.path.exists(output_video):
+            print(f"The file '{output_video}' already exists. It will be replaced.")
+            os.remove(output_video)
 
         # 打开输入视频文件
         cap = cv2.VideoCapture(input_video)
@@ -294,7 +302,12 @@ def convert_to_mp4(input_video: str, output_video: str) -> None:
 
         print(f"Video conversion complete. Saved as '{output_video}'.")
 
+        # 替换原始的 input_video 文件
+        os.replace(output_video, input_video)
+        print("The input video has been replaced with the converted MP4 file.")
+
     else:
         print(
             f"The input video '{input_video}' is already in MP4 format. No conversion needed."
         )
+    return output_video
