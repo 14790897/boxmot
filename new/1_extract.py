@@ -9,6 +9,7 @@ from process_utils import (
     find_changes_within_range,
     calculate_distance_and_draw,
     detect_frame_difference,
+    get_latest_folder,
 )
 import cv2
 
@@ -36,7 +37,8 @@ y_max = 1000  # 最大 y 坐标（根据实际需求调整）
 
 exclude_last_frames = 8
 exclude_first_frames = 0  # 这里使用去除第一次变化来取代这个
-initial_result_directory = "initial_result"
+base_path = "runs/track"
+initial_result_directory = os.path.join(get_latest_folder(base_path), "initial_result")
 video_path = "my_process_particle_video.avi"
 # 用于保存所有ID的统计信息
 all_stats = {}

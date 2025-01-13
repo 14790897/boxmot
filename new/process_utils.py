@@ -109,6 +109,7 @@ def extract_frame(video_path, frame_number, output_image_path):
 
     # 释放视频对象
     cap.release()
+    return frame
 
 
 def extract_and_stitch_columns(video_path, data):
@@ -228,3 +229,17 @@ def get_latest_folder(base_path):
         raise FileNotFoundError(f"No folders found in {base_path}")
     latest_folder = max(folders, key=os.path.getmtime)
     return latest_folder
+
+
+def find_video_files(directory):
+    # 视频文件的扩展名
+    video_extensions = (".mp4", ".avi", ".mov", ".mkv", ".flv", ".wmv")
+
+    # 获取文件夹中的所有文件
+    video_files = []
+    for filename in os.listdir(directory):
+        # 检查文件是否为视频文件
+        if filename.endswith(video_extensions):
+            video_files.append(os.path.join(directory, filename))
+
+    return video_files, filename
