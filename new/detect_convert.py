@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 from torchvision import models
 from torchvision import transforms
-
+base_video_path = "processed_video_gradio"
 image_width = 360
 image_height = 640
 base_path = r"runs_x_me\detect"
@@ -21,8 +21,7 @@ os.makedirs(initial_result_path, exist_ok=True)
 # video
 video_path, video_name = find_video_files(track_base_path)
 base_name, _ = os.path.splitext(video_name)
-new_video_name = base_name + ".mp4"
-
+new_video_path =os.path.join(base_video_path, f"{base_name}.mp4")
 
 def convert_results(
     detection_results,
@@ -56,7 +55,7 @@ def convert_results(
             "confidence": 0,
             "bbox": [x1, y1, x2, y2],
             "Center": [round(x_center), round(y_center)],
-            "file_path": new_video_name,
+            "file_path": new_video_path,
         }
 
         detections.append(detection)
@@ -78,7 +77,7 @@ def main(classify=True):
         file_path = os.path.join(track_data_path, filename)
         with open(file_path, "r") as f:
             detection_results = [line.strip().split() for line in f.readlines()]
-        print(f"path: {file_path}")
+        # print(f"path: {file_path}")
         print(f"正在处理第 {index + 1} 帧的检测结果")
         # print(f"数据：{detection_results}")
         frame_result = convert_results(

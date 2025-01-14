@@ -17,7 +17,7 @@ def convert_results(
     image_height,
     initial_result_path,
     frame,
-    new_video_name,
+    new_video_path,
     classify=True,
     model_e=None,
     device=None,
@@ -58,10 +58,11 @@ def convert_results(
         # print(f"正在保存物体 {id} 的图像到 {output_image_file_path}")
         os.makedirs(os.path.join(output_dir_path, "images"), exist_ok=True)
         output_image = extract_frame(
-            new_video_name,
+            new_video_path,
             str(int(frame) - 1),
             output_image_file_path,
         )
+        classify_cat = None
         if classify:
             # 转换 NumPy 数组为 PIL 图像
             output_image_pil = Image.fromarray(
@@ -117,7 +118,8 @@ def convert_results(
 
 
 def main_convert(classify=True):
-
+    # 因为这里是直接调用函数的所以它这个上面的如果写死全局变量的话它是不会更新的所以只能放在函数里
+    base_video_path = "processed_video_gradio"
     image_width = 768
     image_height = 1024
     base_path = "runs/track"
@@ -130,7 +132,7 @@ def main_convert(classify=True):
     # video
     video_path, video_name = find_video_files(track_base_path)
     base_name, _ = os.path.splitext(video_name)
-    new_video_name = base_name + ".mp4"
+    new_video_path =os.path.join(base_video_path, f"{base_name}.mp4")
     if classify:
         model_e = efficientnet_b1(weights=EfficientNet_B1_Weights.DEFAULT)
         model_e.classifier[1] = nn.Linear(model_e.classifier[1].in_features, 2)
@@ -150,6 +152,10 @@ def main_convert(classify=True):
             ]
         )
         model_e.eval()  # 设置模型为推理模式
+    else:
+        model_e = None
+        device = None
+        transform = None
     for index, filename in enumerate(
         sorted(
             os.listdir(track_data_path),
@@ -171,7 +177,7 @@ def main_convert(classify=True):
             image_height,
             initial_result_path,
             index + 1,
-            new_video_name,
+            new_video_path,
             classify,
             model_e,
             device,

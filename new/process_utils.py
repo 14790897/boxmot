@@ -1,4 +1,4 @@
-import cv2, os
+import cv2, os, shutil
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 
@@ -367,6 +367,22 @@ def shorten_video_opencv(
     cap.release()
     out.release()
     print(f"视频截取完成，保存为 {output_video}")
+
+def clear_folder(folder_path):
+    if not os.path.exists(folder_path):
+        print(f"文件夹 {folder_path} 不存在。")
+        return
+
+    for item in os.listdir(folder_path):
+        item_path = os.path.join(folder_path, item)
+        try:
+            if os.path.isfile(item_path) or os.path.islink(item_path):
+                os.unlink(item_path)
+            elif os.path.isdir(item_path):
+                shutil.rmtree(item_path) 
+        except Exception as e:
+            print(f"无法删除 {item_path}。错误: {e}")
+    print(f"已清理文件夹: {folder_path}")
 
 
 if __name__ == "__main__":

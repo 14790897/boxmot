@@ -191,9 +191,11 @@ def process_data():
         ]  # 这里使用第一和最后出现的数据计算公转速度
         last_appear = initial_id_data_with_range[-1]
         if not category_changes:#如果没有变化就跳过
-            category_changes = copy.deepcopy(initial_id_data)
-        first_change = category_changes[0]
-        last_change = category_changes[-1]
+            first_change = initial_id_data[0]
+            last_change = initial_id_data[-1]
+        else:
+            first_change = category_changes[0]
+            last_change = category_changes[-1]
         first_appear_x_coord = (
             first_appear["Box"][0] + first_appear["Box"][2]
         ) / 2
@@ -338,7 +340,7 @@ def process_data():
         results[id_]["inner_diameter"] = d_total
         results[id_]["closest_point"] = closest_point_data
         if len(category_changes) < 3:
-            results[id_]["not_use"] = True
+            results[id_]["not_use_rotation"] = True
             print(f"id {i} Category 在指定范围内次数变化小于3，只计算公转速")
         else:
             print(f"id {i} Category 在指定范围内发生了大于2次变化")
@@ -352,7 +354,7 @@ def process_data():
         for id_, result in results.items():
             all_stats[f"{id_}"] = OrderedDict(
                 [
-                    ("not_use", result.get("not_use")),
+                    ("not_use_rotation", result.get("not_use_rotation")),
                     ("start_frame_revolution", result.get("start_frame_revolution")),
                     ("end_frame_revolution", result.get("end_frame_revolution")),
                     ("total_frames_revolution", result.get("total_frames_revolution")),

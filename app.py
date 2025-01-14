@@ -8,13 +8,13 @@ from new.batch import process_images_in_directory, rename_files_in_directory
 from new.x_batch import tiff_to_jpeg
 from new.y_make_images_2_video import images_to_video, delete_invalid_jpg_files
 from new.x_make_images_2_video import images_to_video as x_images_to_video
-from new.process_utils import convert_to_mp4, get_latest_folder
+from new.process_utils import convert_to_mp4, get_latest_folder,clear_folder
 from new.convert import main_convert
 
 # 视频输出目录
 base_path = r"runs/track"
-
-
+base_x_path = "runs_x_me/detect"
+base_video_path = "processed_video_gradio"
 def remove_chinese(text):
     return re.sub(r"[^\x00-\x7F]", "", text)  # 保留 ASCII 字符
 
@@ -54,7 +54,7 @@ def process_with_subcommand(
         last_two_parts = processed_parts[-2:]
         output_name = "-".join(last_two_parts)
         # 设置图片目录和输出视频路径
-        output_video = f"{output_name}_particle_video.mp4"
+        output_video = os.path.join(base_video_path,f"{output_name}_particle_video.mp4")
         images_to_video(y_output_directory, output_video, frame_rate)
         y_input_video_path = output_video
 
@@ -69,7 +69,7 @@ def process_with_subcommand(
         rename_files_in_directory(x_input_directory)
         tiff_to_jpeg(x_input_directory, jpeg_directory)
         process_images_in_directory(jpeg_directory, x_output_directory)
-        x_output_video = f"{output_name}_x_particle_video.mp4"
+        x_output_video = os.path.join(base_video_path,f"x_{output_name}_particle_video.mp4")
         images_to_video(x_output_directory, x_output_video, frame_rate)
         x_input_video_path = x_output_video
 
@@ -103,7 +103,7 @@ def process_with_subcommand(
         "--iou",
         "0.01",  # IOU 阈值
         "--project",
-        "runs_x_me/detect",
+        base_x_path,
     ]
     try:
         subprocess.run(y_command, check=True)
@@ -168,8 +168,8 @@ def post_process(classify):
 
 # 创建 Gradio 界面
 with gr.Blocks() as demo:
-    gr.Markdown("# 视频处理界面")
-
+    gr.Markdown("# particle process interface")
+    os.makedirs(base_video_path, exist_ok=True)
     # 动态显示输入组件
     def toggle_inputs(input_type):
         if input_type == "upload video":
@@ -212,12 +212,17 @@ with gr.Blocks() as demo:
                 ],
             )
         with gr.Column(scale=1):  # 右侧视频框
-            video_output = gr.Video(label="处理后的视频")
+            video_output = gr.Video(label="processed video")
 
     classify_checkbox = gr.Checkbox(label="classify", value=True)
     process_button = gr.Button("start process")
     # post_process_button = gr.Button("post process")
     text_output = gr.Textbox(label="result", type="text", lines=10)
+    # clear folder
+    clear_button = gr.Button("clear folder")
+    clear_button.click(
+        fn=lambda: (clear_folder(base_path), clear_folder(base_x_path),clear_folder(base_video_path)),  inputs=[], outputs=[]
+    )
     process_button.click(
         fn=process_with_subcommand,
         inputs=[
