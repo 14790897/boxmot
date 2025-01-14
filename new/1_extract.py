@@ -380,7 +380,7 @@ def process_data():
                 ]
             )
             print(
-                f"ID: {id_}, 变化次数: {result['changes']}, 总公转帧数: {result['total_frames_revolution']}, Category Changes: {result['changes']}, height：{(closest_point_data.get("Box")[1]+closest_point_data.get("Box")[3])/2/147- 105/147 }cm"
+                f"ID: {id_}, 变化次数: {result['changes']}, 总公转帧数: {result['total_frames_revolution']}, Category Changes: {result['changes']}, height：{(result.get("closest_point").get("Box")[1]+result.get("closest_point").get("Box")[3])/2/147 + 42/147 }cm"
             )
         detect_frame_difference(all_stats)
         json.dump(all_stats, stats_file, indent=4)

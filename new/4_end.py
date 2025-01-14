@@ -101,7 +101,7 @@ for key, value in all_stats.items():
         else:
             abs_rotation = (changes * 3.1416 * 8000) / 2 / (total_frames_rotation - 1)
             rel_rotation = orbital_rev + abs_rotation
-            result = f"id: {key}, revolution: {orbital_rev:.2f}rad/s，rotation: {abs_rotation:.2f}rad/s, relative: {rel_rotation:.2f}rad/s, height: {(closest_point.get("Box")[1]+closest_point.get("Box")[3])/2}" if not not_use_revolution else f"id: {key}, revolution: {orbital_rev:.2f}rad/s，rotation: {abs_rotation:.2f}rad/s, relative: {rel_rotation:.2f}rad/s, height: {(closest_point.get("Box")[1]+closest_point.get("Box")[3])/2}"
+            result = f"id: {key}, revolution: {orbital_rev:.2f}rad/s，rotation: {abs_rotation:.2f}rad/s, relative: {rel_rotation:.2f}rad/s, height: {(closest_point.get("Box")[1]+closest_point.get("Box")[3])/2/147 + 42/147}cm" if not not_use_revolution else f"id: {key}, revolution: {orbital_rev:.2f}rad/s，rotation: {abs_rotation:.2f}rad/s, relative: {rel_rotation:.2f}rad/s, height: {(closest_point.get("Box")[1]+closest_point.get("Box")[3])/2/147 + 42/147}cm"
         all_stats[key].update(
             {
                 "orbital_rev": orbital_rev,
