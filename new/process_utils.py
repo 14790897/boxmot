@@ -210,7 +210,8 @@ def detect_frame_difference(data):
         end_frame_revolution = value.get("end_frame_revolution", 0)
         not_use_rotation = value.get("not_use_rotation", False)
         if not not_use_rotation:
-            all_frame = end_frame_revolution - start_frame_revolution
+            all_frame = category_changes[-1]["Frame"] - category_changes[0]["Frame"]
+            # all_frame = end_frame_revolution - start_frame_revolution
             for i in range(len(category_changes) - 1):
                 current_frame = category_changes[i]["Frame"]
                 next_frame = category_changes[i + 1]["Frame"]

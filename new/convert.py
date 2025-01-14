@@ -32,7 +32,11 @@ def convert_results(
         y_center = float(result[2]) * image_height  # 中心点 y 坐标
         width = float(result[3]) * image_width  # 物体的宽度
         height = float(result[4]) * image_height  # 物体的高度
-        id = int(result[5])  # 物体 ID
+        try:
+            id = int(result[5])  # 物体 ID
+        except IndexError:
+            id=9999
+            print(f"检测结果中缺少 ID, 需要注意")
         # 计算边框的左上角和右下角坐标
         x1 = round(x_center - width / 2)
         y1 = round(y_center - height / 2)

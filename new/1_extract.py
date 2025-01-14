@@ -320,19 +320,18 @@ def process_data():
             json.dump([first_appear, last_appear], file, indent=4)
 
         print(f"id {i} Category 发生了 {len(category_changes) - 1} 次变化")
+        
+        total_frames_revolution = last_appear["Frame"] - first_appear["Frame"] + 1
+        total_frames_rotation = last_change["Frame"] - first_change["Frame"] + 1
         results[id_]["changes"] = (
             len(category_changes)
             - 1  # 如果是-2就是减去最后的那次变化的次数，同时保留倒数第二个状态的时间
         )
         results[id_]["category_changes"] = category_changes
-        results[id_]["total_frames_revolution"] = (
-            last_appear["Frame"] - first_appear["Frame"] + 1
-        )  # 这里要使用第一次变化到最后一次变化的时间
+        results[id_]["total_frames_revolution"] = total_frames_revolution
         results[id_]["start_frame_revolution"] = first_appear["Frame"]
         results[id_]["end_frame_revolution"] = last_appear["Frame"]
-        results[id_]["total_frames_rotation"] = (
-            last_change["Frame"] - first_change["Frame"] + 1
-        )
+        results[id_]["total_frames_rotation"] = total_frames_rotation
         results[id_]["start_frame_rotation"] = first_change["Frame"]
         results[id_]["end_frame_rotation"] = last_change["Frame"]
         results[id_]["d1_with_range_revolution"] = d1_with_range_revolution
@@ -346,6 +345,9 @@ def process_data():
             print(f"id {i} Category 在指定范围内次数变化小于3，只计算公转速")
         else:
             print(f"id {i} Category 在指定范围内发生了大于2次变化")
+        if total_frames_rotation/total_frames_revolution < 0.3:
+            results[id_]["not_use_rotation"] = True
+            print(f"id {i} Category 旋转时间占比小于0.3，只计算公转速度")
 
     # 在整个循环结束后，将所有统计信息保存到一个文件中
     with open(
