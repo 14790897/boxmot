@@ -69,7 +69,7 @@ def process_data():
         # else:
         #     print(f"拼接图片已存在，跳过: {stitched_image_path}")
         for count in range(
-            0, len(initial_id_data) - 1
+            0, len(initial_id_data) 
         ):  # 从第一帧到倒数第'二'帧遍历,因为最后一帧的话会是none所以不能处理
             if count == 0:  # 处理第一帧
                 if (
@@ -80,7 +80,7 @@ def process_data():
                     initial_id_data[count]["Category"] = initial_id_data[count + 1][
                         "Category"
                     ]  # 修正为后两帧的值
-            else:
+            elif count < len(initial_id_data) - 1:  # 处理中间帧
                 if (
                     initial_id_data[count - 1]["Category"]
                     == initial_id_data[count + 1]["Category"]  # 前后帧的 Category 相同
@@ -90,21 +90,77 @@ def process_data():
                     initial_id_data[count]["Category"] = initial_id_data[count - 1][
                         "Category"
                     ]  # 修正为前一帧的值
+            else:
+                if count == len(initial_id_data) - 1: 
+                    if (
+                        len(initial_id_data) > 2
+                        and initial_id_data[count - 1]["Category"]
+                        == initial_id_data[count - 2]["Category"]
+                    ):
+                        initial_id_data[count]["Category"] = initial_id_data[count - 1][
+                            "Category"
+                        ]  # 修正为前两帧的值
+            
+        previous_category = None
+        category_start_frame = None
+        category_changes = []
+        # for count, entry in enumerate(initial_id_data):
+        #     current_category = entry["Category"]
+        #     id_ = entry["ID"]  # 这个应该是固定的
+        #     # 忽略第一次比较（previous_category 为 None 的情况）
+        #     if previous_category is None:
+        #         previous_category = current_category
+        #         continue
+
+        #     if current_category != previous_category:
+        #         category_changes.append(
+        #             entry
+        #         )  # 这里相对于忽略了初始的状态，因为不知道持续多久
+        #         # results[id_]["changes"] += 1
+
+        #     previous_category = current_category
         for count, entry in enumerate(initial_id_data):
             current_category = entry["Category"]
-            id_ = entry["ID"]  # 这个应该是固定的
-            # 忽略第一次比较（previous_category 为 None 的情况）
+            current_frame = entry["Frame"]
+            id_ = entry["ID"]
+
+            # 初始化第一个类别
             if previous_category is None:
                 previous_category = current_category
+                category_start_frame = current_frame
                 continue
 
+            # 如果类别发生变化
             if current_category != previous_category:
-                category_changes.append(
-                    entry
-                )  # 这里相对于忽略了初始的状态，因为不知道持续多久
-                # results[id_]["changes"] += 1
+                # 计算类别持续时间
+                duration = current_frame - category_start_frame
 
-            previous_category = current_category
+                # 计算中间帧
+                mid_frame = category_start_frame + duration // 2
+
+                # 找到最接近的帧
+                closest_entry = min(
+                    initial_id_data, 
+                    key=lambda x: abs(x["Frame"] - mid_frame)  # 按帧差值排序
+                )
+                category_changes.append(closest_entry)
+
+                # 更新变量
+                previous_category = current_category
+                category_start_frame = current_frame
+
+        # 最后一段的处理
+        if category_start_frame is not None and previous_category is not None:
+            duration = current_frame - category_start_frame
+            mid_frame = category_start_frame + duration // 2
+
+            # 找到最接近的帧
+            closest_entry = min(
+                initial_id_data, 
+                key=lambda x: abs(x["Frame"] - mid_frame)
+            )
+            # print(f"最后一段的处理: {closest_entry},mid_frame: {mid_frame},duration: {duration}")
+            category_changes.append(closest_entry)
         # 忽略最后一次变化(由于改成距离检测，这里不删除最后一次变化)
         # if category_changes:
         #     category_changes = category_changes[:-1]

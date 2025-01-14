@@ -50,7 +50,9 @@ for k, v in all_stats.items():
         id = closest_point["ID"]
         frame = closest_point["Frame"]
         half_frame = frame // 2
-        frame_range = list(range(half_frame - 8, half_frame + 8))
+        max_frame = max(map(int, x_data.keys()))
+        min_frame = min(map(int, x_data.keys()))
+        frame_range = list(range(max(min_frame, half_frame - 8), min(max_frame, half_frame + 8)))
 
         aggregated_results = defaultdict(list)
 
@@ -73,10 +75,21 @@ for k, v in all_stats.items():
             except json.JSONDecodeError:
                 print(f"Error decoding JSON for file: {x_detect_result_path}")
         image_y_y_coord = (closest_point["Box"][1] + closest_point["Box"][3]) / 2
-
+        if len(aggregated_results) < 10:
+            # 找到最近的帧
+            available_frames = list(x_data.keys())  # 获取所有可用的帧
+            available_frames = sorted(
+                available_frames, key=lambda x: abs(int(x) - half_frame)
+            )  
+            # 获取最近的十个帧（或不足十个全部）
+            closest_frames = available_frames[:10]
+            for closest_frame in closest_frames:
+                if closest_frame in x_data:
+                    aggregated_results[closest_frame].extend(
+                        x_data[closest_frame]["detections"]
+                    )
         min_margin = float("inf")
         min_margin_img_path = None
-        # print("aggregated_results", aggregated_results)
         for frame_name, detections in aggregated_results.items():
             frame_path = os.path.join(x_images_path, f"frame_{frame_name}.jpg")
             extract_frame(

@@ -65,14 +65,14 @@ for key, value in all_stats.items():
             # radius = max(d1, d2)
             radius = (
                 inner_diameter / 2
-            ) - 8  # 我觉得这里直接设置为半径是更好因为他那边可能真的是他暂时没有出现这个粒子
+            ) - 8 * 640 / 360 # 我觉得这里直接设置为半径是更好因为他那边可能真的是他暂时没有出现这个粒子
             not_use_revolution = True
             print(
                 f"{key} 的 d1 大于 radius, d1: {d1_with_range_revolution}, radius: {radius}, d1_origin: {d1_origin}, margin: {margin}"
             )
         if radius < d2_origin:
             # radius = max(d1, d2)
-            radius = inner_diameter / 2 - 8
+            radius = inner_diameter / 2 - 8 * 640 / 360
             not_use_revolution = True
             print(
                 f"{key} 的 d2 大于 radius, d2: {d2_with_range_revolution}, radius: {radius}, d2_origin: {d2_origin}, margin: {margin}"
@@ -101,7 +101,7 @@ for key, value in all_stats.items():
         else:
             abs_rotation = (changes * 3.1416 * 8000) / 2 / (total_frames_rotation - 1)
             rel_rotation = orbital_rev + abs_rotation
-            result = f"id: {key}, revolution: {orbital_rev:.2f}rad/s，rotation: {abs_rotation:.2f}rad/s, relative: {rel_rotation:.2f}rad/s, height: {(closest_point.get("Box")[1]+closest_point.get("Box")[3])/2/147 + 42/147}cm" if not not_use_revolution else f"id: {key}, revolution: {orbital_rev:.2f}rad/s，rotation: {abs_rotation:.2f}rad/s, relative: {rel_rotation:.2f}rad/s, height: {(closest_point.get("Box")[1]+closest_point.get("Box")[3])/2/147 + 42/147}cm"
+            result = f"id: {key}, revolution: {orbital_rev:.2f}rad/s，rotation: {abs_rotation:.2f}rad/s, relative: {rel_rotation:.2f}rad/s, height: {(closest_point.get("Box")[1]+closest_point.get("Box")[3])/2/147 + 42/147}cm" if not not_use_revolution else f"id: {key}, revolution: {orbital_rev:.2f}rad/s，rotation: {abs_rotation:.2f}rad/s, relative: {rel_rotation:.2f}rad/s, height: {(closest_point.get("Box")[1]+closest_point.get("Box")[3])/2/147 + 42/147}cm not_use_revolution"
         all_stats[key].update(
             {
                 "orbital_rev": orbital_rev,
