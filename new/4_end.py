@@ -93,7 +93,7 @@ for key, value in all_stats.items():
             total_frames_revolution - 1
         )  # 减一是因为这个才是真正时间
 
-        if not_use_rotation:
+        if not_use_rotation or not_use:
             # print(f"跳过编号为 {key} 的条目,因为误差较大")
             abs_rotation = 0
             rel_rotation = 0

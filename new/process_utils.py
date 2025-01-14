@@ -206,37 +206,54 @@ def detect_frame_difference(data):
     """
     for key, value in data.items():
         category_changes = value.get("category_changes", [])
-        for i in range(len(category_changes) - 1):
-            current_frame = category_changes[i]["Frame"]
-            next_frame = category_changes[i + 1]["Frame"]
-            frame_diff = next_frame - current_frame
+        not_use_rotation = value.get("not_use_rotation", False)
+        if not not_use_rotation:
+            all_frame = category_changes[-1]["Frame"] - category_changes[0]["Frame"]
+            for i in range(len(category_changes) - 1):
+                current_frame = category_changes[i]["Frame"]
+                next_frame = category_changes[i + 1]["Frame"]
+                frame_diff = next_frame - current_frame
 
-            # 检查帧差距是否为 2
-            if frame_diff == 2:
-                print(
-                    f"Detected frame difference of 2 at frame {current_frame} of id: {key}, 由于变化过快，说明无法准确检测，建议删除"
-                )
-                data[key]["not_use"] = True
-
+                # 检查帧差距是否为 2
+                if frame_diff == 2:
+                    print(
+                        f"Detected frame difference of 2 at frame {current_frame} of id: {key}, 由于变化过快，说明无法准确检测，建议删除"
+                    )
+                    # data[key]["not_use"] = True
+                    pass
+                elif frame_diff >= all_frame/2:
+                    print(f"have a long time not change, id: {key}, at frame {current_frame}, not use")
+                    data[key]["not_use"] = True
     return data
 
-def remove_long_time_not_change(category_changes):
+def remove_long_time_not_change(category_changes,id):
     """
-    检查相邻帧的差距是否大于 10，并删除当前帧之前的所有数据。
+    检查相邻帧的差距是否大于 15，并根据前后部分的数量删除较少的一部分。
     """
+    all_frame = category_changes[-1]["Frame"] - category_changes[0]["Frame"]
     i = 0  # 使用 while 循环以便动态修改列表
     while i < len(category_changes) - 1:
         current_frame = category_changes[i]["Frame"]
         next_frame = category_changes[i + 1]["Frame"]
         frame_diff = next_frame - current_frame
 
-        # 检查帧差距是否大于 10
-        if frame_diff > 10:
+        # 检查帧差距是否大于 15
+        if frame_diff >= all_frame/3:
             print(
-                f"Detected frame difference greater than 10 at frame {current_frame}, 删除前面的所有数据。"
+                f"Detected frame difference greater than 15 at frame {current_frame}, 检查前后数据数量以删除较少的一部分。"
             )
-            # 删除这个帧前面的所有数据
-            category_changes = category_changes[i + 1 :]
+            # 计算前后部分的长度
+            front_part = category_changes[: i + 1]  # 前部分（包含当前帧）
+            back_part = category_changes[i + 1 :]   # 后部分
+
+            # 删除数量较少的部分
+            if len(front_part) <= len(back_part):
+                print(f"删除前部分，长度: {len(front_part)},id: {id}")
+                category_changes = back_part  # 保留后部分
+            else:
+                print(f"删除后部分，长度: {len(back_part)},id: {id}")
+                category_changes = front_part  # 保留前部分
+
             i = -1  # 重置索引以重新检查新的列表
             break  # 跳出当前循环，重新处理
 

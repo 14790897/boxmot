@@ -186,7 +186,7 @@ def process_data():
                 x_right,
                 range_ratio=0.6,
             )
-        category_changes = remove_long_time_not_change(category_changes)
+        # category_changes = remove_long_time_not_change(category_changes,id_)
         # 更新范围后的第一次和最后一次变化
         first_appear = initial_id_data_with_range[
             0
@@ -341,7 +341,7 @@ def process_data():
         results[id_]["d2_origin"] = d2_origin
         results[id_]["inner_diameter"] = d_total
         results[id_]["closest_point"] = closest_point_data
-        if len(category_changes) < 2:
+        if len(category_changes) < 3:
             results[id_]["not_use_rotation"] = True
             print(f"id {i} Category 在指定范围内次数变化小于3，只计算公转速")
         else:
@@ -380,7 +380,7 @@ def process_data():
                 ]
             )
             print(
-                f"ID: {id_}, 变化次数: {result['changes']}, 总公转帧数: {result['total_frames_revolution']}, Category Changes: {result['changes']},{(closest_point_data.get("Box")[1]+closest_point_data.get("Box")[3])/2}"
+                f"ID: {id_}, 变化次数: {result['changes']}, 总公转帧数: {result['total_frames_revolution']}, Category Changes: {result['changes']}, height：{(closest_point_data.get("Box")[1]+closest_point_data.get("Box")[3])/2/147- 105/147 }cm"
             )
         detect_frame_difference(all_stats)
         json.dump(all_stats, stats_file, indent=4)

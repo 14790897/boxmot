@@ -29,6 +29,7 @@ def process_with_subcommand(
     classify_checkbox=True,
 ):
     y_input_video_path = None
+    x_input_video_path = None
     if input_type == "upload video":
         y_input_video_path = str(Path(y_uploaded_video_path))
         x_input_video_path = str(Path(x_uploaded_video_path))
@@ -88,6 +89,8 @@ def process_with_subcommand(
         "0.01",  # 置信度阈值
         "--iou",
         "0.01",  # IOU 阈值
+        # "--name",
+        # y_input_video_path,
     ]
     x_command = [
         sys.executable,
@@ -116,11 +119,12 @@ def process_with_subcommand(
         os.path.basename(os.path.splitext(y_input_video_path)[0] + ".avi"),
     )
     output_path = convert_to_mp4(output_path)
-    txt_result = post_process(classify_checkbox)
-    return output_path, txt_result
+    txt_result,log_output = post_process(classify_checkbox)
+    return output_path, txt_result,log_output
 
 
 def post_process(classify):
+    log_output = ""
     scripts = [
         [
             "python",
@@ -144,7 +148,11 @@ def post_process(classify):
     for script in scripts:
         try:
             print(f"正在执行脚本: {script[1]}...")
-            result = subprocess.run(script, check=True, capture_output=False, text=True)
+            if script[1] == "new/1_extract.py":
+                result = subprocess.run(script, check=True, capture_output=True, text=True)
+                log_output = f"{result.stdout}"
+            else:
+                result = subprocess.run(script, check=True, capture_output=False, text=True)
             print(f"脚本 {script[1]} 执行完成，输出:\n{result.stdout}")
         except subprocess.CalledProcessError as e:
             print(f"脚本 {script[1]} 执行失败，错误:\n{e.stderr}")
@@ -159,7 +167,7 @@ def post_process(classify):
         try:
             with open(calculation_results_path, "r") as stats_file:
                 content = json.load(stats_file)  # 解析 JSON 数据
-                return json.dumps(content, ensure_ascii=False, indent=4)
+                return json.dumps(content, ensure_ascii=False, indent=4),log_output
         except json.JSONDecodeError:
             return "JSON decoding error. The file content might be invalid."
     else:
@@ -201,6 +209,11 @@ with gr.Blocks() as demo:
             # 输入文件夹路径组件
             y_folder_input = gr.Textbox(label="y_folder_input", visible=False)
             x_folder_input = gr.Textbox(label="x_folder_input", visible=False)
+            y_folder_input.change(
+                fn=lambda y: y,  # lambda 直接返回输入值
+                inputs=y_folder_input,  # 输入 y_folder_input 的值
+                outputs=x_folder_input,  # 输出到 x_folder_input
+            )
             input_type.change(
                 fn=toggle_inputs,
                 inputs=[input_type],
@@ -218,6 +231,7 @@ with gr.Blocks() as demo:
     process_button = gr.Button("start process")
     # post_process_button = gr.Button("post process")
     text_output = gr.Textbox(label="result", type="text", lines=10)
+    log_output = gr.Textbox(label="log", type="text", lines=10)
     # clear folder
     clear_button = gr.Button("clear folder")
     clear_button.click(
@@ -233,7 +247,7 @@ with gr.Blocks() as demo:
             x_folder_input,
             classify_checkbox,
         ],
-        outputs=[video_output, text_output],
+        outputs=[video_output, text_output,log_output],
     )
     # post_process_button.click(
     #     fn=post_process, inputs=classify_checkbox, outputs=text_output
