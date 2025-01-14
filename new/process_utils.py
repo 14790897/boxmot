@@ -204,7 +204,6 @@ def detect_frame_difference(data):
     """
     检测 category_changes 中相邻类别之间的帧差距是否为 2，并标注符合条件的类别。
     """
-    keys_to_remove = []  # 用于存储需要删除的 keys
     for key, value in data.items():
         category_changes = value.get("category_changes", [])
         for i in range(len(category_changes) - 1):
@@ -214,16 +213,36 @@ def detect_frame_difference(data):
 
             # 检查帧差距是否为 2
             if frame_diff == 2:
-                keys_to_remove.append(key)
                 print(
                     f"Detected frame difference of 2 at frame {current_frame} of id: {key}, 由于变化过快，说明无法准确检测，建议删除"
                 )
                 data[key]["not_use"] = True
-    # 删除标记的 keys
-    # for key in keys_to_remove:
-    #     del data[key]
+
     return data
 
+def remove_long_time_not_change(category_changes):
+    """
+    检查相邻帧的差距是否大于 10，并删除当前帧之前的所有数据。
+    """
+    i = 0  # 使用 while 循环以便动态修改列表
+    while i < len(category_changes) - 1:
+        current_frame = category_changes[i]["Frame"]
+        next_frame = category_changes[i + 1]["Frame"]
+        frame_diff = next_frame - current_frame
+
+        # 检查帧差距是否大于 10
+        if frame_diff > 10:
+            print(
+                f"Detected frame difference greater than 10 at frame {current_frame}, 删除前面的所有数据。"
+            )
+            # 删除这个帧前面的所有数据
+            category_changes = category_changes[i + 1 :]
+            i = -1  # 重置索引以重新检查新的列表
+            break  # 跳出当前循环，重新处理
+
+        i += 1
+
+    return category_changes
 
 def get_latest_folder(base_path):
     entries = [os.path.join(base_path, entry) for entry in os.listdir(base_path)]

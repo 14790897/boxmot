@@ -11,6 +11,7 @@ from process_utils import (
     calculate_distance_and_draw,
     detect_frame_difference,
     get_latest_folder,
+    remove_long_time_not_change
 )
 import cv2
 
@@ -185,6 +186,7 @@ def process_data():
                 x_right,
                 range_ratio=0.6,
             )
+        category_changes = remove_long_time_not_change(category_changes)
         # 更新范围后的第一次和最后一次变化
         first_appear = initial_id_data_with_range[
             0
@@ -339,7 +341,7 @@ def process_data():
         results[id_]["d2_origin"] = d2_origin
         results[id_]["inner_diameter"] = d_total
         results[id_]["closest_point"] = closest_point_data
-        if len(category_changes) < 3:
+        if len(category_changes) < 2:
             results[id_]["not_use_rotation"] = True
             print(f"id {i} Category 在指定范围内次数变化小于3，只计算公转速")
         else:
