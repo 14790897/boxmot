@@ -66,7 +66,7 @@ def images_to_video(image_folder, output_video, frame_rate=25):
     print(f"Video saved as {output_video}")
 
 if __name__ == "__main__":
-    input_directory = r"H:\shnu-graduation\alldata\alldata\20180117-hfq-y\Y1-750\No.1_C001H001S0002"  # 替换为实际的图像目录路径  "550-y\Y2-550\相机No.1_C001H001S0001" "550-y\Y1-550\C001H001S0001"
+    input_directory = r"mot_particle\img1"  # 替换为实际的图像目录路径  "550-y\Y2-550\相机No.1_C001H001S0001" "550-y\Y1-550\C001H001S0001"
     output_directory = r"processed_y1_750"  # 自定义输出目录
     rename_files_in_directory(input_directory)
     delete_invalid_jpg_files(input_directory)

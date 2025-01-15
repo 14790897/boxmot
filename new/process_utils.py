@@ -222,7 +222,7 @@ def detect_frame_difference(data):
                     print(
                         f"Detected frame difference of 2 at frame {current_frame} of id: {key}, 由于变化过快，说明无法准确检测，建议删除"
                     )
-                    # data[key]["not_use"] = True
+                    data[key]["not_use"] = True
                     pass
                 elif frame_diff >= all_frame/2:
                     print(f"have a long time not change, id: {key}, at frame {current_frame}, not use")

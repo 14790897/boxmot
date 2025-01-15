@@ -81,7 +81,7 @@ def convert_results(
             _, classify_cat = confidences.max(1)  # 获取每个图像的最高置信度
             classify_cat = classify_cat.item()  # 将 Tensor 转换为 Python 标量
             object_data["Category"] = classify_cat
-            print("classify_cat:", classify_cat)
+            # print("classify_cat:", classify_cat)
         cv2.rectangle(output_image, (x1, y1), (x2, y2), (0, 0, 255), 1)
 
         text = f"id:{id} cat:{classify_cat}"
@@ -172,8 +172,8 @@ def main_convert(classify=True):
         file_path = os.path.join(track_data_path, filename)
         with open(file_path, "r") as f:
             detection_results = [line.strip().split() for line in f.readlines()]
-        print(f"path: {file_path}")
-        print(f"正在处理第 {index + 1} 帧的检测结果")
+        # print(f"path: {file_path}")
+        # print(f"正在处理第 {index + 1} 帧的检测结果")
         # print(f"数据：{detection_results}")
         convert_results(
             detection_results,

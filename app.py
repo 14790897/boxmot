@@ -144,6 +144,7 @@ def post_process(classify):
         ],
         ["python", "new/4_end.py"],
     ]
+    print(f"正在执行脚本: main_convert")
     main_convert(classify)
     for script in scripts:
         try:

@@ -78,7 +78,7 @@ def main(classify=True):
         with open(file_path, "r") as f:
             detection_results = [line.strip().split() for line in f.readlines()]
         # print(f"path: {file_path}")
-        print(f"正在处理第 {index + 1} 帧的检测结果")
+        # print(f"正在处理第 {index + 1} 帧的检测结果")
         # print(f"数据：{detection_results}")
         frame_result = convert_results(
             detection_results,
