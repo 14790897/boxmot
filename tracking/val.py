@@ -300,7 +300,7 @@ def parse_mot_results(results: str) -> dict:
         dict: A dictionary containing HOTA, MOTA, and IDF1 scores.
     """
     combined_results = results.split('COMBINED')[2:-1]
-    combined_results = [float(re.findall("[-+]?(?:\d*\.*\d+)", f)[0])
+    combined_results = [float(re.findall(r"[-+]?(?:\d*\.*\d+)", f)[0])
                         for f in combined_results]
 
     results_dict = {}
@@ -449,8 +449,8 @@ def parse_opt() -> argparse.Namespace:
     parser.add_argument('--reid-model', nargs='+', type=Path, default=[WEIGHTS / 'osnet_x0_25_msmt17.pt'], help='reid model path')
     parser.add_argument('--source', type=str, help='file/dir/URL/glob, 0 for webcam')
     parser.add_argument('--imgsz', '--img', '--img-size', nargs='+', type=int, default=None, help='inference size h,w')
-    parser.add_argument('--conf', type=float, default=0.5, help='confidence threshold')
-    parser.add_argument('--iou', type=float, default=0.7, help='intersection over union (IoU) threshold for NMS')
+    parser.add_argument('--conf', type=float, default=0.01, help='confidence threshold')
+    parser.add_argument('--iou', type=float, default=0.01, help='intersection over union (IoU) threshold for NMS')
     parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--classes', nargs='+', type=int, default=0, help='filter by class: --classes 0, or --classes 0 2 3')
     parser.add_argument('--project', default=ROOT / 'runs', type=Path, help='save results to project/name')
