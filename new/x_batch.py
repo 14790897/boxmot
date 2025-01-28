@@ -1,6 +1,6 @@
 # from sharp_ import process_image
 from .contrast import process_image
-from PIL import Image  # 用于 TIFF 转换为 JPEG
+from PIL import Image, UnidentifiedImageError
 import os
 
 
@@ -8,19 +8,28 @@ def tiff_to_jpeg(directory, output_directory):
     """将目录下的所有TIFF文件转换为JPEG文件"""
     os.makedirs(output_directory, exist_ok=True)
     count = 0
+
     for filename in os.listdir(directory):
         if filename.lower().endswith(".tif") or filename.lower().endswith(".tiff"):
             tiff_path = os.path.join(directory, filename)
             jpeg_path = os.path.join(
                 output_directory, os.path.splitext(filename)[0] + ".jpg"
             )
-            with Image.open(tiff_path) as img:
-                rotated_img = img.convert("RGB").rotate(-90, expand=True)
-                rotated_img.save(jpeg_path, "JPEG")
-            count += 1
-            print(f"已将 {tiff_path} 转换为 {jpeg_path}")
-            if count >= 1500:  # 仅处理前500张
-                break
+
+            try:
+                with Image.open(tiff_path) as img:
+                    rotated_img = img.convert("RGB").rotate(-90, expand=True)
+                    rotated_img.save(jpeg_path, "JPEG")
+                count += 1
+                print(f"已将 {tiff_path} 转换为 {jpeg_path}")
+
+                if count >= 1500:
+                    print("已处理1500张图片")
+
+            except UnidentifiedImageError:
+                print(f"跳过无法识别的 TIFF 文件: {tiff_path}")
+            except Exception as e:
+                print(f"处理 {tiff_path} 时发生错误: {e}")
 
 
 def process_images_in_directory(directory, output_directory, config=None):
