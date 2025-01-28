@@ -224,6 +224,7 @@ def detect_frame_difference(data):
                     )
                     data[key]["not_use"] = True
                     pass
+                # 排除掉保留状态过长的轨迹
                 elif frame_diff >= all_frame/2:
                     print(f"have a long time not change, id: {key}, at frame {current_frame}, not use")
                     data[key]["not_use"] = True
