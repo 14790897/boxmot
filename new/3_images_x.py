@@ -107,10 +107,10 @@ for k, v in all_stats.items():
                 # frame_image = cv2.imread(frame_image_path)
                 x, y = (x1 + x2) / 2, (y1 + y2) / 2
                 image_x_y_coord = int(
-                    image_y_y_coord * 0.7256
+                    (image_y_y_coord + 44) * 101 / 149 + 5
                 )  # 我觉得应该是 (y + 44 ) * 101/149 + 5  44为y图片相对于0位置缺少的距离，101/149为x/y图片的缩放比例，5为x图片相对于0的位置缺少的距离
                 image_x_down_threshold = (
-                    image_x_y_coord - 60
+                    image_x_y_coord - 30
                 )  # 因为x图像是比较往下的所以我们要往上走
                 image_x_up_threshold = image_x_y_coord + 30
                 if image_x_down_threshold <= y <= image_x_up_threshold:

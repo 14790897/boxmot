@@ -100,7 +100,6 @@ def process_data():
                         initial_id_data[count]["Category"] = initial_id_data[count - 1][
                             "Category"
                         ]  # 修正为前两帧的值
-            
         previous_category = None
         category_start_frame = None
         category_changes = []
@@ -272,12 +271,12 @@ def process_data():
         )
         last_appear_coordinates = (last_appear_x_coord, last_appear_y_coord)
         # 检查点是否在同一侧，如果是则删除文件夹
-        # if (first_appear_coordinates[0] - central_line_coords[0]) * (
-        #     last_appear_coordinates[0] - central_line_coords[0]
-        # ) > 0:
-        #     print(f"{id_} 在过滤范围内两点在同一侧不符合测量要求，删除")
-        #     shutil.rmtree(id_path)
-        #     continue
+        if (first_appear_coordinates[0] - central_line_coords[0]) * (
+            last_appear_coordinates[0] - central_line_coords[0]
+        ) > 0:
+            print(f"{id_} 在过滤范围内两点在同一侧不符合测量要求，删除")
+            shutil.rmtree(id_path)
+            continue
         d_total = d_total_left + d_total_right
 
         first_image = os.path.join(
@@ -376,7 +375,6 @@ def process_data():
             json.dump([first_appear, last_appear], file, indent=4)
 
         print(f"id {i} Category 发生了 {len(category_changes) - 1} 次变化")
-        
         total_frames_revolution = last_appear["Frame"] - first_appear["Frame"] + 1
         total_frames_rotation = last_change["Frame"] - first_change["Frame"] + 1
         results[id_]["changes"] = (

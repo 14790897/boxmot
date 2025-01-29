@@ -1,4 +1,5 @@
 # exp是H:\shnu-graduation\alldata\alldata\20180117-hfq-y\Y1-550\相机No.1_C001H001S0001
+# exp2是 H:\shnu-graduation\alldata\alldata\20180117-hfq-y\Y1-750\No.1_C001H001S0002
 
 import json
 import matplotlib.pyplot as plt
@@ -10,7 +11,7 @@ from process_utils import (
 base_path = "runs/track"
 initial_result_directory = os.path.join(get_latest_folder(base_path), "initial_result")
 stats_file_path = os.path.join(initial_result_directory, "all_stats.json")
-
+# stats_file_path = r"runs/track\exp2\initial_result\all_stats.json"
 # Check if the file exists
 if not os.path.exists(stats_file_path):
     raise FileNotFoundError(f"{stats_file_path} does not exist.")
