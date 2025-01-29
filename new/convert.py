@@ -1,4 +1,5 @@
 import json
+import time
 import os
 from .process_utils import get_latest_folder, find_video_files, extract_frame
 import cv2
@@ -10,6 +11,7 @@ import torch.nn as nn
 from torchvision import models
 from torchvision import transforms
 
+times = []  # 存储所有运行时间
 
 def convert_results(
     detection_results,
@@ -76,7 +78,12 @@ def convert_results(
             # 然后进行转换
             cropped_image = output_image_pil.crop((x1, y1, x2, y2))
             transformed_image = transform(cropped_image).unsqueeze(0).to(device)
+            start_time = time.time()
             outputs = model_e(transformed_image)
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            times.append(elapsed_time)  # 记录时间
+            # print(f"目标检测耗时: {elapsed_time:.4f} 秒")
             confidences = torch.softmax(outputs, dim=1)  # 计算每个类别的置信度
             _, classify_cat = confidences.max(1)  # 获取每个图像的最高置信度
             classify_cat = classify_cat.item()  # 将 Tensor 转换为 Python 标量
@@ -187,6 +194,8 @@ def main_convert(classify=True):
             device,
             transform,
         )
+        average_time = sum(times) / len(times)
+        print(f"平均目标分类时间: {average_time:.6f} 秒")
 
 
 if __name__ == "__main__":
