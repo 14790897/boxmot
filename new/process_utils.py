@@ -1,6 +1,7 @@
 import cv2, os, shutil
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
+from natsort import natsorted
 
 # for line_coords in line_dict.values():
 #     draw.line(line_coords, fill=(255, 0, 0), width=2)
@@ -272,6 +273,23 @@ def get_latest_folder(base_path):
         raise FileNotFoundError(f"No folders found in {base_path}")
     latest_folder = max(folders, key=os.path.getmtime)
     return latest_folder
+
+
+def get_all_folders(base_path):
+    """
+    返回 base_path 目录下的所有文件夹路径，按修改时间降序排列（最新的文件夹在前）。
+    """
+    # 获取 base_path 下所有的子目录
+    entries = [os.path.join(base_path, entry) for entry in os.listdir(base_path)]
+    folders = [entry for entry in entries if os.path.isdir(entry)]
+
+    if not folders:
+        raise FileNotFoundError(f"No folders found in {base_path}")
+
+    # 按照修改时间降序排序
+    sorted_folders = natsorted(folders)
+
+    return sorted_folders
 
 
 def find_video_files(directory):
