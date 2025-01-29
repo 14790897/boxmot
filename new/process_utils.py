@@ -275,6 +275,28 @@ def get_latest_folder(base_path):
     return latest_folder
 
 
+# def get_latest_folder(base_path):
+#     """
+#     获取 `base_path` 目录下倒数第二个最旧的文件夹。
+#     """
+#     folders = [
+#         os.path.join(base_path, entry)
+#         for entry in os.listdir(base_path)
+#         if os.path.isdir(os.path.join(base_path, entry))
+#     ]
+
+#     if len(folders) < 2:
+#         raise ValueError(
+#             f"Not enough folders in {base_path} to get the second oldest one."
+#         )
+
+#     # 按修改时间升序排序（最旧的在前，最新的在后）
+#     sorted_folders = sorted(folders, key=os.path.getmtime)
+#     print(sorted_folders[1])
+#     # 取倒数第二个最旧的文件夹（从最旧的开始数的第二个）
+#     return sorted_folders[1]
+
+
 def get_all_folders(base_path):
     """
     返回 base_path 目录下的所有文件夹路径，按修改时间降序排列（最新的文件夹在前）。
