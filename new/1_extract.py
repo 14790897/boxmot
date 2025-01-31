@@ -142,6 +142,7 @@ def process_data():
                     initial_id_data, 
                     key=lambda x: abs(x["Frame"] - mid_frame)  # 按帧差值排序
                 )
+                closest_entry["origin_frame"] = category_start_frame  # 保存原始帧数
                 category_changes.append(closest_entry)
 
                 # 更新变量
@@ -158,6 +159,7 @@ def process_data():
                 initial_id_data, 
                 key=lambda x: abs(x["Frame"] - mid_frame)
             )
+            closest_entry["origin_frame"] = category_start_frame  # 保存原始帧数
             # print(f"最后一段的处理: {closest_entry},mid_frame: {mid_frame},duration: {duration}")
             category_changes.append(closest_entry)
         # 忽略最后一次变化(由于改成距离检测，这里不删除最后一次变化)

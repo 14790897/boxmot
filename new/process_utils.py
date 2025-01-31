@@ -211,11 +211,14 @@ def detect_frame_difference(data):
         end_frame_revolution = value.get("end_frame_revolution", 0)
         not_use_rotation = value.get("not_use_rotation", False)
         if not not_use_rotation:
-            all_frame = category_changes[-1]["Frame"] - category_changes[0]["Frame"]
+            all_frame = (
+                category_changes[-1]["origin_frame"]
+                - category_changes[0]["origin_frame"]
+            )
             # all_frame = end_frame_revolution - start_frame_revolution
             for i in range(len(category_changes) - 1):
-                current_frame = category_changes[i]["Frame"]
-                next_frame = category_changes[i + 1]["Frame"]
+                current_frame = category_changes[i]["origin_frame"]
+                next_frame = category_changes[i + 1]["origin_frame"]
                 frame_diff = next_frame - current_frame
 
                 # 检查帧差距是否为 2
@@ -266,35 +269,34 @@ def remove_long_time_not_change(category_changes,id):
 
     return category_changes
 
-def get_latest_folder(base_path):
-    entries = [os.path.join(base_path, entry) for entry in os.listdir(base_path)]
-    folders = [entry for entry in entries if os.path.isdir(entry)]
-    if not folders:
-        raise FileNotFoundError(f"No folders found in {base_path}")
-    latest_folder = max(folders, key=os.path.getmtime)
-    return latest_folder
-
-
 # def get_latest_folder(base_path):
-#     """
-#     获取 `base_path` 目录下倒数第二个最旧的文件夹。
-#     """
-#     folders = [
-#         os.path.join(base_path, entry)
-#         for entry in os.listdir(base_path)
-#         if os.path.isdir(os.path.join(base_path, entry))
-#     ]
+#     entries = [os.path.join(base_path, entry) for entry in os.listdir(base_path)]
+#     folders = [entry for entry in entries if os.path.isdir(entry)]
+#     if not folders:
+#         raise FileNotFoundError(f"No folders found in {base_path}")
+#     latest_folder = max(folders, key=os.path.getmtime)
+#     return latest_folder
 
-#     if len(folders) < 2:
-#         raise ValueError(
-#             f"Not enough folders in {base_path} to get the second oldest one."
-#         )
 
-#     # 按修改时间升序排序（最旧的在前，最新的在后）
-#     sorted_folders = sorted(folders, key=os.path.getmtime)
-#     print(sorted_folders[1])
-#     # 取倒数第二个最旧的文件夹（从最旧的开始数的第二个）
-#     return sorted_folders[1]
+def get_latest_folder(base_path):
+    """
+    获取 `base_path` 目录下倒数第二个最旧的文件夹。
+    """
+    folders = [
+        os.path.join(base_path, entry)
+        for entry in os.listdir(base_path)
+        if os.path.isdir(os.path.join(base_path, entry))
+    ]
+
+    if len(folders) < 2:
+        raise ValueError(
+            f"Not enough folders in {base_path} to get the second oldest one."
+        )
+
+    # 按修改时间升序排序（最旧的在前，最新的在后）
+    sorted_folders = sorted(folders, key=os.path.getmtime)
+    print(sorted_folders[-5])
+    return sorted_folders[-5]
 
 
 def get_all_folders(base_path):

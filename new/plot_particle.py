@@ -27,6 +27,24 @@ fig, axes = plt.subplots(
     num_folders + 1, 2, figsize=(12, 6 * (num_folders + 1)), constrained_layout=True
 )  # 多个子图
 
+all_heights = []
+for folder in folders:
+    stats_file_path = os.path.join(folder, "initial_result", "all_stats.json")
+    if not os.path.exists(stats_file_path):
+        continue
+
+    with open(stats_file_path, "r") as stats_file:
+        all_stats = json.load(stats_file)
+
+    for key, value in all_stats.items():
+        closest_point = value.get("closest_point", {})
+        box = closest_point.get("Box", [0, 0, 0, 0])
+        height = (box[1] + box[3]) / 2 / 147 + 42 / 147  # 计算高度
+        all_heights.append(height)
+
+# 获取全局的最小和最大高度
+min_height = min(all_heights)
+max_height = max(all_heights)
 # 遍历所有子目录
 for i, folder in enumerate(folders):
     initial_result_directory = os.path.join(folder, "initial_result")
@@ -84,11 +102,19 @@ for i, folder in enumerate(folders):
     )
     axes[i, 0].set_xlabel("Height (cm)")
     axes[i, 0].set_ylabel("Rotation (rad/s)")
+    axes[i, 0].set_xlim(min_height, max_height)  # 设定相同的 x 轴范围
     if i == 0:
         axes[i, 0].set_title(f"Absolute Rotation vs Height")
     # axes[i, 0].grid()
     axes[i, 0].legend()
-
+    # 计算并绘制趋势线（线性拟合）
+    if len(heights_abs_rot) > 1:
+        poly_coeffs = np.polyfit(heights_abs_rot, abs_rotations, 1)  # 一阶线性拟合
+        trend_line = np.poly1d(poly_coeffs)
+        x_trend = np.linspace(min_height, max_height, 100)
+        axes[i, 0].plot(
+            x_trend, trend_line(x_trend), color="blue", linestyle="--", label="Trend"
+        )
     axes[i, 1].scatter(
         heights_orb_rev,
         orbital_revs,
@@ -102,6 +128,13 @@ for i, folder in enumerate(folders):
         axes[i, 1].set_title(f"Orbital Revolution vs Height")
     # axes[i, 1].grid()
     axes[i, 1].legend()
+    # 计算并绘制趋势线（线性拟合）
+    if len(heights_orb_rev) > 1:
+        poly_coeffs = np.polyfit(heights_orb_rev, orbital_revs, 2)  # 一阶线性拟合
+        trend_line = np.poly1d(poly_coeffs)
+        axes[i, 1].plot(
+            x_trend, trend_line(x_trend), color="red", linestyle="--", label="Trend"
+        )
 
 
 # 绘制实验均值趋势图（最后一行）
