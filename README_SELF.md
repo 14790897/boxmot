@@ -28,3 +28,8 @@ python tracking/val.py --yolo-model yolov8_nano.pt --tracking-method bytetrack -
 #### 有问题
 
 python tracking/val.py trackeval1 --yolo-model yolov8-particle-best.pt --benchmark MOTCUSTOM --split test --tracking-method bytetrack --conf 0.1 --iou 0.1
+
+
+## 画出结果图
+
+python new\plot_particle.py

@@ -207,8 +207,8 @@ def detect_frame_difference(data):
     """
     for key, value in data.items():
         category_changes = value.get("category_changes", [])
-        start_frame_revolution = value.get("start_frame_revolution", 0)
-        end_frame_revolution = value.get("end_frame_revolution", 0)
+        # start_frame_revolution = value.get("start_frame_revolution", 0)
+        # end_frame_revolution = value.get("end_frame_revolution", 0)
         not_use_rotation = value.get("not_use_rotation", False)
         if not not_use_rotation:
             all_frame = (
