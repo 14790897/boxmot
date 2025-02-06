@@ -372,7 +372,10 @@ def process_data():
         total_frames_revolution = last_appear["Frame"] - first_appear["Frame"] + 1
         total_frames_rotation = last_change["Frame"] - first_change["Frame"] + 1
         box = closest_point_data.get("Box", [0, 0, 0, 0])
-        height = (box[1] + box[3]) / 2 / 147 + 42 / 147
+        height = (
+            (box[1] + box[3]) / 2 / 147
+        )  # + 42 / 147（0-1缺失的部分）不要了，因为高度从旋流器顶端算
+        height = (box[1] + box[3]) / 2 / 147 + 1024 / 147 - (40 + 147 + 17) / 147
         results[id_]["changes"] = (
             len(category_changes)
             - 1  # 如果是-2就是减去最后的那次变化的次数，同时保留倒数第二个状态的时间
@@ -391,6 +394,11 @@ def process_data():
         results[id_]["inner_diameter"] = d_total
         results[id_]["closest_point"] = closest_point_data
         results[id_]["height"] = height
+        if (
+            height > 10.5
+        ):  # 10.68相对于刻度尺的11cm,（1024+751）/147 - (40+147+17)/147=10.68
+            results[id_]["not_use_rotation"] = True
+            print(f"id {i} Category 高度大于10.68，只计算公转速")
         if len(category_changes) < 3:
             results[id_]["not_use_rotation"] = True
             print(f"id {i} Category 在指定范围内次数变化小于3，只计算公转速")
