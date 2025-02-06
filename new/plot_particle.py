@@ -39,7 +39,11 @@ for folder in folders:
     for key, value in all_stats.items():
         closest_point = value.get("closest_point", {})
         box = closest_point.get("Box", [0, 0, 0, 0])
-        height = (box[1] + box[3]) / 2 / 147 + 42 / 147  # 计算高度
+        height = None
+        if value.get("height") is None:
+            height = (box[1] + box[3]) / 2 / 147 + 42 / 147  # 高度计算公式
+        else:
+            height = value.get("height")
         all_heights.append(height)
 
 # 获取全局的最小和最大高度
@@ -73,7 +77,11 @@ for i, folder in enumerate(folders):
 
             # 计算高度
             box = closest_point.get("Box", [0, 0, 0, 0])
-            height = (box[1] + box[3]) / 2 / 147 + 42 / 147  # 高度计算公式
+            height = None
+            if value.get("height") is None:
+                height = (box[1] + box[3]) / 2 / 147 + 42 / 147  # 高度计算公式
+            else:
+                height = value.get("height")
 
             # 存储数据
             if abs_rotation > 0:

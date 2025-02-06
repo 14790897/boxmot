@@ -11,7 +11,7 @@ from process_utils import (
     calculate_distance_and_draw,
     detect_frame_difference,
     get_latest_folder,
-    remove_long_time_not_change
+    remove_long_time_not_change,
 )
 import cv2
 
@@ -78,7 +78,7 @@ def process_data():
         # else:
         #     print(f"拼接图片已存在，跳过: {stitched_image_path}")
         for count in range(
-            0, len(initial_id_data) 
+            0, len(initial_id_data)
         ):  # 从第一帧到倒数第'二'帧遍历,因为最后一帧的话会是none所以不能处理
             if count == 0:  # 处理第一帧
                 if (
@@ -100,7 +100,7 @@ def process_data():
                         "Category"
                     ]  # 修正为前一帧的值
             else:
-                if count == len(initial_id_data) - 1: 
+                if count == len(initial_id_data) - 1:
                     if (
                         len(initial_id_data) > 2
                         and initial_id_data[count - 1]["Category"]
@@ -148,8 +148,8 @@ def process_data():
 
                 # 找到最接近的帧
                 closest_entry = min(
-                    initial_id_data, 
-                    key=lambda x: abs(x["Frame"] - mid_frame)  # 按帧差值排序
+                    initial_id_data,
+                    key=lambda x: abs(x["Frame"] - mid_frame),  # 按帧差值排序
                 )
                 closest_entry["origin_frame"] = category_start_frame  # 保存原始帧数
                 category_changes.append(closest_entry)
@@ -165,8 +165,7 @@ def process_data():
 
             # 找到最接近的帧
             closest_entry = min(
-                initial_id_data, 
-                key=lambda x: abs(x["Frame"] - mid_frame)
+                initial_id_data, key=lambda x: abs(x["Frame"] - mid_frame)
             )
             closest_entry["origin_frame"] = category_start_frame  # 保存原始帧数
             # print(f"最后一段的处理: {closest_entry},mid_frame: {mid_frame},duration: {duration}")
@@ -258,24 +257,16 @@ def process_data():
             0
         ]  # 这里使用第一和最后出现的数据计算公转速度
         last_appear = initial_id_data_with_range[-1]
-        if not category_changes:#如果没有变化就跳过
+        if not category_changes:  # 如果没有变化就跳过
             first_change = initial_id_data[0]
             last_change = initial_id_data[-1]
         else:
             first_change = category_changes[0]
             last_change = category_changes[-1]
-        first_appear_x_coord = (
-            first_appear["Box"][0] + first_appear["Box"][2]
-        ) / 2
-        first_appear_y_coord = (
-            first_appear["Box"][1] + first_appear["Box"][3]
-        ) / 2
-        last_appear_x_coord = (
-            last_appear["Box"][0] + last_appear["Box"][2]
-        ) / 2
-        last_appear_y_coord = (
-            last_appear["Box"][1] + last_appear["Box"][3]
-        ) / 2
+        first_appear_x_coord = (first_appear["Box"][0] + first_appear["Box"][2]) / 2
+        first_appear_y_coord = (first_appear["Box"][1] + first_appear["Box"][3]) / 2
+        last_appear_x_coord = (last_appear["Box"][0] + last_appear["Box"][2]) / 2
+        last_appear_y_coord = (last_appear["Box"][1] + last_appear["Box"][3]) / 2
         first_appear_coordinates = (
             first_appear_x_coord,
             first_appear_y_coord,
@@ -318,12 +309,8 @@ def process_data():
         new_image2 = calculate_distance_and_draw(
             last_appear_coordinates, central_line_coords, last_image
         )[3]
-        new_image1.save(
-            os.path.join(first_last_output_path, "1_distance_result.jpg")
-        )
-        new_image2.save(
-            os.path.join(first_last_output_path, "2_distance_result.jpg")
-        )
+        new_image1.save(os.path.join(first_last_output_path, "1_distance_result.jpg"))
+        new_image2.save(os.path.join(first_last_output_path, "2_distance_result.jpg"))
         # stitched_image_path = os.path.join(
         #     initial_result_directory, i, "images", "stitched_image.jpg"
         # )
@@ -343,9 +330,7 @@ def process_data():
                 (item["Box"][0] + item["Box"][2]) / 2,
                 (item["Box"][1] + item["Box"][3]) / 2,
             ]
-            distance = calculate_distance_and_draw(point, central_line_coords)[
-                0
-            ]
+            distance = calculate_distance_and_draw(point, central_line_coords)[0]
             if distance < min_distance:
                 min_distance = distance
                 closest_point = point
@@ -380,14 +365,14 @@ def process_data():
             for p in (first_appear_coordinates, last_appear_coordinates)
         )
         # 将对应的json数据也复制进去
-        with open(
-            os.path.join(first_last_output_path, "output.json"), "w"
-        ) as file:
+        with open(os.path.join(first_last_output_path, "output.json"), "w") as file:
             json.dump([first_appear, last_appear], file, indent=4)
 
         print(f"id {i} Category 发生了 {len(category_changes) - 1} 次变化")
         total_frames_revolution = last_appear["Frame"] - first_appear["Frame"] + 1
         total_frames_rotation = last_change["Frame"] - first_change["Frame"] + 1
+        box = closest_point_data.get("Box", [0, 0, 0, 0])
+        height = (box[1] + box[3]) / 2 / 147 + 42 / 147
         results[id_]["changes"] = (
             len(category_changes)
             - 1  # 如果是-2就是减去最后的那次变化的次数，同时保留倒数第二个状态的时间
@@ -405,23 +390,35 @@ def process_data():
         results[id_]["d2_origin"] = d2_origin
         results[id_]["inner_diameter"] = d_total
         results[id_]["closest_point"] = closest_point_data
+        results[id_]["height"] = height
         if len(category_changes) < 3:
             results[id_]["not_use_rotation"] = True
             print(f"id {i} Category 在指定范围内次数变化小于3，只计算公转速")
         else:
             print(f"id {i} Category 在指定范围内发生了大于2次变化")
-        if total_frames_rotation/total_frames_revolution < 0.3:
+        if total_frames_rotation / total_frames_revolution < 0.3:
             results[id_]["not_use_rotation"] = True
             print(f"id {i} Category 旋转时间占比小于0.3，只计算公转速度")
 
     # 在整个循环结束后，将所有统计信息保存到一个文件中
-    with open(
-        os.path.join(initial_result_directory, "all_stats.json"), "w"
-    ) as stats_file:
-        # 将每个ID的变化次数和总帧数保存到 all_stats 中
+    stats_filepath = os.path.join(initial_result_directory, "all_stats.json")
 
-        for id_, result in results.items():
-            all_stats[f"{id_}"] = OrderedDict(
+    # 如果文件存在，则读取现有数据，否则初始化为空字典
+    if os.path.exists(stats_filepath):
+        with open(stats_filepath, "r") as stats_file:
+            try:
+                all_stats = json.load(stats_file)  # 读取现有统计信息
+            except json.JSONDecodeError:
+                # 如果文件内容为空或非JSON格式，初始化为空字典
+                all_stats = {}
+    else:
+        all_stats = {}
+
+    # 更新现有统计数据或添加新的统计数据
+    for id_, result in results.items():
+        # 统计信息按照ID更新或新增
+        all_stats[f"{id_}"].update(
+            OrderedDict(
                 [
                     ("not_use_rotation", result.get("not_use_rotation")),
                     ("start_frame_revolution", result.get("start_frame_revolution")),
@@ -444,13 +441,20 @@ def process_data():
                     ("d2_origin", result.get("d2_origin")),
                     ("inner_diameter", result.get("inner_diameter")),
                     ("closest_point", result.get("closest_point")),
+                    ("height", result.get("height")),
                 ]
             )
-            print(
-                f"ID: {id_}, 变化次数: {result['changes']}, 总公转帧数: {result['total_frames_revolution']}, Category Changes: {result['changes']}, height：{(result.get("closest_point").get("Box")[1]+result.get("closest_point").get("Box")[3])/2/147 + 42/147 }cm"
-            )
+        )
+
+        print(
+            f"ID: {id_}, 变化次数: {result['changes']}, 总公转帧数: {result['total_frames_revolution']}, "
+            f"Category Changes: {result['changes']}, height："
+            f"{height}cm"
+        )
         detect_frame_difference(all_stats)
-        json.dump(all_stats, stats_file, indent=4)
+        # 将更新后的统计数据写回文件
+        with open(stats_filepath, "w") as stats_file:
+            json.dump(all_stats, stats_file, indent=4)
 
 
 if __name__ == "__main__":
