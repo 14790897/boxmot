@@ -195,7 +195,8 @@ def main_convert(classify=True):
             transform,
         )
         average_time = sum(times) / len(times)
-        print(f"平均目标分类时间: {average_time:.6f} 秒")
+        if index % 100 == 0:
+            print(f"平均目标分类时间: {average_time:.6f} 秒")
 
 
 if __name__ == "__main__":

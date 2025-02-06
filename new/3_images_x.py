@@ -19,6 +19,7 @@ from process_utils import (
 
 # 旋流器右边的两条线
 line_dict = {"1": (269, 49, 269, 328), "2": (269, 328, 250, 638)}
+line_dict = {"1": (244, 0, 213, 639), "2": (244, 0, 213, 639)}
 base_path = "runs/track"
 initial_result_directory = os.path.join(get_latest_folder(base_path), "initial_result")
 stats_file_path = os.path.join(initial_result_directory, "all_stats.json")
@@ -52,7 +53,9 @@ for k, v in all_stats.items():
         half_frame = frame // 2
         max_frame = max(map(int, x_data.keys()))
         min_frame = min(map(int, x_data.keys()))
-        frame_range = list(range(max(min_frame, half_frame - 8), min(max_frame, half_frame + 8)))
+        frame_range = list(
+            range(max(min_frame, half_frame - 8), min(max_frame, half_frame + 8))
+        )
 
         aggregated_results = defaultdict(list)
 
@@ -80,7 +83,7 @@ for k, v in all_stats.items():
             available_frames = list(x_data.keys())  # 获取所有可用的帧
             available_frames = sorted(
                 available_frames, key=lambda x: abs(int(x) - half_frame)
-            )  
+            )
             # 获取最近的十个帧（或不足十个全部）
             closest_frames = available_frames[:10]
             for closest_frame in closest_frames:
@@ -209,7 +212,9 @@ for k, v in all_stats.items():
             print(f"边距最小的结果图像已保存到 {output_image_path}")
         else:
             print(f"{k}没有找到符合条件的检测结果,设置为8")
-            all_stats[str(id)].update({"margin": 8, "timestamp": current_time,"not_use_revolution":True})
+            all_stats[str(id)].update(
+                {"margin": 8, "timestamp": current_time, "not_use_revolution": True}
+            )
             # shutil.rmtree(id_path)
     except FileNotFoundError:
         # 如果文件不存在，捕获异常并跳过

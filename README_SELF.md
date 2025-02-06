@@ -10,6 +10,10 @@ python tracking/track.py --yolo-model yolov9-s-50-only-you.pt --source assets\MO
 
 python tracking/track.py --yolo-model yolov8-particle-best.pt --source assets\MOT17-mini\train\new_modify\img1 --save --save-txt --conf 0.02 --iou 0.01
 
+### 论文用的图片
+
+python tracking/track.py --yolo-model yolov8-particle-best.pt --source example --save --save-txt --tracking-method bytetrack --conf 0.1 --iou 0.1
+
 ## 评估
 
 ### 生成检测框和特征
@@ -28,7 +32,6 @@ python tracking/val.py --yolo-model yolov8_nano.pt --tracking-method bytetrack -
 #### 有问题
 
 python tracking/val.py trackeval1 --yolo-model yolov8-particle-best.pt --benchmark MOTCUSTOM --split test --tracking-method bytetrack --conf 0.1 --iou 0.1
-
 
 ## 画出结果图
 

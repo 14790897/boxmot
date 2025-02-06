@@ -54,7 +54,7 @@ def calculate_distance_and_draw(point, line_coords, image=None):
                 cv2.LINE_AA,
             )
         image_pillow = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-
+        # x0为垂足的x坐标，y为垂足的y坐标
         return distance, x0, y, image_pillow
     else:
         return distance, x0, y
@@ -191,9 +191,7 @@ def find_changes_within_range(
         if mid_left <= center_x <= mid_right:
             changes_in_range.append(change)
     if not changes_in_range:
-        print(
-            f"No changes found within the range ({mid_left:.2f} to {mid_right:.2f})."
-        )
+        print(f"No changes found within the range ({mid_left:.2f} to {mid_right:.2f}).")
     return changes_in_range
 
 
@@ -229,12 +227,15 @@ def detect_frame_difference(data):
                     data[key]["not_use"] = True
                     pass
                 # 排除掉保留状态过长的轨迹
-                elif frame_diff >= all_frame/2:
-                    print(f"have a long time not change, id: {key}, at frame {current_frame}, not use")
+                elif frame_diff >= all_frame / 2:
+                    print(
+                        f"have a long time not change, id: {key}, at frame {current_frame}, not use"
+                    )
                     data[key]["not_use"] = True
     return data
 
-def remove_long_time_not_change(category_changes,id):
+
+def remove_long_time_not_change(category_changes, id):
     """
     检查相邻帧的差距是否大于 15，并根据前后部分的数量删除较少的一部分。
     """
@@ -246,13 +247,13 @@ def remove_long_time_not_change(category_changes,id):
         frame_diff = next_frame - current_frame
 
         # 检查帧差距是否大于 15
-        if frame_diff >= all_frame/3:
+        if frame_diff >= all_frame / 3:
             print(
                 f"Detected frame difference greater than 15 at frame {current_frame}, 检查前后数据数量以删除较少的一部分。"
             )
             # 计算前后部分的长度
             front_part = category_changes[: i + 1]  # 前部分（包含当前帧）
-            back_part = category_changes[i + 1 :]   # 后部分
+            back_part = category_changes[i + 1 :]  # 后部分
 
             # 删除数量较少的部分
             if len(front_part) <= len(back_part):
@@ -269,6 +270,7 @@ def remove_long_time_not_change(category_changes,id):
 
     return category_changes
 
+
 # def get_latest_folder(base_path):
 #     entries = [os.path.join(base_path, entry) for entry in os.listdir(base_path)]
 #     folders = [entry for entry in entries if os.path.isdir(entry)]
@@ -280,8 +282,21 @@ def remove_long_time_not_change(category_changes,id):
 
 def get_latest_folder(base_path):
     """
-    获取 `base_path` 目录下倒数第二个最旧的文件夹。
+    获取 `base_path` 目录下最新的。
+    如果环境变量 `LATEST_FOLDER` 存在，则直接使用其值。
     """
+
+    # 从环境变量中获取
+    latest_folder_from_env = os.getenv("LATEST_FOLDER")
+    if latest_folder_from_env:
+        # 提取环境变量路径的最后一部分
+        folder_name = os.path.basename(latest_folder_from_env)  # 获取最后一部分
+        # 与 base_path 拼接
+        full_folder_path = os.path.join(base_path, folder_name)
+        print(f"Using folder from environment variable: {full_folder_path}")
+        return full_folder_path
+
+    # 如果环境变量不存在，则按原来的逻辑获取
     folders = [
         os.path.join(base_path, entry)
         for entry in os.listdir(base_path)
@@ -295,8 +310,8 @@ def get_latest_folder(base_path):
 
     # 按修改时间升序排序（最旧的在前，最新的在后）
     sorted_folders = sorted(folders, key=os.path.getmtime)
-    print(sorted_folders[-5])
-    return sorted_folders[-5]
+    print(f"Using folder from sorted logic: {sorted_folders[-1]}")
+    return sorted_folders[-1]
 
 
 def get_all_folders(base_path):
@@ -450,6 +465,7 @@ def shorten_video_opencv(
     out.release()
     print(f"视频截取完成，保存为 {output_video}")
 
+
 def clear_folder(folder_path):
     if not os.path.exists(folder_path):
         print(f"文件夹 {folder_path} 不存在。")
@@ -461,7 +477,7 @@ def clear_folder(folder_path):
             if os.path.isfile(item_path) or os.path.islink(item_path):
                 os.unlink(item_path)
             elif os.path.isdir(item_path):
-                shutil.rmtree(item_path) 
+                shutil.rmtree(item_path)
         except Exception as e:
             print(f"无法删除 {item_path}。错误: {e}")
     print(f"已清理文件夹: {folder_path}")

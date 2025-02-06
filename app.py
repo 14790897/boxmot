@@ -127,24 +127,23 @@ def post_process(classify):
     log_output = ""
     scripts = [
         [
-            "python",
+            sys.executable,
             "new/detect_convert.py",
         ],
         [
-            "python",
+            sys.executable,
             "new/1_extract.py",
         ],
         [
-            "python",
+            sys.executable,
             "new/3_images_x.py",
         ],
         [
-            "python",
+            sys.executable,
             "new/4_end.py",
         ],
-        ["python", "new/4_end.py"],
     ]
-    print(f"正在执行脚本: main_convert")
+    print("正在执行脚本: main_convert")
     main_convert(classify)
     for script in scripts:
         try:
