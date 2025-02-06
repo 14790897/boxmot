@@ -13,6 +13,7 @@ from torchvision import transforms
 
 times = []  # 存储所有运行时间
 
+
 def convert_results(
     detection_results,
     image_width,
@@ -37,7 +38,7 @@ def convert_results(
         try:
             id = int(result[5])  # 物体 ID
         except IndexError:
-            id=9999
+            id = 9999
             print(f"检测结果中缺少 ID, 需要注意")
         # 计算边框的左上角和右下角坐标
         x1 = round(x_center - width / 2)
@@ -143,7 +144,7 @@ def main_convert(classify=True):
     # video
     video_path, video_name = find_video_files(track_base_path)
     base_name, _ = os.path.splitext(video_name)
-    new_video_path =os.path.join(base_video_path, f"{base_name}.mp4")
+    new_video_path = os.path.join(base_video_path, f"{base_name}.mp4")
     if classify:
         model_e = efficientnet_b1(weights=EfficientNet_B1_Weights.DEFAULT)
         model_e.classifier[1] = nn.Linear(model_e.classifier[1].in_features, 2)

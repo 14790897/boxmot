@@ -181,7 +181,10 @@ def post_process(classify):
         except json.JSONDecodeError:
             return "JSON decoding error. The file content might be invalid."
     else:
-        return f"File {calculation_results_path} does not exist."
+        return (
+            f"File {calculation_results_path} does not exist.",
+            f"File {calculation_results_path} does not exist.",
+        )
 
 
 # 创建 Gradio 界面
