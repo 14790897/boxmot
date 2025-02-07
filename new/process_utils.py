@@ -208,7 +208,7 @@ def detect_frame_difference(data):
         # start_frame_revolution = value.get("start_frame_revolution", 0)
         # end_frame_revolution = value.get("end_frame_revolution", 0)
         not_use_rotation = value.get("not_use_rotation", False)
-        if not not_use_rotation:
+        if not not_use_rotation and category_changes:
             all_frame = (
                 category_changes[-1]["origin_frame"]
                 - category_changes[0]["origin_frame"]
@@ -237,6 +237,12 @@ def detect_frame_difference(data):
                         "reason"
                     ] = f"have a long time not change，at frame {current_frame}"
     return data
+
+
+def remove_empty(data):
+    return {
+        key: value for key, value in data.items() if value.get("category_changes", [])
+    }
 
 
 def remove_long_time_not_change(category_changes, id):

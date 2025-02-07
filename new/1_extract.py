@@ -12,6 +12,7 @@ from process_utils import (
     detect_frame_difference,
     get_latest_folder,
     remove_long_time_not_change,
+    remove_empty,
 )
 import cv2
 
@@ -43,7 +44,7 @@ results = defaultdict(
     }
 )
 # 定义计算上下边界
-y_min = 20  # 最小 y 坐标（根据实际需求调整）
+y_min = 100  # 最小 y 坐标（根据实际需求调整）
 y_max = 1200  # 最大 y 坐标（根据实际需求调整）
 
 
@@ -73,7 +74,10 @@ def process_data():
             for entry in initial_id_data
         ):
             print(f"轨迹 {i} 超出 Y 坐标范围，跳过")
-            shutil.rmtree(id_path)
+            # shutil.rmtree(id_path)
+            # 这里会导致这个键只有它被定义其他的数据是空的,最后后处理的时候会访问不到其他数据,报错,使用remove_empty解决
+            results[i]["not_use"] = True
+            results[i]["reason"] = "Out of Y coordinate range"
             continue
 
         # else:
@@ -171,33 +175,39 @@ def process_data():
             closest_entry["origin_frame"] = category_start_frame  # 保存原始帧数
             # print(f"最后一段的处理: {closest_entry},mid_frame: {mid_frame},duration: {duration}")
             category_changes.append(closest_entry)
-        # category_changes_with_all = copy.deepcopy(category_changes)
+        # if len(category_changes) == 0:
+        #     不会触发这个条件，因为至少有一个状态
+        #     print(f"ID {i} 没有变化，删除")
+        #     break
+        category_changes_with_all = copy.deepcopy(category_changes)
 
-        # all_frame = (
-        #     category_changes_with_all[-1]["origin_frame"]
-        #     - category_changes_with_all[0]["origin_frame"]
-        # )
-        # for i in range(len(category_changes_with_all) - 1):
-        #     current_frame = category_changes_with_all[i]["origin_frame"]
-        #     next_frame = category_changes_with_all[i + 1]["origin_frame"]
-        #     frame_diff = next_frame - current_frame
-        #     # 检查帧差距是否为 2
-        #     if frame_diff == 2:
-        #         print(
-        #             f"Detected frame difference of 2 at frame {current_frame} of id: {i}, 由于变化过快，说明无法准确检测，建议删除"
-        #         )
-        #         results[i]["not_use"] = True
-        #         results[i]["reason"] = f"change too fast at frame {current_frame}"
-        #         pass
-        #     # 排除掉保留状态过长的轨迹
-        #     elif frame_diff >= all_frame / 2:
-        #         print(
-        #             f"have a long time not change, id: {i}, at frame {current_frame}, not use"
-        #         )
-        #         results[i]["not_use"] = True
-        #         results[i][
-        #             "reason"
-        #         ] = f"have a long time not change，at frame {current_frame}"
+        all_frame = (
+            category_changes_with_all[-1]["origin_frame"]
+            - category_changes_with_all[0]["origin_frame"]
+        )
+        if len(category_changes_with_all) < 2:
+            print(f"Not enough frames to process for id: {i}")
+            continue
+        for id_category in range(len(category_changes_with_all) - 1):
+            current_frame = category_changes_with_all[id_category]["origin_frame"]
+            next_frame = category_changes_with_all[id_category + 1]["origin_frame"]
+            frame_diff = next_frame - current_frame
+            # 检查帧差距是否为 2
+            if frame_diff == 2:
+                print(
+                    f"Main Detected frame difference of 2 at frame {current_frame} of id: {i}, 由于变化过快，说明无法准确检测，建议删除"
+                )
+                results[i]["not_use"] = True
+                results[i]["reason"] = f"Main change too fast at frame {current_frame}"
+            # 排除掉保留状态过长的轨迹
+            elif frame_diff >= all_frame / 2:
+                print(
+                    f"Main have a long time not change, id: {i}, at frame {current_frame}, not use"
+                )
+                results[i]["not_use"] = True
+                results[i][
+                    "reason"
+                ] = f"Main have a long time not change，at frame {current_frame}"
         # 忽略最后一次变化(由于改成距离检测，这里不删除最后一次变化)
         # if category_changes:
         #     category_changes = category_changes[:-1]
@@ -226,6 +236,7 @@ def process_data():
         ) > 0:
             print(f"{id_} 两点在同一侧不符合测量要求，删除")
             shutil.rmtree(id_path)
+            del results[id_]
             continue
         d1_origin, d2_origin = (
             calculate_distance_and_draw(p, central_line_coords)[0]
@@ -306,6 +317,7 @@ def process_data():
         ) > 0:
             print(f"{id_} 在过滤范围内两点在同一侧不符合测量要求，删除")
             shutil.rmtree(id_path)
+            del results[id_]
             continue
         d_total = d_total_left + d_total_right
 
@@ -399,6 +411,9 @@ def process_data():
         print(f"id {i} Category 发生了 {len(category_changes) - 1} 次变化")
         total_frames_revolution = last_appear["Frame"] - first_appear["Frame"] + 1
         total_frames_rotation = last_change["Frame"] - first_change["Frame"] + 1
+        total_frames_rotation_origin = (
+            last_change["origin_frame"] - first_change["origin_frame"] + 1
+        )
         box = closest_point_data.get("Box", [0, 0, 0, 0])
         height = (
             (box[1] + box[3]) / 2 / 147
@@ -433,9 +448,9 @@ def process_data():
             print(f"id {i} Category 在指定范围内次数变化小于3，只计算公转速")
         else:
             print(f"id {i} Category 在指定范围内发生了大于2次变化")
-        if total_frames_rotation / total_frames_revolution < 0.3:
+        if total_frames_rotation_origin / total_frames_revolution < 0.4:
             results[id_]["not_use_rotation"] = True
-            print(f"id {i} Category 旋转时间占比小于0.3，只计算公转速度")
+            print(f"id {i} Category 旋转时间占比小于0.5，只计算公转速度")
 
     # 在整个循环结束后，将所有统计信息保存到一个文件中
     stats_filepath = os.path.join(initial_result_directory, "all_stats.json")
@@ -485,12 +500,13 @@ def process_data():
                 ]
             )
         )
-
-        print(
-            f"ID: {id_}, 变化次数: {result['changes']}, 总公转帧数: {result['total_frames_revolution']}, "
-            f"Category Changes: {result['changes']}, height："
-            f"{height}cm"
-        )
+        # print("id", id_)
+        # print(
+        #     f"ID: {id_}, 变化次数: {result['changes']}, 总公转帧数: {result['total_frames_revolution']}, "
+        #     f"Category Changes: {result['changes']}, height："
+        #     f"{height}cm"
+        # )
+    all_stats = remove_empty(all_stats)
     detect_frame_difference(all_stats)
     # 将更新后的统计数据写回文件
     with open(stats_filepath, "w") as stats_file:
