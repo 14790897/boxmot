@@ -15,23 +15,26 @@ from process_utils import (
     remove_empty,
 )
 import cv2
-
-line_dict = {
-    "1": (175, 31, 175, 437),
-    "2": (175, 437, 209, 1021),
-    "3": (551, 31, 551, 437),
-    "4": (551, 437, 513, 1021),
-    "5": (370, 31, 370, 1021),
-}
-# 切换位置
-
-line_dict = {
-    "1": (193, 0, 250, 1021),
-    "2": (193, 0, 250, 1021),
-    "3": (520, 0, 460, 1021),
-    "4": (520, 0, 460, 1021),
-    "5": (363, 0, 363, 1021),
-}
+base_path = "runs/track"
+initial_result_directory = os.path.join(get_latest_folder(base_path), "initial_result")
+video_path = "my_process_particle_video.avi"
+if not get_latest_folder(base_path).endswith("-2"):
+    line_dict = {
+        "1": (175, 31, 175, 437),
+        "2": (175, 437, 209, 1021),
+        "3": (551, 31, 551, 437),
+        "4": (551, 437, 513, 1021),
+        "5": (370, 31, 370, 1021),
+    }
+else:
+    # 切换位置
+    line_dict = {
+        "1": (193, 0, 250, 1021),
+        "2": (193, 0, 250, 1021),
+        "3": (520, 0, 460, 1021),
+        "4": (520, 0, 460, 1021),
+        "5": (363, 0, 363, 1021),
+    }
 
 central_line_coords = line_dict["5"]
 results = {}
@@ -50,9 +53,7 @@ y_max = 1200  # 最大 y 坐标（根据实际需求调整）
 
 exclude_last_frames = 8
 exclude_first_frames = 0  # 这里使用去除第一次变化来取代这个
-base_path = "runs/track"
-initial_result_directory = os.path.join(get_latest_folder(base_path), "initial_result")
-video_path = "my_process_particle_video.avi"
+
 # 用于保存所有ID的统计信息
 all_stats = {}
 
@@ -415,11 +416,13 @@ def process_data():
             last_change["origin_frame"] - first_change["origin_frame"] + 1
         )
         box = closest_point_data.get("Box", [0, 0, 0, 0])
-        height = (
-            (box[1] + box[3]) / 2 / 147
-        )  # + 42 / 147（0-1缺失的部分）不要了，因为高度从旋流器顶端算
-        # 切换位置
-        height = (box[1] + box[3]) / 2 / 147 + 1024 / 147 - (40 + 147 + 17) / 147
+        if not get_latest_folder(base_path).endswith("-2"):
+            height = (
+                (box[1] + box[3]) / 2 / 147
+            )  # + 42 / 147（0-1缺失的部分）不要了，因为高度从旋流器顶端算
+        else:
+            # 切换位置
+            height = (box[1] + box[3]) / 2 / 147 + 1024 / 147 - (40 + 147 + 17) / 147
         results[id_]["changes"] = (
             len(category_changes)
             - 1  # 如果是-2就是减去最后的那次变化的次数，同时保留倒数第二个状态的时间

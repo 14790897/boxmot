@@ -16,13 +16,15 @@ from process_utils import (
     get_latest_folder,
 )
 
-
-# 旋流器右边的两条线
-line_dict = {"1": (269, 49, 269, 328), "2": (269, 328, 250, 638)}
-# 切换位置
-line_dict = {"1": (244, 0, 213, 639), "2": (244, 0, 213, 639)}
 base_path = "runs/track"
 initial_result_directory = os.path.join(get_latest_folder(base_path), "initial_result")
+if not get_latest_folder(base_path).endswith("-2"):
+    # 旋流器右边的两条线
+    line_dict = {"1": (269, 49, 269, 328), "2": (269, 328, 250, 638)}
+else:
+    # 切换位置
+    line_dict = {"1": (244, 0, 213, 639), "2": (244, 0, 213, 639)}
+
 stats_file_path = os.path.join(initial_result_directory, "all_stats.json")
 current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -110,9 +112,14 @@ for k, v in all_stats.items():
                 x1, y1, x2, y2 = entry["bbox"]
                 # frame_image = cv2.imread(frame_image_path)
                 x, y = (x1 + x2) / 2, (y1 + y2) / 2
-                image_x_y_coord = int(
-                    (image_y_y_coord + 44) * 101 / 149 + 5
-                )  # 我觉得应该是 (y + 44 ) * 101/149 + 5  44为y图片相对于0位置缺少的距离，101/149为x/y图片的缩放比例，5为x图片相对于0的位置缺少的距离
+                if not get_latest_folder(base_path).endswith("-2"):
+
+                    image_x_y_coord = int(
+                        (image_y_y_coord + 44) * 101 / 149 + 5
+                    )  # 我觉得应该是 (y + 44 ) * 101/149 + 5  44为y图片相对于0位置缺少的距离，101/149为x/y图片的缩放比例，5为x图片相对于0的位置缺少的距离
+                else:
+                    # 切换位置
+                    image_x_y_coord = int((image_y_y_coord) * 101 / 149)
                 image_x_down_threshold = (
                     image_x_y_coord - 30
                 )  # 因为x图像是比较往下的所以我们要往上走
