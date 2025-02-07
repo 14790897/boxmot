@@ -22,6 +22,7 @@ line_dict = {
     "4": (551, 437, 513, 1021),
     "5": (370, 31, 370, 1021),
 }
+# 切换位置
 
 line_dict = {
     "1": (193, 0, 250, 1021),
@@ -170,6 +171,33 @@ def process_data():
             closest_entry["origin_frame"] = category_start_frame  # 保存原始帧数
             # print(f"最后一段的处理: {closest_entry},mid_frame: {mid_frame},duration: {duration}")
             category_changes.append(closest_entry)
+        # category_changes_with_all = copy.deepcopy(category_changes)
+
+        # all_frame = (
+        #     category_changes_with_all[-1]["origin_frame"]
+        #     - category_changes_with_all[0]["origin_frame"]
+        # )
+        # for i in range(len(category_changes_with_all) - 1):
+        #     current_frame = category_changes_with_all[i]["origin_frame"]
+        #     next_frame = category_changes_with_all[i + 1]["origin_frame"]
+        #     frame_diff = next_frame - current_frame
+        #     # 检查帧差距是否为 2
+        #     if frame_diff == 2:
+        #         print(
+        #             f"Detected frame difference of 2 at frame {current_frame} of id: {i}, 由于变化过快，说明无法准确检测，建议删除"
+        #         )
+        #         results[i]["not_use"] = True
+        #         results[i]["reason"] = f"change too fast at frame {current_frame}"
+        #         pass
+        #     # 排除掉保留状态过长的轨迹
+        #     elif frame_diff >= all_frame / 2:
+        #         print(
+        #             f"have a long time not change, id: {i}, at frame {current_frame}, not use"
+        #         )
+        #         results[i]["not_use"] = True
+        #         results[i][
+        #             "reason"
+        #         ] = f"have a long time not change，at frame {current_frame}"
         # 忽略最后一次变化(由于改成距离检测，这里不删除最后一次变化)
         # if category_changes:
         #     category_changes = category_changes[:-1]
@@ -375,6 +403,7 @@ def process_data():
         height = (
             (box[1] + box[3]) / 2 / 147
         )  # + 42 / 147（0-1缺失的部分）不要了，因为高度从旋流器顶端算
+        # 切换位置
         height = (box[1] + box[3]) / 2 / 147 + 1024 / 147 - (40 + 147 + 17) / 147
         results[id_]["changes"] = (
             len(category_changes)

@@ -225,7 +225,7 @@ def detect_frame_difference(data):
                         f"Detected frame difference of 2 at frame {current_frame} of id: {key}, 由于变化过快，说明无法准确检测，建议删除"
                     )
                     data[key]["not_use"] = True
-                    data[key]["reason"] = "change too fast"
+                    data[key]["reason"] = f"change too fast at frame {current_frame}"
                     pass
                 # 排除掉保留状态过长的轨迹
                 elif frame_diff >= all_frame / 2:
@@ -233,13 +233,15 @@ def detect_frame_difference(data):
                         f"have a long time not change, id: {key}, at frame {current_frame}, not use"
                     )
                     data[key]["not_use"] = True
-                    data[key]["reason"] = "have a long time not change"
+                    data[key][
+                        "reason"
+                    ] = f"have a long time not change，at frame {current_frame}"
     return data
 
 
 def remove_long_time_not_change(category_changes, id):
     """
-    检查相邻帧的差距是否大于 15，并根据前后部分的数量删除较少的一部分。
+    检查相邻帧的差距是否大于 15，并根据前后部分的数量删除较少的一部分。（不使用）
     """
     all_frame = category_changes[-1]["Frame"] - category_changes[0]["Frame"]
     i = 0  # 使用 while 循环以便动态修改列表

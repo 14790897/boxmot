@@ -162,7 +162,7 @@ for i, (folder, folder_2) in enumerate(folder_pairs.items()):
     axes[i, 0].legend()
     # 计算并绘制趋势线（线性拟合）
     if len(heights_abs_rot) > 1:
-        poly_coeffs = np.polyfit(heights_abs_rot, abs_rotations, 1)  # 一阶线性拟合
+        poly_coeffs = np.polyfit(heights_abs_rot, abs_rotations, 2)  # 一阶线性拟合
         trend_line = np.poly1d(poly_coeffs)
         x_trend = np.linspace(min_height, max_height, 100)
         axes[i, 0].plot(

@@ -19,6 +19,7 @@ from process_utils import (
 
 # 旋流器右边的两条线
 line_dict = {"1": (269, 49, 269, 328), "2": (269, 328, 250, 638)}
+# 切换位置
 line_dict = {"1": (244, 0, 213, 639), "2": (244, 0, 213, 639)}
 base_path = "runs/track"
 initial_result_directory = os.path.join(get_latest_folder(base_path), "initial_result")
