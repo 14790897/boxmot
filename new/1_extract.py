@@ -424,6 +424,9 @@ def process_data():
 
     # 更新现有统计数据或添加新的统计数据
     for id_, result in results.items():
+        # 初始化ID对应的字典
+        if f"{id_}" not in all_stats:
+            all_stats[f"{id_}"] = {}
         # 统计信息按照ID更新或新增
         all_stats[f"{id_}"].update(
             OrderedDict(
@@ -459,10 +462,10 @@ def process_data():
             f"Category Changes: {result['changes']}, height："
             f"{height}cm"
         )
-        detect_frame_difference(all_stats)
-        # 将更新后的统计数据写回文件
-        with open(stats_filepath, "w") as stats_file:
-            json.dump(all_stats, stats_file, indent=4)
+    detect_frame_difference(all_stats)
+    # 将更新后的统计数据写回文件
+    with open(stats_filepath, "w") as stats_file:
+        json.dump(all_stats, stats_file, indent=4)
 
 
 if __name__ == "__main__":

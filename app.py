@@ -2,6 +2,7 @@ import gradio as gr
 import subprocess
 import os, json, shutil, re
 import sys
+import itertools
 
 from pathlib import Path
 from new.batch import process_images_in_directory, rename_files_in_directory
@@ -30,103 +31,119 @@ def process_with_subcommand(
     x_folder_path=None,
     classify_checkbox=True,
 ):
-    y_input_video_path = None
-    x_input_video_path = None
-    if input_type == "upload video":
-        y_input_video_path = str(Path(y_uploaded_video_path))
-        x_input_video_path = str(Path(x_uploaded_video_path))
-
-    elif input_type == "upload folder":
-        y_input_directory = str(Path(y_folder_path))
-        y_output_directory = r"processed_y1_gradio"  # 自定义输出目录
-        x_input_directory = str(Path(x_folder_path))
-        x_output_directory = r"processed_x1_gradio"  # 自定义输出目录
-        rename_files_in_directory(y_input_directory)
-        delete_invalid_jpg_files(y_input_directory)
-        if os.path.exists(y_output_directory):
-            print(f"Deleting existing output directory: {y_output_directory}")
-            shutil.rmtree(y_output_directory)
-        process_images_in_directory(y_input_directory, y_output_directory)
-        frame_rate = 1  # 每秒帧数
-        path_parts = os.path.normpath(y_input_directory).split(os.sep)
-        # 去除中文字符
-
-        # 处理每个路径部分
-        processed_parts = [remove_chinese(part) for part in path_parts]
-
-        last_two_parts = processed_parts[-2:]
-        output_name = "-".join(last_two_parts)
-        # 设置图片目录和输出视频路径
-        output_video = os.path.join(
-            base_video_path, f"{output_name}_particle_video.mp4"
-        )
-        images_to_video(y_output_directory, output_video, frame_rate)
-        y_input_video_path = output_video
-
-        jpeg_directory = "jpeg_x"
-        # 如果目标目录存在，删除它
-        if os.path.exists(x_output_directory):
-            print(f"Deleting existing output directory: {x_output_directory}")
-            shutil.rmtree(x_output_directory)
-        if os.path.exists(jpeg_directory):
-            print(f"Deleting existing output directory: {jpeg_directory}")
-            shutil.rmtree(jpeg_directory)
-        rename_files_in_directory(x_input_directory)
-        tiff_to_jpeg(x_input_directory, jpeg_directory)
-        process_images_in_directory(jpeg_directory, x_output_directory)
-        x_output_video = os.path.join(
-            base_video_path, f"x_{output_name}_particle_video.mp4"
-        )
-        images_to_video(x_output_directory, x_output_video, frame_rate)
-        x_input_video_path = x_output_video
-
-    y_command = [
-        sys.executable,
-        "tracking/track.py",
-        "--yolo-model",
-        "yolov8-particle-best.pt",  # 使用的 YOLO 模型
-        "--source",
-        y_input_video_path,  # 输入视频路径
-        "--save",  # 保存结果
-        "--save-txt",  # 保存文本文件
-        "--tracking-method",
-        "bytetrack",  # 跟踪方法
-        "--conf",
-        "0.01",  # 置信度阈值
-        "--iou",
-        "0.01",  # IOU 阈值
-        # "--name",
-        # y_input_video_path,
-    ]
-    x_command = [
-        sys.executable,
-        "tracking/track.py",
-        "--yolo-model",
-        "yolov8_best.pt",  # 使用的 YOLO 模型
-        "--source",
-        x_input_video_path,  # 输入视频路径
-        "--save",  # 保存结果
-        "--save-txt",  # 保存文本文件
-        "--conf",
-        "0.01",
-        "--iou",
-        "0.01",  # IOU 阈值
-        "--project",
-        base_x_path,
-    ]
-    try:
-        subprocess.run(y_command, check=True)
-        subprocess.run(x_command, check=True)
-    except subprocess.CalledProcessError as e:
-        return f"Error during processing: {e}"
-
-    output_path = os.path.join(
-        get_latest_folder(base_path),
-        os.path.basename(os.path.splitext(y_input_video_path)[0] + ".avi"),
+    results = []
+    y_folder_list = (
+        [p.strip() for p in y_folder_path.split(",") if p.strip()]
+        if y_folder_path
+        else []
     )
-    output_path = convert_to_mp4(output_path)
-    txt_result, log_output = post_process(classify_checkbox)
-    return output_path, txt_result, log_output
+    x_folder_list = (
+        [p.strip() for p in x_folder_path.split(",") if p.strip()]
+        if x_folder_path
+        else []
+    )
+    print(f"y_folder_list: {y_folder_list}")
+    for y_video, x_video in zip(y_folder_list, x_folder_list):
+        y_input_video_path = None
+        x_input_video_path = None
+        if input_type == "upload video":
+            y_input_video_path = str(Path(y_uploaded_video_path))
+            x_input_video_path = str(Path(x_uploaded_video_path))
+
+        elif input_type == "upload folder":
+            y_input_directory = str(Path(y_video))
+            y_output_directory = r"processed_y1_gradio"  # 自定义输出目录
+            x_input_directory = str(Path(x_video))
+            x_output_directory = r"processed_x1_gradio"  # 自定义输出目录
+            rename_files_in_directory(y_input_directory)
+            delete_invalid_jpg_files(y_input_directory)
+            if os.path.exists(y_output_directory):
+                print(f"Deleting existing output directory: {y_output_directory}")
+                shutil.rmtree(y_output_directory)
+            process_images_in_directory(y_input_directory, y_output_directory)
+            frame_rate = 1  # 每秒帧数
+            path_parts = os.path.normpath(y_input_directory).split(os.sep)
+            # 去除中文字符
+
+            # 处理每个路径部分
+            processed_parts = [remove_chinese(part) for part in path_parts]
+
+            last_two_parts = processed_parts[-2:]
+            output_name = "-".join(last_two_parts)
+            # 设置图片目录和输出视频路径
+            output_video = os.path.join(
+                base_video_path, f"{output_name}_particle_video.mp4"
+            )
+            images_to_video(y_output_directory, output_video, frame_rate)
+            y_input_video_path = output_video
+
+            jpeg_directory = "jpeg_x"
+            # 如果目标目录存在，删除它
+            if os.path.exists(x_output_directory):
+                print(f"Deleting existing output directory: {x_output_directory}")
+                shutil.rmtree(x_output_directory)
+            if os.path.exists(jpeg_directory):
+                print(f"Deleting existing output directory: {jpeg_directory}")
+                shutil.rmtree(jpeg_directory)
+            rename_files_in_directory(x_input_directory)
+            tiff_to_jpeg(x_input_directory, jpeg_directory)
+            process_images_in_directory(jpeg_directory, x_output_directory)
+            x_output_video = os.path.join(
+                base_video_path, f"x_{output_name}_particle_video.mp4"
+            )
+            images_to_video(x_output_directory, x_output_video, frame_rate)
+            x_input_video_path = x_output_video
+
+        y_command = [
+            sys.executable,
+            "tracking/track.py",
+            "--yolo-model",
+            "yolov8-particle-best.pt",  # 使用的 YOLO 模型
+            "--source",
+            y_input_video_path,  # 输入视频路径
+            "--save",  # 保存结果
+            "--save-txt",  # 保存文本文件
+            "--tracking-method",
+            "bytetrack",  # 跟踪方法
+            "--conf",
+            "0.01",  # 置信度阈值
+            "--iou",
+            "0.01",  # IOU 阈值
+            # "--name",
+            # y_input_video_path,
+        ]
+        x_command = [
+            sys.executable,
+            "tracking/track.py",
+            "--yolo-model",
+            "yolov8_best.pt",  # 使用的 YOLO 模型
+            "--source",
+            x_input_video_path,  # 输入视频路径
+            "--save",  # 保存结果
+            "--save-txt",  # 保存文本文件
+            "--conf",
+            "0.01",
+            "--iou",
+            "0.01",  # IOU 阈值
+            "--project",
+            base_x_path,
+        ]
+        try:
+            subprocess.run(y_command, check=True)
+            subprocess.run(x_command, check=True)
+        except subprocess.CalledProcessError as e:
+            return f"Error during processing: {e}"
+
+        output_path = os.path.join(
+            get_latest_folder(base_path),
+            os.path.basename(os.path.splitext(y_input_video_path)[0] + ".avi"),
+        )
+        output_path = convert_to_mp4(output_path)
+        txt_result, log_output = post_process(classify_checkbox)
+        results.append((output_path, txt_result, log_output))
+    if len(results) == 1:
+        return results[0][0], results[0][1], results[0][2]
+    return None, results, None
 
 
 def post_process(classify):
