@@ -4,11 +4,51 @@
 # 450  是 H:\shnu-graduation\alldata\alldata\20180117-hfq-y\y1-450\相机No.1_C001H001S0002
 # 650 是 H:\shnu-graduation\alldata\alldata\20180117-hfq-y\Y1-650\相机No.1_C001H001S0002
 
+
 import json
 import matplotlib.pyplot as plt
 import os
 import numpy as np
 from process_utils import get_all_folders
+
+
+def merge_stats(folder1, folder2):
+    """合并两个文件夹的 all_stats.json 数据，并对第二个文件夹的键名加上 '-2'"""
+    stats1_path = os.path.join(folder1, "initial_result", "all_stats.json")
+    stats2_path = os.path.join(folder2, "initial_result", "all_stats.json")
+
+    data = {}
+
+    # 加载第一个文件夹的 all_stats.json
+    if os.path.exists(stats1_path):
+        with open(stats1_path, "r") as f:
+            data1 = json.load(f)
+        data.update(data1)
+
+    # 加载第二个文件夹的 all_stats.json，并调整键名
+    if os.path.exists(stats2_path):
+        with open(stats2_path, "r") as f:
+            data2 = json.load(f)
+
+        for key, value in data2.items():
+            modified_key = f"{key}-2"  # 修改键名，在原键名后附加 '-2'
+            data[modified_key] = value
+
+    return data
+
+
+# 设置基础路径
+base_path = "runs/track"
+folders = get_all_folders(base_path)
+
+# 过滤出 '-2' 版本的文件夹并匹配主文件夹
+folder_pairs = {}
+for folder in folders:
+    base_name = folder.rstrip("-2")
+    if base_name in folders and folder.endswith("-2"):
+        folder_pairs[base_name] = folder
+    elif base_name not in folder_pairs:
+        folder_pairs[base_name] = None
 
 # 设置基础路径
 base_path = "runs/track"
@@ -22,7 +62,7 @@ exp_avg_abs_rot = []  # 存储每次实验的平均绝对自转
 exp_avg_orb_rev = []  # 存储每次实验的平均公转
 
 # 设置画布
-num_folders = len(folders)
+num_folders = len(folders) // 2
 fig, axes = plt.subplots(
     num_folders + 1, 2, figsize=(12, 6 * (num_folders + 1)), constrained_layout=True
 )  # 多个子图
@@ -50,17 +90,22 @@ for folder in folders:
 min_height = min(all_heights)
 max_height = max(all_heights)
 # 遍历所有子目录
-for i, folder in enumerate(folders):
-    initial_result_directory = os.path.join(folder, "initial_result")
-    stats_file_path = os.path.join(initial_result_directory, "all_stats.json")
+print(len(folder_pairs))
+for i, (folder, folder_2) in enumerate(folder_pairs.items()):
 
-    if not os.path.exists(stats_file_path):
-        print(f"{stats_file_path} 文件不存在，跳过...")
-        continue
+    all_stats = merge_stats(folder, folder_2) if folder_2 else merge_stats(folder, "")
 
-    # 读取 JSON 数据
-    with open(stats_file_path, "r") as stats_file:
-        all_stats = json.load(stats_file)
+    # for i, folder in enumerate(folders):
+    # initial_result_directory = os.path.join(folder, "initial_result")
+    # stats_file_path = os.path.join(initial_result_directory, "all_stats.json")
+
+    # if not os.path.exists(stats_file_path):
+    #     print(f"{stats_file_path} 文件不存在，跳过...")
+    #     continue
+
+    # # 读取 JSON 数据
+    # with open(stats_file_path, "r") as stats_file:
+    #     all_stats = json.load(stats_file)
 
     # 初始化当前文件夹的数据存储
     heights_abs_rot = []

@@ -225,6 +225,7 @@ def detect_frame_difference(data):
                         f"Detected frame difference of 2 at frame {current_frame} of id: {key}, 由于变化过快，说明无法准确检测，建议删除"
                     )
                     data[key]["not_use"] = True
+                    data[key]["reason"] = "change too fast"
                     pass
                 # 排除掉保留状态过长的轨迹
                 elif frame_diff >= all_frame / 2:
@@ -232,6 +233,7 @@ def detect_frame_difference(data):
                         f"have a long time not change, id: {key}, at frame {current_frame}, not use"
                     )
                     data[key]["not_use"] = True
+                    data[key]["reason"] = "have a long time not change"
     return data
 
 

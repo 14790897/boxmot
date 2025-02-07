@@ -1,3 +1,4 @@
+# 这里的代码重新写过之后需要重启一下才能更新
 import gradio as gr
 import subprocess
 import os, json, shutil, re
@@ -141,6 +142,7 @@ def process_with_subcommand(
         output_path = convert_to_mp4(output_path)
         txt_result, log_output = post_process(classify_checkbox)
         results.append((output_path, txt_result, log_output))
+    print(f"results: {results}")
     if len(results) == 1:
         return results[0][0], results[0][1], results[0][2]
     return None, results, None
@@ -297,3 +299,6 @@ with gr.Blocks() as demo:
     #     fn=lambda x: x, inputs=y_uploaded_video, outputs=video_output
     # )
 demo.launch(debug=True)
+# H:\shnu-graduation\alldata\alldata\20180117-hfq-y\Y2-550\相机No.1_C001H001S0001,H:\shnu-graduation\alldata\alldata\20180117-hfq-y\Y2-650\相机No.1_C001H001S0001,H:\shnu-graduation\alldata\alldata\20180117-hfq-y\Y2-750\相机No.1_C001H001S0001,H:\shnu-graduation\alldata\alldata\20180117-hfq-y\Y2-850\相机No.1_C001H001S0001
+
+# H:\shnu-graduation\alldata\alldata\20180117hefengqin-x\x2-550\Acq_A_001,H:\shnu-graduation\alldata\alldata\20180117hefengqin-x\x2-650\Acq_A_001,H:\shnu-graduation\alldata\alldata\20180117hefengqin-x\x2-750\Acq_A_001,H:\shnu-graduation\alldata\alldata\20180117hefengqin-x\x2-850\Acq_A_001
