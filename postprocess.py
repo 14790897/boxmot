@@ -38,6 +38,9 @@ def run_scripts_in_dirs(root_directory):
                 print(f"Output:\n{result.stdout}")
                 if result.stderr:
                     print(f"Errors:\n{result.stderr}")
+                    raise RuntimeError(
+                        f"Script {script} failed with error:\n{result.stderr}"
+                    )
             except Exception as e:
                 print(f"Error executing script {script} in {subdir}: {e}")
 

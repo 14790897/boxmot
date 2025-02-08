@@ -181,10 +181,22 @@ def process_data():
         #     print(f"ID {i} 没有变化，删除")
         #     break
         category_changes_with_all = copy.deepcopy(category_changes)
-
-        all_frame = (
+        true_last_appear_data = initial_id_data[-1]
+        true_last_appear_data["origin_frame"] = initial_id_data[-1]["Frame"]
+        # 如果最后一帧差距太大也要加上去（因为前面最后加的是中间的一帧，所以如果中间差距过大的话他会不能识别出）
+        if (
+            true_last_appear_data["origin_frame"]
+            - category_changes_with_all[-1]["origin_frame"]
+            > 6
+        ):
+            category_changes_with_all.append(true_last_appear_data)
+        origin_all_frame = (
             category_changes_with_all[-1]["origin_frame"]
             - category_changes_with_all[0]["origin_frame"]
+        )
+        all_frame = (
+            category_changes_with_all[-1]["Frame"]
+            - category_changes_with_all[0]["Frame"]
         )
         if len(category_changes_with_all) < 2:
             print(f"Not enough frames to process for id: {i}")
@@ -192,21 +204,27 @@ def process_data():
         for id_category in range(len(category_changes_with_all) - 1):
             current_frame = category_changes_with_all[id_category]["origin_frame"]
             next_frame = category_changes_with_all[id_category + 1]["origin_frame"]
-            frame_diff = next_frame - current_frame
+            origin_frame_diff = next_frame - current_frame
+            frame_diff = (
+                category_changes_with_all[id_category + 1]["Frame"]
+                - category_changes_with_all[id_category]["Frame"]
+            )
+            print(f"{id_}Frame difference: {frame_diff}")
             # 检查帧差距是否为 2
-            if frame_diff == 2:
-                print(
-                    f"Main Detected frame difference of 2 at frame {current_frame} of id: {i}, 由于变化过快，说明无法准确检测，建议删除"
-                )
-                results[i]["not_use"] = True
-                results[i]["reason"] = f"Main change too fast at frame {current_frame}"
-            # 排除掉保留状态过长的轨迹
-            elif frame_diff >= all_frame / 2:
+            # if frame_diff == 2:
+            #     print(
+            #         f"Main Detected frame difference of 2 at frame {current_frame} of id: {i}, 由于变化过快，说明无法准确检测，建议删除"
+            #     )
+            #     results[i]["not_use"] = True
+            #     results[i]["reason"] = f"Main change too fast at frame {current_frame}"
+            # # 排除掉保留状态过长的轨迹
+            # el
+            if origin_frame_diff >= origin_all_frame / 2 or frame_diff >= all_frame / 2:
                 print(
                     f"Main have a long time not change, id: {i}, at frame {current_frame}, not use"
                 )
-                results[i]["not_use"] = True
-                results[i][
+                results[id_]["not_use"] = True
+                results[id_][
                     "reason"
                 ] = f"Main have a long time not change，at frame {current_frame}"
         # 忽略最后一次变化(由于改成距离检测，这里不删除最后一次变化)
@@ -237,7 +255,7 @@ def process_data():
         ) > 0:
             print(f"{id_} 两点在同一侧不符合测量要求，删除")
             shutil.rmtree(id_path)
-            del results[id_]
+            # del results[id_]
             continue
         d1_origin, d2_origin = (
             calculate_distance_and_draw(p, central_line_coords)[0]
@@ -318,7 +336,7 @@ def process_data():
         ) > 0:
             print(f"{id_} 在过滤范围内两点在同一侧不符合测量要求，删除")
             shutil.rmtree(id_path)
-            del results[id_]
+            # del results[id_]
             continue
         d_total = d_total_left + d_total_right
 
@@ -500,6 +518,8 @@ def process_data():
                     ("inner_diameter", result.get("inner_diameter")),
                     ("closest_point", result.get("closest_point")),
                     ("height", result.get("height")),
+                    ("not_use", result.get("not_use")),
+                    ("reason", result.get("reason")),
                 ]
             )
         )
@@ -510,7 +530,7 @@ def process_data():
         #     f"{height}cm"
         # )
     all_stats = remove_empty(all_stats)
-    detect_frame_difference(all_stats)
+    all_stats = detect_frame_difference(all_stats)
     # 将更新后的统计数据写回文件
     with open(stats_filepath, "w") as stats_file:
         json.dump(all_stats, stats_file, indent=4)

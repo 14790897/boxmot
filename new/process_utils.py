@@ -209,18 +209,21 @@ def detect_frame_difference(data):
         # end_frame_revolution = value.get("end_frame_revolution", 0)
         not_use_rotation = value.get("not_use_rotation", False)
         if not not_use_rotation and category_changes:
-            all_frame = (
+            origin_all_frame = (
                 category_changes[-1]["origin_frame"]
                 - category_changes[0]["origin_frame"]
             )
+            all_frame = category_changes[-1]["Frame"] - category_changes[0]["Frame"]
             # all_frame = end_frame_revolution - start_frame_revolution
             for i in range(len(category_changes) - 1):
                 current_frame = category_changes[i]["origin_frame"]
                 next_frame = category_changes[i + 1]["origin_frame"]
-                frame_diff = next_frame - current_frame
-
+                origin_frame_diff = next_frame - current_frame
+                frame_diff = (
+                    category_changes[i + 1]["Frame"] - category_changes[i]["Frame"]
+                )
                 # 检查帧差距是否为 2
-                if frame_diff == 2:
+                if origin_frame_diff == 2:
                     print(
                         f"Detected frame difference of 2 at frame {current_frame} of id: {key}, 由于变化过快，说明无法准确检测，建议删除"
                     )
@@ -228,7 +231,10 @@ def detect_frame_difference(data):
                     data[key]["reason"] = f"change too fast at frame {current_frame}"
                     pass
                 # 排除掉保留状态过长的轨迹
-                elif frame_diff >= all_frame / 2:
+                elif (
+                    origin_frame_diff >= origin_all_frame / 2
+                    or frame_diff >= all_frame / 2
+                ):
                     print(
                         f"have a long time not change, id: {key}, at frame {current_frame}, not use"
                     )
@@ -320,8 +326,8 @@ def get_latest_folder(base_path):
 
     # 按修改时间升序排序（最旧的在前，最新的在后）
     sorted_folders = sorted(folders, key=os.path.getmtime)
-    print(f"Using folder from sorted logic: {sorted_folders[-1]}")
-    return sorted_folders[-1]
+    print(f"Using folder from sorted logic: {sorted_folders[-8]}")
+    return sorted_folders[-8]
 
 
 def get_all_folders(base_path):
