@@ -28,6 +28,7 @@ for key, value in all_stats.items():
         not_use = value.get("not_use", False)
         not_use_rotation = value.get("not_use_rotation", False)
         not_use_revolution = value.get("not_use_revolution", False)
+        must_not_use = value.get("must_not_use", False)
         # if not_use:
         #     # print(f"跳过编号为 {key} 的条目,因为误差较大")
         #     continue
@@ -42,10 +43,14 @@ for key, value in all_stats.items():
         d1_origin = value.get("d1_origin", None)
         d2_origin = value.get("d2_origin", None)
         inner_diameter = value.get("inner_diameter", None)
-        margin = value.get("margin", None) 
+        margin = value.get("margin", None)
         height = value.get("height", None)
         # origin_data = value.get("origin_data", [])
-
+        if margin > 18:
+            margin = 8
+            # must_not_use = True
+            # 最好不进行公转速度的计算
+            not_use_revolution_margin_large = True
         if None in [
             d1_with_range_revolution,
             d2_with_range_revolution,
@@ -56,8 +61,8 @@ for key, value in all_stats.items():
         ]:
             raise ValueError(f"缺少必要的参数在编号为 {key} 的条目中，跳过计算。")
         radius = (
-            inner_diameter / 2 - margin * 640 / 360
-        )  # 这里margin应该还要进行换算,缩放比例640/360
+            inner_diameter / 2 - margin * 147 / 101
+        )  # 这里margin应该还要进行换算,缩放比例147 / 101
 
         # 遍历数据并进行过滤
 
@@ -66,14 +71,14 @@ for key, value in all_stats.items():
             # radius = max(d1, d2)
             radius = (
                 inner_diameter / 2
-            ) - 8 * 640 / 360 # 我觉得这里直接设置为半径是更好因为他那边可能真的是他暂时没有出现这个粒子
+            ) - 8 * 147 / 101  # 我觉得这里直接设置为半径是更好因为他那边可能真的是他暂时没有出现这个粒子
             not_use_revolution = True
             print(
                 f"{key} 的 d1 大于 radius, d1: {d1_with_range_revolution}, radius: {radius}, d1_origin: {d1_origin}, margin: {margin}"
             )
         if radius < d2_origin:
             # radius = max(d1, d2)
-            radius = inner_diameter / 2 - 8 * 640 / 360
+            radius = inner_diameter / 2 - 8 * 147 / 101
             not_use_revolution = True
             print(
                 f"{key} 的 d2 大于 radius, d2: {d2_with_range_revolution}, radius: {radius}, d2_origin: {d2_origin}, margin: {margin}"
@@ -93,20 +98,34 @@ for key, value in all_stats.items():
         orbital_rev = (8000 * (alpha1 + alpha2)) / (
             total_frames_revolution - 1
         )  # 减一是因为这个才是真正时间
-
-        if not_use_rotation or not_use:
-            # print(f"跳过编号为 {key} 的条目,因为误差较大")
+        if not_use_revolution_margin_large:
+            # margin 大于 18 的情况下不进行公转速度的计算
+            orbital_rev = 0
+        if not must_not_use:
+            if not_use_rotation or not_use:
+                # print(f"跳过编号为 {key} 的条目,因为误差较大")
+                abs_rotation = 0
+                rel_rotation = 0
+                result = (
+                    f"id: {key}, revolution: {orbital_rev:.2f} rad/s, height: {height}cm"
+                    if not not_use_revolution
+                    else f"id: {key}, revolution: {orbital_rev:.2f} rad/s, not_use_revolution, height: {height}cm"
+                )
+            else:
+                abs_rotation = (
+                    (changes * 3.1416 * 8000) / 2 / (total_frames_rotation - 1)
+                )
+                rel_rotation = orbital_rev + abs_rotation
+                result = (
+                    f"id: {key}, revolution: {orbital_rev:.2f}rad/s，rotation: {abs_rotation:.2f}rad/s, relative: {rel_rotation:.2f}rad/s, height: {height}cm"
+                    if not not_use_revolution
+                    else f"id: {key}, revolution: {orbital_rev:.2f}rad/s，rotation: {abs_rotation:.2f}rad/s, relative: {rel_rotation:.2f}rad/s, height: {height}cm, not_use_revolution"
+                )
+        else:
+            orbital_rev = 0
             abs_rotation = 0
             rel_rotation = 0
-            result = f"id: {key}, revolution: {orbital_rev:.2f} rad/s" if not not_use_revolution else f"id: {key}, revolution: {orbital_rev:.2f} rad/s, not_use_revolution"
-        else:
-            abs_rotation = (changes * 3.1416 * 8000) / 2 / (total_frames_rotation - 1)
-            rel_rotation = orbital_rev + abs_rotation
-            result = (
-                f"id: {key}, revolution: {orbital_rev:.2f}rad/s，rotation: {abs_rotation:.2f}rad/s, relative: {rel_rotation:.2f}rad/s, height: {height}cm"
-                if not not_use_revolution
-                else f"id: {key}, revolution: {orbital_rev:.2f}rad/s，rotation: {abs_rotation:.2f}rad/s, relative: {rel_rotation:.2f}rad/s, height: {height}cm not_use_revolution"
-            )
+            result = f"id: {key}, must_not_use, height: {height}cm"
         all_stats[key].update(
             {
                 "orbital_rev": orbital_rev,

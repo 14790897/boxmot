@@ -214,14 +214,41 @@ def detect_frame_difference(data):
                 - category_changes[0]["origin_frame"]
             )
             all_frame = category_changes[-1]["Frame"] - category_changes[0]["Frame"]
+            count_frame_3_diff = 0  # 记录帧间隔为 3 的次数
+            previous_frame_diff = None  # 记录前一次帧间隔
+            previous_origin_frame_diff = None  # 记录前一次帧间隔
             # all_frame = end_frame_revolution - start_frame_revolution
             for i in range(len(category_changes) - 1):
                 current_frame = category_changes[i]["origin_frame"]
                 next_frame = category_changes[i + 1]["origin_frame"]
                 origin_frame_diff = next_frame - current_frame
+
                 frame_diff = (
                     category_changes[i + 1]["Frame"] - category_changes[i]["Frame"]
                 )
+                # 这里其实可以改成如果有连续两个帧变化的删掉而不是只有一个两帧的就是删掉
+                # **检查是否连续两次帧间隔为 3**
+                if (
+                    previous_frame_diff == 3
+                    and frame_diff == 3
+                    or previous_origin_frame_diff == 3
+                    and origin_frame_diff == 3
+                ):
+                    print(
+                        f"Detected consecutive frame differences of 3 at frame {current_frame} of id: {key}, "
+                        f"由于变化过快，建议删除"
+                    )
+                    data[key]["not_use"] = True
+                    data[key][
+                        "reason"
+                    ] = f"Consecutive frame_diff = 3 at frame {current_frame}"
+                    break  # **一旦找到连续两次帧差 = 3，就可以退出循环**
+
+                previous_frame_diff = frame_diff
+                previous_origin_frame_diff = origin_frame_diff
+                # # 检查帧差是否为 3
+                # if origin_frame_diff or frame_diff == 3:
+                #     count_frame_3_diff += 1  # 计数+1
                 # 检查帧差距是否为 2
                 if origin_frame_diff == 2:
                     print(
@@ -242,6 +269,15 @@ def detect_frame_difference(data):
                     data[key][
                         "reason"
                     ] = f"have a long time not change，at frame {current_frame}"
+            # **如果帧差为 3 的次数 >= 2，才标记为 not_use**
+            if count_frame_3_diff >= 2:
+                print(
+                    f"Detected at least two frame differences of 3 for id: {key}, 由于变化过快，建议删除"
+                )
+                data[key]["not_use"] = True
+                data[key][
+                    "reason"
+                ] = f"Detected {count_frame_3_diff} times frame_diff = 3"
     return data
 
 
@@ -326,8 +362,8 @@ def get_latest_folder(base_path):
 
     # 按修改时间升序排序（最旧的在前，最新的在后）
     sorted_folders = sorted(folders, key=os.path.getmtime)
-    print(f"Using folder from sorted logic: {sorted_folders[-8]}")
-    return sorted_folders[-8]
+    print(f"Using folder from sorted logic: {sorted_folders[-1]}")
+    return sorted_folders[-1]
 
 
 def get_all_folders(base_path):

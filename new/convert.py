@@ -38,7 +38,7 @@ def convert_results(
         try:
             id = int(result[5])  # 物体 ID
         except IndexError:
-            id = 9999
+            id = 99999
             print(f"检测结果中缺少 ID, 需要注意")
         # 计算边框的左上角和右下角坐标
         x1 = round(x_center - width / 2)
@@ -68,7 +68,7 @@ def convert_results(
             new_video_path,
             str(int(frame) - 1),
             output_image_file_path,
-        )
+        )  # cv的frame是从0开始的，但是yolo检测结果是从1开始的
         classify_cat = None
         if classify:
             # 转换 NumPy 数组为 PIL 图像
@@ -181,14 +181,15 @@ def main_convert(classify=True):
         with open(file_path, "r") as f:
             detection_results = [line.strip().split() for line in f.readlines()]
         # print(f"path: {file_path}")
-        # print(f"正在处理第 {index + 1} 帧的检测结果")
+        # print(f"正在处理第 {last_number} 帧的检测结果")
         # print(f"数据：{detection_results}")
+        last_number = int(filename.split("_")[-1].split(".")[0])
         convert_results(
             detection_results,
             image_width,
             image_height,
             initial_result_path,
-            index + 1,
+            last_number,
             new_video_path,
             classify,
             model_e,

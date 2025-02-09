@@ -26,6 +26,9 @@ if not get_latest_folder(base_path).endswith("-2"):
         "4": (551, 437, 513, 1021),
         "5": (370, 31, 370, 1021),
     }
+    # 定义计算上下边界
+    y_min = 40  # 最小 y 坐标（根据实际需求调整）
+    y_max = 1200  # 最大 y 坐标（根据实际需求调整）
 else:
     # 切换位置
     line_dict = {
@@ -33,8 +36,11 @@ else:
         "2": (193, 0, 250, 1021),
         "3": (520, 0, 460, 1021),
         "4": (520, 0, 460, 1021),
-        "5": (363, 0, 363, 1021),
+        "5": (370, 0, 370, 1021),
     }
+    # 定义计算上下边界
+    y_min = 50  # 最小 y 坐标（根据实际需求调整）
+    y_max = 758  # 最大 y 坐标（根据实际需求调整）
 
 central_line_coords = line_dict["5"]
 results = {}
@@ -46,9 +52,6 @@ results = defaultdict(
         # "filter_data": [],
     }
 )
-# 定义计算上下边界
-y_min = 100  # 最小 y 坐标（根据实际需求调整）
-y_max = 1200  # 最大 y 坐标（根据实际需求调整）
 
 
 exclude_last_frames = 8
@@ -198,9 +201,6 @@ def process_data():
             category_changes_with_all[-1]["Frame"]
             - category_changes_with_all[0]["Frame"]
         )
-        if len(category_changes_with_all) < 2:
-            print(f"Not enough frames to process for id: {i}")
-            continue
         for id_category in range(len(category_changes_with_all) - 1):
             current_frame = category_changes_with_all[id_category]["origin_frame"]
             next_frame = category_changes_with_all[id_category + 1]["origin_frame"]
@@ -459,6 +459,21 @@ def process_data():
         results[id_]["inner_diameter"] = d_total
         results[id_]["closest_point"] = closest_point_data
         results[id_]["height"] = height
+        if len(category_changes_with_all) < 2:
+            print(f"Not enough frames to process for id: {i}")
+            results[id_]["not_use_rotation"] = True
+            results[id_]["reason"] = "Not enough frames to process"
+            continue
+        # d1_with_range_revolution和d2_with_range_revolution比例要相近
+        if (
+            min(d1_with_range_revolution, d2_with_range_revolution)
+            / max(d1_with_range_revolution, d2_with_range_revolution)
+            < 0.6
+        ):
+            results[id_]["must_not_use"] = True
+            # results[id_]["not_use"] = True
+            results[id_]["reason"] = "the difference between d1 and d2 is too large"
+            print(f"id {i} Category 两点距离比例差距过大，不计算")
         if (
             height > 10.5
         ):  # 10.68相对于刻度尺的11cm,（1024+751）/147 - (40+147+17)/147=10.68
@@ -496,7 +511,6 @@ def process_data():
         all_stats[f"{id_}"].update(
             OrderedDict(
                 [
-                    ("not_use_rotation", result.get("not_use_rotation")),
                     ("start_frame_revolution", result.get("start_frame_revolution")),
                     ("end_frame_revolution", result.get("end_frame_revolution")),
                     ("total_frames_revolution", result.get("total_frames_revolution")),
@@ -519,6 +533,8 @@ def process_data():
                     ("closest_point", result.get("closest_point")),
                     ("height", result.get("height")),
                     ("not_use", result.get("not_use")),
+                    ("not_use_rotation", result.get("not_use_rotation")),
+                    ("must_not_use", result.get("must_not_use")),
                     ("reason", result.get("reason")),
                 ]
             )
