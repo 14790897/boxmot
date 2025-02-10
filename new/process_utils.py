@@ -355,10 +355,10 @@ def get_latest_folder(base_path):
         if os.path.isdir(os.path.join(base_path, entry))
     ]
 
-    if len(folders) < 2:
-        raise ValueError(
-            f"Not enough folders in {base_path} to get the second oldest one."
-        )
+    # if len(folders) < 2:
+    #     raise ValueError(
+    #         f"Not enough folders in {base_path} to get the second oldest one."
+    #     )
 
     # 按修改时间升序排序（最旧的在前，最新的在后）
     sorted_folders = sorted(folders, key=os.path.getmtime)

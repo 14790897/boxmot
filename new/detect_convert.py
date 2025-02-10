@@ -63,7 +63,7 @@ def convert_results(
     return {str(frame): {"detections": detections}}
 
 
-def main(classify=True):
+def main(classify=False):
     result_dict = {}  # 存储所有帧的检测结果
     for index, filename in enumerate(
         sorted(
@@ -80,12 +80,13 @@ def main(classify=True):
         # print(f"path: {file_path}")
         # print(f"正在处理第 {index + 1} 帧的检测结果")
         # print(f"数据：{detection_results}")
+        last_number = int(filename.split("_")[-1].split(".")[0])
         frame_result = convert_results(
             detection_results,
             image_width,
             image_height,
             initial_result_path,
-            index + 1,
+            last_number,
             classify,
         )
         result_dict.update(frame_result)  # 将当前帧结果加入到result_dict

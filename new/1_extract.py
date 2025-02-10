@@ -28,7 +28,7 @@ if not get_latest_folder(base_path).endswith("-2"):
     }
     # 定义计算上下边界
     y_min = 40  # 最小 y 坐标（根据实际需求调整）
-    y_max = 1200  # 最大 y 坐标（根据实际需求调整）
+    y_max = 1000  # 最大 y 坐标（根据实际需求调整）,注意这里对应的x图像的高度其实并没有它对应的坐标
 else:
     # 切换位置
     line_dict = {
@@ -317,7 +317,9 @@ def process_data():
         last_appear = initial_id_data_with_range[-1]
         if not category_changes:  # 如果没有变化就跳过
             first_change = initial_id_data[0]
+            first_change["origin_frame"] = initial_id_data[0]["Frame"]
             last_change = initial_id_data[-1]
+            last_change["origin_frame"] = initial_id_data[-1]["Frame"]
         else:
             first_change = category_changes[0]
             last_change = category_changes[-1]
@@ -486,7 +488,7 @@ def process_data():
             print(f"id {i} Category 在指定范围内发生了大于2次变化")
         if total_frames_rotation_origin / total_frames_revolution < 0.4:
             results[id_]["not_use_rotation"] = True
-            print(f"id {i} Category 旋转时间占比小于0.5，只计算公转速度")
+            print(f"id {i} Category 旋转时间占比小于0.4，只计算公转速度")
 
     # 在整个循环结束后，将所有统计信息保存到一个文件中
     stats_filepath = os.path.join(initial_result_directory, "all_stats.json")

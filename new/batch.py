@@ -9,7 +9,7 @@ def process_images_in_directory(directory, output_directory, config=None):
     for filename in os.listdir(directory):
         if filename.lower().endswith(".jpg"):
             image_path = os.path.join(directory, filename)
-            print(f'{image_path} contrast enhancement...')
+            # print(f'{image_path} contrast enhancement...')
             output_path = os.path.join(output_directory, "processed_" + filename)
             process_image(image_path, output_path, config)
 

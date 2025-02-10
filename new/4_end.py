@@ -46,10 +46,15 @@ for key, value in all_stats.items():
         margin = value.get("margin", None)
         height = value.get("height", None)
         # origin_data = value.get("origin_data", [])
-        if margin > 18:
-            margin = 8
+        not_use_revolution_margin_large = False
+        if margin is None:
+            margin = 0
+            not_use_revolution_margin_large = True
+        if margin > 40:
+            # margin = 8
             # must_not_use = True
             # 最好不进行公转速度的计算
+            print(f"{key} 的 margin 大于 40, margin: {margin}")
             not_use_revolution_margin_large = True
         if None in [
             d1_with_range_revolution,
@@ -67,22 +72,26 @@ for key, value in all_stats.items():
         # 遍历数据并进行过滤
 
         # 事实上可以这样子想如果说这个距离超过了使我们就可以认为他这个点可能这个时候还根本没有出现,所以就让它变成最大值
-        if radius < d1_origin:
+        if radius < d1_with_range_revolution:
             # radius = max(d1, d2)
-            radius = (
-                inner_diameter / 2
-            ) - 8 * 147 / 101  # 我觉得这里直接设置为半径是更好因为他那边可能真的是他暂时没有出现这个粒子
             not_use_revolution = True
             print(
                 f"{key} 的 d1 大于 radius, d1: {d1_with_range_revolution}, radius: {radius}, d1_origin: {d1_origin}, margin: {margin}"
             )
-        if radius < d2_origin:
+            # radius = (
+            #     inner_diameter / 2
+            # ) - 8 * 147 / 101
+            radius = max(
+                d1_with_range_revolution, d2_with_range_revolution
+            )  # 这里是由于边距实际上在X图像里映射到y图像已经超过了它的迁移距离,所以认为这里就把半径和迁移距离保持一致
+        if radius < d2_with_range_revolution:
             # radius = max(d1, d2)
-            radius = inner_diameter / 2 - 8 * 147 / 101
             not_use_revolution = True
             print(
                 f"{key} 的 d2 大于 radius, d2: {d2_with_range_revolution}, radius: {radius}, d2_origin: {d2_origin}, margin: {margin}"
             )
+            # radius = inner_diameter / 2 - 8 * 147 / 101
+            radius = max(d1_with_range_revolution, d2_with_range_revolution)
         # 防止 math domain error 的错误处理
         value1 = d1_with_range_revolution / radius
         value2 = d2_with_range_revolution / radius

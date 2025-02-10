@@ -121,9 +121,9 @@ for k, v in all_stats.items():
                     # 切换位置
                     image_x_y_coord = int((image_y_y_coord) * 101 / 149)
                 image_x_down_threshold = (
-                    image_x_y_coord - 30
+                    image_x_y_coord - 20
                 )  # 因为x图像是比较往下的所以我们要往上走
-                image_x_up_threshold = image_x_y_coord + 30
+                image_x_up_threshold = image_x_y_coord + 20
                 if image_x_down_threshold <= y <= image_x_up_threshold:
                     dist_to_line1 = (
                         calculate_distance_and_draw((x, y), line_dict["1"])[0]
@@ -221,7 +221,11 @@ for k, v in all_stats.items():
         else:
             print(f"{k}没有找到符合条件的检测结果,设置为8")
             all_stats[str(id)].update(
-                {"margin": 8, "timestamp": current_time, "not_use_revolution": True}
+                {
+                    "margin": None,
+                    "timestamp": current_time,
+                    "not_use_revolution": False,
+                }  # 不需要后面的标志
             )
             # shutil.rmtree(id_path)
     except FileNotFoundError:
