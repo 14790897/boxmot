@@ -121,8 +121,8 @@ for k, v in all_stats.items():
                     # 切换位置
                     image_x_y_coord = int((image_y_y_coord) * 101 / 149)
                     # 上下去十个像素的范围
-                image_x_down_threshold = image_x_y_coord - 10
-                image_x_up_threshold = image_x_y_coord + 10
+                image_x_down_threshold = image_x_y_coord - 15
+                image_x_up_threshold = image_x_y_coord + 15
                 if image_x_down_threshold <= y <= image_x_up_threshold:
                     dist_to_line1 = (
                         calculate_distance_and_draw((x, y), line_dict["1"])[0]

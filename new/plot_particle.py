@@ -10,29 +10,32 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np
 from process_utils import get_all_folders
+from collections import defaultdict
 
 
-def merge_stats(folder1, folder2):
-    """合并两个文件夹的 all_stats.json 数据，并对第二个文件夹的键名加上 '-2'"""
-    stats1_path = os.path.join(folder1, "initial_result", "all_stats.json")
-    stats2_path = os.path.join(folder2, "initial_result", "all_stats.json")
+def merge_stats(*folders):
+    """
+    合并多个文件夹的 all_stats.json 数据，并为第二个及后续文件夹的数据键名加上 '-2', '-3', ...
 
+    :param folders: 需要合并的文件夹路径列表
+    :return: 合并后的 JSON 数据
+    """
     data = {}
 
-    # 加载第一个文件夹的 all_stats.json
-    if os.path.exists(stats1_path):
-        with open(stats1_path, "r") as f:
-            data1 = json.load(f)
-        data.update(data1)
+    for index, folder in enumerate(folders):
+        stats_path = os.path.join(folder, "initial_result", "all_stats.json")
 
-    # 加载第二个文件夹的 all_stats.json，并调整键名
-    if os.path.exists(stats2_path):
-        with open(stats2_path, "r") as f:
-            data2 = json.load(f)
+        if os.path.exists(stats_path):
+            with open(stats_path, "r") as f:
+                stats_data = json.load(f)
 
-        for key, value in data2.items():
-            modified_key = f"{key}-2"  # 修改键名，在原键名后附加 '-2'
-            data[modified_key] = value
+            # 第一个文件夹不修改键名，后续的加上 "-2", "-3"...
+            if index == 0:
+                data.update(stats_data)
+            else:
+                for key, value in stats_data.items():
+                    modified_key = f"{key}-{index+1}"  # 例如 key-2, key-3...
+                    data[modified_key] = value
 
     return data
 
@@ -42,19 +45,14 @@ base_path = "runs/track"
 folders = get_all_folders(base_path)
 
 # 过滤出 '-2' 版本的文件夹并匹配主文件夹
-folder_pairs = {}
-for folder in folders:
-    base_name = folder.rstrip("-2")
-    if base_name in folders and folder.endswith("-2"):
-        folder_pairs[base_name] = folder
-    elif base_name not in folder_pairs:
-        folder_pairs[base_name] = None
+# 初始化字典，按 "头部名称" 归类
+folder_groups = defaultdict(list)
 
-# 设置基础路径
-base_path = "runs/track"
+# 遍历所有文件夹，将具有相同前缀的分组
+for folder__ in folders:
+    base_name = folder__.split("-")[0]  # 获取 `-` 之前的前缀
+    folder_groups[base_name].append(folder__)
 
-# 获取所有子目录
-folders = get_all_folders(base_path)
 
 # 初始化总体数据存储
 exp_indices = []  # 存储实验序号
@@ -68,8 +66,8 @@ fig, axes = plt.subplots(
 )  # 多个子图
 
 all_heights = []
-for folder in folders:
-    stats_file_path = os.path.join(folder, "initial_result", "all_stats.json")
+for folder_ in folders:
+    stats_file_path = os.path.join(folder_, "initial_result", "all_stats.json")
     if not os.path.exists(stats_file_path):
         continue
 
@@ -90,22 +88,10 @@ for folder in folders:
 min_height = min(all_heights)
 max_height = max(all_heights)
 # 遍历所有子目录
-print(len(folder_pairs))
-for i, (folder, folder_2) in enumerate(folder_pairs.items()):
+print(len(folder_groups), folder_groups)
 
-    all_stats = merge_stats(folder, folder_2) if folder_2 else merge_stats(folder, "")
-
-    # for i, folder in enumerate(folders):
-    # initial_result_directory = os.path.join(folder, "initial_result")
-    # stats_file_path = os.path.join(initial_result_directory, "all_stats.json")
-
-    # if not os.path.exists(stats_file_path):
-    #     print(f"{stats_file_path} 文件不存在，跳过...")
-    #     continue
-
-    # # 读取 JSON 数据
-    # with open(stats_file_path, "r") as stats_file:
-    #     all_stats = json.load(stats_file)
+for i, (base_name, folder_list) in enumerate(folder_groups.items()):
+    merged_stats = merge_stats(*folder_list)  # 传入所有相关文件夹进行合并
 
     # 初始化当前文件夹的数据存储
     heights_abs_rot = []
@@ -114,7 +100,7 @@ for i, (folder, folder_2) in enumerate(folder_pairs.items()):
     orbital_revs = []
 
     # 解析数据
-    for key, value in all_stats.items():
+    for key, value in merged_stats.items():
         try:
             abs_rotation = value.get("abs_rotation", 0)
             orbital_rev = value.get("orbital_rev", 0)
@@ -143,7 +129,7 @@ for i, (folder, folder_2) in enumerate(folder_pairs.items()):
     # 计算该实验的均值
     avg_abs_rotation = np.mean(abs_rotations) if abs_rotations else 0
     avg_orbital_rev = np.mean(orbital_revs) if orbital_revs else 0
-    folder_name = os.path.basename(folder)  # 获取文件夹名称
+    folder_name = os.path.basename(base_name)  # 获取文件夹名称
     # 存储实验结果
     exp_indices.append(folder_name)
     exp_avg_abs_rot.append(avg_abs_rotation)
@@ -151,7 +137,10 @@ for i, (folder, folder_2) in enumerate(folder_pairs.items()):
 
     # 绘制当前文件夹的图
     axes[i, 0].scatter(
-        heights_abs_rot, abs_rotations, alpha=0.7, label=f"{os.path.basename(folder)}"
+        heights_abs_rot,
+        abs_rotations,
+        alpha=0.7,
+        label=f"{os.path.basename(base_name)}",
     )
     axes[i, 0].set_xlabel("Height (cm)")
     axes[i, 0].set_ylabel("Rotation (rad/s)")
@@ -173,7 +162,7 @@ for i, (folder, folder_2) in enumerate(folder_pairs.items()):
         orbital_revs,
         alpha=0.7,
         color="orange",
-        label=f"{os.path.basename(folder)}",
+        label=f"{os.path.basename(base_name)}",
     )
     axes[i, 1].set_xlabel("Height (cm)")
     axes[i, 1].set_ylabel("Revolution (rad/s)")
