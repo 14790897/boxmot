@@ -36,3 +36,5 @@ python tracking/val.py trackeval1 --yolo-model yolov8-particle-best.pt --benchma
 ## 画出结果图
 
 python new\plot_particle.py
+
+## 获取某个文件夹的子文件夹

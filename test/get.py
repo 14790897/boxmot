@@ -1,7 +1,7 @@
 import os
 
 # 设置根目录
-base_path = r"C:\git-program\particle_detect\manual_caculate\data\750"
+base_path = r"C:\git-program\particle_detect\manual_caculate\data\550"
 
 # 存储所有相机2和相机1的路径
 camera2_dirs = []

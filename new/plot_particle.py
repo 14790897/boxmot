@@ -60,7 +60,7 @@ exp_avg_abs_rot = []  # 存储每次实验的平均绝对自转
 exp_avg_orb_rev = []  # 存储每次实验的平均公转
 
 # 设置画布
-num_folders = len(folders) // 2
+num_folders = len(folder_groups)
 fig, axes = plt.subplots(
     num_folders + 1, 2, figsize=(12, 6 * (num_folders + 1)), constrained_layout=True
 )  # 多个子图
