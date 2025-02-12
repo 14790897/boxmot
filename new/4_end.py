@@ -13,7 +13,6 @@ stats_file_path = os.path.join(initial_result_directory, "all_stats.json")
 calculation_results_path = os.path.join(
     initial_result_directory, "calculation_results.json"
 )
-
 if os.path.exists(stats_file_path):
     with open(stats_file_path, "r") as stats_file:
         all_stats = json.load(stats_file)
@@ -25,6 +24,7 @@ calculation_results = []
 # 遍历字典并将数据赋值给变量
 for key, value in all_stats.items():
     try:
+        revolution_notice = None
         not_use = value.get("not_use", False)
         not_use_rotation = value.get("not_use_rotation", False)
         not_use_revolution = value.get("not_use_revolution", False)
@@ -72,23 +72,34 @@ for key, value in all_stats.items():
         # 遍历数据并进行过滤
 
         # 事实上可以这样子想如果说这个距离超过了使我们就可以认为他这个点可能这个时候还根本没有出现,所以就让它变成最大值
-        if radius < d1_origin:
+        if radius < d1_origin * 0.8:
             # radius = max(d1, d2)
             not_use_revolution = True
-            print(
-                f"{key} 的 d1_origin 大于 radius, radius: {radius}, d1_origin: {d1_origin}, margin: {margin}"
-            )
-            radius = (inner_diameter / 2) - 8 * 147 / 101
-            # radius = max(
-            #     d1_with_range_revolution, d2_with_range_revolution
-            # )
-        if radius < d2_origin:
+            if margin > 40:
+
+                print(
+                    f"{key} 的 d1_origin 大于 radius, radius: {radius}, d1_origin: {d1_origin}, margin: {margin}"
+                )
+                revolution_notice = (
+                    f"d1_origin0.9:{d1_origin * 0.9} too large, radius: {radius}"
+                )
+                radius = (inner_diameter / 2) - 8 * 147 / 101
+                not_use_revolution_margin_large = True
+                # radius = max(
+                #     d1_with_range_revolution, d2_with_range_revolution
+                # )这是错误的
+        if radius < d2_origin * 0.8:
             # radius = max(d1, d2)
             not_use_revolution = True
-            print(
-                f"{key} 的 d2_origin 大于 radius, radius: {radius}, d2_origin: {d2_origin}, margin: {margin}"
-            )
-            radius = inner_diameter / 2 - 8 * 147 / 101
+            if margin > 40:
+                print(
+                    f"{key} 的 d2_origin 大于 radius, radius: {radius}, d2_origin: {d2_origin}, margin: {margin}"
+                )
+                radius = inner_diameter / 2 - 8 * 147 / 101
+                revolution_notice = (
+                    f"d2_origin0.9:{d1_origin * 0.9} too large, radius: {radius}"
+                )
+                not_use_revolution_margin_large = True
             # radius = max(d1_with_range_revolution, d2_with_range_revolution)
         # 防止 math domain error 的错误处理
         value1 = d1_with_range_revolution / radius
@@ -139,6 +150,7 @@ for key, value in all_stats.items():
                 "abs_rotation": abs_rotation,
                 "rel_rotation": rel_rotation,
                 "not_use_revolution": not_use_revolution,
+                "revolution_notice": revolution_notice,
             }
         )
         print(result)

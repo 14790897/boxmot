@@ -11,7 +11,8 @@ import os
 import numpy as np
 from process_utils import get_all_folders
 from collections import defaultdict
-
+from sklearn.neighbors import KernelDensity
+import pandas as pd
 
 def merge_stats(*folders):
     """
@@ -21,7 +22,7 @@ def merge_stats(*folders):
     :return: 合并后的 JSON 数据
     """
     data = {}
-
+    len_folders = len(folders)
     for index, folder in enumerate(folders):
         stats_path = os.path.join(folder, "initial_result", "all_stats.json")
 
@@ -36,6 +37,9 @@ def merge_stats(*folders):
                 for key, value in stats_data.items():
                     modified_key = f"{key}-{index+1}"  # 例如 key-2, key-3...
                     data[modified_key] = value
+                    # if index == 1 and len_folders == 3:
+                    #     print(f"folder: {folder}, ")
+                    #     data[modified_key]["orbital_rev"] = 0
 
     return data
 
@@ -125,8 +129,32 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
 
         except Exception as e:
             print(f"处理 {key} 时出错: {e}")
+    # data = pd.DataFrame(
+    #     {
+    #         "height": heights_orb_rev,
+    #         "orb_rev": orbital_revs,
+    #     }
+    # )
 
-    # 计算该实验的均值
+    # # 使用核密度估计（KDE）来计算密度
+    # kde = KernelDensity(kernel="gaussian", bandwidth=10).fit(
+    #     np.array(data["height"]).reshape(-1, 1)
+    # )
+    # log_density = kde.score_samples(np.array(data["height"]).reshape(-1, 1))
+    # density = np.exp(log_density)  # 转换为线性密度
+
+    # # 计算采样权重：密度的倒数
+    # weights = 1 / density
+    # normalized_weights = weights / weights.sum()  # 标准化为概率分布
+
+    # # 根据权重随机采样
+    # num_samples = 5  # 采样的点数
+    # sampled_indices = np.random.choice(
+    #     data.index, size=num_samples, replace=False, p=normalized_weights
+    # )
+    # sampled_data = data.loc[sampled_indices]
+
+    # avg_orbital_rev = np.mean(sampled_data["orb_rev"]) if not sampled_data.empty else 0
     avg_abs_rotation = np.mean(abs_rotations) if abs_rotations else 0
     avg_orbital_rev = np.mean(orbital_revs) if orbital_revs else 0
     folder_name = os.path.basename(base_name)  # 获取文件夹名称
