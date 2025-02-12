@@ -129,34 +129,24 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
 
         except Exception as e:
             print(f"处理 {key} 时出错: {e}")
-    # data = pd.DataFrame(
-    #     {
-    #         "height": heights_orb_rev,
-    #         "orb_rev": orbital_revs,
-    #     }
-    # )
+    data = pd.DataFrame(
+        {
+            "height": heights_orb_rev,
+            "orb_rev": orbital_revs,
+        }
+    )
 
-    # # 使用核密度估计（KDE）来计算密度
-    # kde = KernelDensity(kernel="gaussian", bandwidth=10).fit(
-    #     np.array(data["height"]).reshape(-1, 1)
-    # )
-    # log_density = kde.score_samples(np.array(data["height"]).reshape(-1, 1))
-    # density = np.exp(log_density)  # 转换为线性密度
-
-    # # 计算采样权重：密度的倒数
-    # weights = 1 / density
-    # normalized_weights = weights / weights.sum()  # 标准化为概率分布
-
-    # # 根据权重随机采样
-    # num_samples = 5  # 采样的点数
-    # sampled_indices = np.random.choice(
-    #     data.index, size=num_samples, replace=False, p=normalized_weights
-    # )
-    # sampled_data = data.loc[sampled_indices]
-
-    # avg_orbital_rev = np.mean(sampled_data["orb_rev"]) if not sampled_data.empty else 0
+    num_bins = 10  # 设定高度的分箱数
+    data["bin"] = pd.qcut(data["height"], num_bins, duplicates="drop")  # 按分位数分箱
+    sampled_data = (
+        data.groupby("bin")
+        .apply(lambda x: x.sample(n=20, replace=True))
+        .reset_index(drop=True)
+    )
+    print("sampled_data:", sampled_data)
     avg_abs_rotation = np.mean(abs_rotations) if abs_rotations else 0
-    avg_orbital_rev = np.mean(orbital_revs) if orbital_revs else 0
+    avg_orbital_rev = np.mean(sampled_data["orb_rev"]) if not sampled_data.empty else 0
+    # avg_orbital_rev = np.mean(orbital_revs) if orbital_revs else 0
     folder_name = os.path.basename(base_name)  # 获取文件夹名称
     # 存储实验结果
     exp_indices.append(folder_name)
@@ -186,8 +176,8 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
             x_trend, trend_line(x_trend), color="blue", linestyle="--", label="Trend"
         )
     axes[i, 1].scatter(
-        heights_orb_rev,
-        orbital_revs,
+        sampled_data["height"],
+        sampled_data["orb_rev"],
         alpha=0.7,
         color="orange",
         label=f"{os.path.basename(base_name)}",

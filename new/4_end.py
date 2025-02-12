@@ -50,7 +50,7 @@ for key, value in all_stats.items():
         if margin is None:
             margin = 0
             not_use_revolution_margin_large = True
-        if margin > 40:
+        if margin > 20:
             # margin = 8
             # must_not_use = True
             # 最好不进行公转速度的计算
@@ -75,7 +75,7 @@ for key, value in all_stats.items():
         if radius < d1_origin * 0.8:
             # radius = max(d1, d2)
             not_use_revolution = True
-            if margin > 40:
+            if margin > 20:
 
                 print(
                     f"{key} 的 d1_origin 大于 radius, radius: {radius}, d1_origin: {d1_origin}, margin: {margin}"
@@ -91,7 +91,7 @@ for key, value in all_stats.items():
         if radius < d2_origin * 0.8:
             # radius = max(d1, d2)
             not_use_revolution = True
-            if margin > 40:
+            if margin > 20:
                 print(
                     f"{key} 的 d2_origin 大于 radius, radius: {radius}, d2_origin: {d2_origin}, margin: {margin}"
                 )

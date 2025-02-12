@@ -26,13 +26,13 @@ print(data.columns)
 data["height"] = pd.to_numeric(data["height"], errors="coerce")
 data["re_revolution"] = pd.to_numeric(data["re_revolution"], errors="coerce")
 data["re_rotation"] = pd.to_numeric(data["re_rotation"], errors="coerce")
-
+print(f'data["re_rotation"]: {data["re_rotation"]}')
 # 使用 pandas.cut 将 'height' 划分为每 1 的区间
-bin_size = 1
+bin_size = 3
 max_height = data["height"].max()  # 获取 height 的最大值
 bins = list(range(0, int(max_height) + bin_size, bin_size))
 data["height_bin"] = pd.cut(data["height"], bins=bins, right=False)
-
+print(data["height_bin"])
 # 按分组区间计算平均值
 grouped_data = data.groupby("height_bin").agg(
     re_revolution_mean=("re_revolution", "mean"),
@@ -81,3 +81,11 @@ plt.tight_layout()
 
 # 显示图形
 plt.show()
+
+# 计算总的均值
+overall_revolution_mean = data["re_revolution"].mean()  # 计算 re_revolution 的全局均值
+overall_rotation_mean = data["re_rotation"].mean()  # 计算 re_rotation 的全局均值
+
+# 打印总的均值
+print(f"Overall Mean Relative Revolution Error: {overall_revolution_mean:.2f}")
+print(f"Overall Mean Relative Rotation Error: {overall_rotation_mean:.2f}")
