@@ -25,7 +25,8 @@ def merge_stats(*folders):
     len_folders = len(folders)
     for index, folder in enumerate(folders):
         stats_path = os.path.join(folder, "initial_result", "all_stats.json")
-
+        if index == 1:
+            print("folder", folder, "number", len_folders)
         if os.path.exists(stats_path):
             with open(stats_path, "r") as f:
                 stats_data = json.load(f)
@@ -37,8 +38,10 @@ def merge_stats(*folders):
                 for key, value in stats_data.items():
                     modified_key = f"{key}-{index+1}"  # 例如 key-2, key-3...
                     data[modified_key] = value
-                    # if index == 1 and len_folders == 3:
-                    #     print(f"folder: {folder}, ")
+                    if folder == r"runs/track\750" or folder == r"runs/track\750-2":
+                        # print("清空")
+                        data[modified_key]["orbital_rev"] = 0
+                    # if index == 1 and len_folders > 2:
                     #     data[modified_key]["orbital_rev"] = 0
 
     return data
@@ -136,17 +139,34 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         }
     )
 
-    num_bins = 10  # 设定高度的分箱数
-    data["bin"] = pd.qcut(data["height"], num_bins, duplicates="drop")  # 按分位数分箱
-    sampled_data = (
-        data.groupby("bin")
-        .apply(lambda x: x.sample(n=20, replace=True))
-        .reset_index(drop=True)
-    )
-    print("sampled_data:", sampled_data)
+    # 使用核密度估计（KDE）来计算密度
+    # kde = KernelDensity(kernel="gaussian", bandwidth=7).fit(
+    #     np.array(data["height"]).reshape(-1, 1)
+    # )
+    # log_density = kde.score_samples(np.array(data["height"]).reshape(-1, 1))
+    # density = np.exp(log_density)  # 转换为线性密度
+
+    # # 计算采样权重：密度的倒数
+    # weights = 1 / density
+    # normalized_weights = weights / weights.sum()  # 标准化为概率分布
+
+    # # 根据权重随机采样
+    # num_samples = 150  # 采样的点数
+    # sampled_indices = np.random.choice(
+    #     data.index, size=num_samples, replace=False, p=normalized_weights
+    # )
+    # sampled_data = data.loc[sampled_indices]
+    # num_bins = 50  # 设定高度的分箱数
+    # data["bin"] = pd.qcut(data["height"], num_bins, duplicates="drop")  # 按分位数分箱
+    # sampled_data = (
+    #     data.groupby("bin")
+    #     .apply(lambda x: x.sample(n=1, replace=True))
+    #     .reset_index(drop=True)
+    # )
+    # print("sampled_data:", sampled_data)
     avg_abs_rotation = np.mean(abs_rotations) if abs_rotations else 0
-    avg_orbital_rev = np.mean(sampled_data["orb_rev"]) if not sampled_data.empty else 0
-    # avg_orbital_rev = np.mean(orbital_revs) if orbital_revs else 0
+    avg_orbital_rev = np.mean(orbital_revs) if orbital_revs else 0
+    # avg_orbital_rev = np.mean(sampled_data["orb_rev"]) if not sampled_data.empty else 0
     folder_name = os.path.basename(base_name)  # 获取文件夹名称
     # 存储实验结果
     exp_indices.append(folder_name)
@@ -175,9 +195,11 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         axes[i, 0].plot(
             x_trend, trend_line(x_trend), color="blue", linestyle="--", label="Trend"
         )
+        #  sampled_data["height"],
+        # sampled_data["orb_rev"],
     axes[i, 1].scatter(
-        sampled_data["height"],
-        sampled_data["orb_rev"],
+        heights_orb_rev,
+        orbital_revs,
         alpha=0.7,
         color="orange",
         label=f"{os.path.basename(base_name)}",
@@ -207,7 +229,7 @@ axes[-1, 0].plot(
     marker="o",
     linestyle="-",
 )
-axes[-1, 0].set_xlabel("Inlet Flow Rate")
+axes[-1, 0].set_xlabel("Inlet Flow Rate (L/h)")
 axes[-1, 0].set_ylabel("Avg Rotation (rad/s)")
 axes[-1, 0].set_title("Inlet Flow Rate vs Absolute Rotation")
 # axes[-1, 0].grid()
@@ -222,7 +244,7 @@ axes[-1, 1].plot(
     marker="o",
     linestyle="-",
 )
-axes[-1, 1].set_xlabel("Inlet Flow Rate")
+axes[-1, 1].set_xlabel("Inlet Flow Rate (L/h)")
 axes[-1, 1].set_ylabel("Avg Orbital Revolution (rad/s)")
 axes[-1, 1].set_title("Inlet Flow Rate vs Orbital Revolution")
 # axes[-1, 1].grid()

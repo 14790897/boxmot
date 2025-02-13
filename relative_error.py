@@ -37,11 +37,16 @@ print(data["height_bin"])
 grouped_data = data.groupby("height_bin").agg(
     re_revolution_mean=("re_revolution", "mean"),
     re_rotation_mean=("re_rotation", "mean"),
+    count=("height", "size"),  # 统计每个分组的点数
 )
 grouped_data = grouped_data.reset_index()
 
 # 设置区间中点为 x 轴标签
 grouped_data["bin_mid"] = grouped_data["height_bin"].apply(lambda x: x.mid)
+
+# 打印每个范围的点数
+print("Number of points in each height bin:")
+print(grouped_data[["height_bin", "count"]])
 
 # 创建一个窗口，包含两张子图
 fig, axs = plt.subplots(2, 1, figsize=(10, 12))  # 两行一列
