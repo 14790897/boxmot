@@ -50,7 +50,7 @@ for key, value in all_stats.items():
         if margin is None:
             margin = 0
             not_use_revolution_margin_large = True
-        if margin > 20:
+        if margin > 40:
             # margin = 8
             # must_not_use = True
             # 最好不进行公转速度的计算
@@ -72,10 +72,12 @@ for key, value in all_stats.items():
         # 遍历数据并进行过滤
 
         # 事实上可以这样子想如果说这个距离超过了使我们就可以认为他这个点可能这个时候还根本没有出现,所以就让它变成最大值
-        if radius < d1_origin * 0.8:
+        if (
+            radius < d1_origin * 0.8
+        ):  # 这里因为粒子是往下走的所以这个d1_origin可能有点虚高所以这里要乘以0.8，在柱段的话就不可能触发所以对柱段是没有影响
             # radius = max(d1, d2)
-            not_use_revolution = True
-            if margin > 20:
+            not_use_revolution = True# 这个参数应该是没有用 
+            if margin > 30:
 
                 print(
                     f"{key} 的 d1_origin 大于 radius, radius: {radius}, d1_origin: {d1_origin}, margin: {margin}"
@@ -91,7 +93,7 @@ for key, value in all_stats.items():
         if radius < d2_origin * 0.8:
             # radius = max(d1, d2)
             not_use_revolution = True
-            if margin > 20:
+            if margin > 30:
                 print(
                     f"{key} 的 d2_origin 大于 radius, radius: {radius}, d2_origin: {d2_origin}, margin: {margin}"
                 )

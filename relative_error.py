@@ -58,7 +58,7 @@ axs[0].plot(
     label="Relative Revolution Error",
 )
 axs[0].set_title("Relative Revolution Error by Height", fontsize=16)
-axs[0].set_xlabel("Height", fontsize=12)
+axs[0].set_xlabel("Height(cm)", fontsize=12)
 axs[0].set_ylabel("Mean Relative Revolution Error", fontsize=12)
 axs[0].grid(axis="both", linestyle="--", alpha=0.7)  # 显示网格
 axs[0].legend(fontsize=12)
@@ -83,7 +83,7 @@ axs[1].plot(
     label="Relative Rotation Error",
 )
 axs[1].set_title("Relative Rotation Error by Height", fontsize=16)
-axs[1].set_xlabel("Height", fontsize=12)
+axs[1].set_xlabel("Height(cm)", fontsize=12)
 axs[1].set_ylabel("Mean Relative Rotation Error", fontsize=12)
 axs[1].grid(axis="both", linestyle="--", alpha=0.7)  # 显示网格
 axs[1].legend(fontsize=12)
@@ -110,5 +110,9 @@ overall_revolution_mean = data["re_revolution"].mean()  # 计算 re_revolution �
 overall_rotation_mean = data["re_rotation"].mean()  # 计算 re_rotation 的全局均值
 
 # 打印总的均值
-print(f"Overall Mean Relative Revolution Error: {overall_revolution_mean:.2f}")
-print(f"Overall Mean Relative Rotation Error: {overall_rotation_mean:.2f}")
+print(
+    f"Overall Mean Relative Revolution Error: {overall_revolution_mean:.2f}, accuracy: {100-overall_revolution_mean:.2f}"
+)
+print(
+    f"Overall Mean Relative Rotation Error: {overall_rotation_mean:.2f}, accuracy: {100-overall_rotation_mean:.2f}"
+)

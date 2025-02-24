@@ -38,3 +38,7 @@ python tracking/val.py trackeval1 --yolo-model yolov8-particle-best.pt --benchma
 python new\plot_particle.py
 
 ## 获取某个文件夹的子文件夹
+
+## 画出相对误差图
+
+python relative_error.py
