@@ -89,7 +89,8 @@ for folder_ in folders:
             height = (box[1] + box[3]) / 2 / 147 + 42 / 147  # 高度计算公式
         else:
             height = value.get("height")
-        all_heights.append(height)
+        inner_diameter = value.get("inner_diameter", 0)
+        all_heights.append(height / inner_diameter * 147)
 
 # 获取全局的最小和最大高度
 min_height = min(all_heights)
@@ -120,14 +121,14 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
                 height = (box[1] + box[3]) / 2 / 147 + 42 / 147  # 高度计算公式
             else:
                 height = value.get("height")
-
+            inner_diameter = value.get("inner_diameter", 0)
             # 存储数据
             if abs_rotation > 0:
-                heights_abs_rot.append(height)
+                heights_abs_rot.append(height / inner_diameter * 147)
                 abs_rotations.append(abs_rotation)
 
             if orbital_rev > 0:
-                heights_orb_rev.append(height)
+                heights_orb_rev.append(height / inner_diameter * 147)
                 orbital_revs.append(orbital_rev)
 
         except Exception as e:

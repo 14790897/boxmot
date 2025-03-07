@@ -1,5 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+# import math
+import numpy as np
 
 # 读取 Excel 文件
 data = pd.read_excel(
@@ -20,14 +22,17 @@ data.columns = data.columns.astype(str)
 
 # 确保相关列转换为数值类型
 data["height"] = pd.to_numeric(data["height"], errors="coerce")
+data["diameter"] = pd.to_numeric(data["diameter"], errors="coerce")
 data["re_revolution"] = pd.to_numeric(data["re_revolution"], errors="coerce")
 data["re_rotation"] = pd.to_numeric(data["re_rotation"], errors="coerce")
-
+data["H/D"] = data["height"] / data["diameter"] * 147
 # 使用 pandas.cut 将 'height' 划分为每 3 的区间
-bin_size = 3
-max_height = data["height"].max()  # 获取 height 的最大值
-bins = list(range(0, int(max_height) + bin_size, bin_size))
-data["height_bin"] = pd.cut(data["height"], bins=bins, right=False)
+bin_size = 1.4
+# 横坐标
+h_to_d_ratio = data["H/D"]
+max_h_to_d_ratio = h_to_d_ratio.max()  # 获取 height 的最大值
+bins = np.arange(0, max_h_to_d_ratio + bin_size, bin_size)
+data["height_bin"] = pd.cut(h_to_d_ratio, bins=bins, right=False)
 print(f'data["re_rotation"]: {data["re_rotation"]}')
 print(data["height_bin"])
 
@@ -57,8 +62,8 @@ axs[0].plot(
     color="blue",
     label="Relative Revolution Error",
 )
-axs[0].set_title("Relative Revolution Error by Height", fontsize=16)
-axs[0].set_xlabel("Height(cm)", fontsize=12)
+axs[0].set_title("Relative Revolution Error", fontsize=16)
+axs[0].set_xlabel("H/D", fontsize=12)
 axs[0].set_ylabel("Mean Relative Revolution Error", fontsize=12)
 axs[0].grid(axis="both", linestyle="--", alpha=0.7)  # 显示网格
 axs[0].legend(fontsize=12)
@@ -82,8 +87,8 @@ axs[1].plot(
     color="orange",
     label="Relative Rotation Error",
 )
-axs[1].set_title("Relative Rotation Error by Height", fontsize=16)
-axs[1].set_xlabel("Height(cm)", fontsize=12)
+axs[1].set_title("Relative Rotation Error", fontsize=16)
+axs[1].set_xlabel("H/D", fontsize=12)
 axs[1].set_ylabel("Mean Relative Rotation Error", fontsize=12)
 axs[1].grid(axis="both", linestyle="--", alpha=0.7)  # 显示网格
 axs[1].legend(fontsize=12)

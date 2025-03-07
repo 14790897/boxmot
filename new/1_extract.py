@@ -18,6 +18,7 @@ import cv2
 base_path = "runs/track"
 initial_result_directory = os.path.join(get_latest_folder(base_path), "initial_result")
 video_path = "my_process_particle_video.avi"
+# 如果是下半部分的话文件夹名字需要以-2结尾
 if not get_latest_folder(base_path).endswith("-2"):
     line_dict = {
         "1": (175, 31, 175, 437),
