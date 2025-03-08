@@ -181,7 +181,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         alpha=0.7,
         label=f"{os.path.basename(base_name)}",
     )
-    axes[i, 0].set_xlabel("Height (cm)")
+    axes[i, 0].set_xlabel("H/D")
     axes[i, 0].set_ylabel("Rotation (rad/s)")
     axes[i, 0].set_xlim(min_height, max_height)  # 设定相同的 x 轴范围
     if i == 0:
@@ -205,7 +205,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         color="orange",
         label=f"{os.path.basename(base_name)}",
     )
-    axes[i, 1].set_xlabel("Height (cm)")
+    axes[i, 1].set_xlabel("H/D")
     axes[i, 1].set_ylabel("Revolution (rad/s)")
     if i == 0:
         axes[i, 1].set_title(f"Orbital Revolution vs Height")

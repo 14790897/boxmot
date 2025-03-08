@@ -27,11 +27,13 @@ data["re_revolution"] = pd.to_numeric(data["re_revolution"], errors="coerce")
 data["re_rotation"] = pd.to_numeric(data["re_rotation"], errors="coerce")
 data["H/D"] = data["height"] / data["diameter"] * 147
 # 使用 pandas.cut 将 'height' 划分为每 3 的区间
-bin_size = 1.4
+bin_size = 1.5
 # 横坐标
 h_to_d_ratio = data["H/D"]
 max_h_to_d_ratio = h_to_d_ratio.max()  # 获取 height 的最大值
 bins = np.arange(0, max_h_to_d_ratio + bin_size, bin_size)
+bins = [0, 1.5, 3, 4.5, 7]
+
 data["height_bin"] = pd.cut(h_to_d_ratio, bins=bins, right=False)
 print(f'data["re_rotation"]: {data["re_rotation"]}')
 print(data["height_bin"])
