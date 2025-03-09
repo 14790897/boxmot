@@ -66,7 +66,7 @@ axs[0].plot(
 )
 axs[0].set_title("Relative Revolution Error", fontsize=16)
 axs[0].set_xlabel("H/D", fontsize=12)
-axs[0].set_ylabel("Mean Relative Revolution Error", fontsize=12)
+axs[0].set_ylabel("Mean Relative Revolution Error(%)", fontsize=12)
 axs[0].grid(axis="both", linestyle="--", alpha=0.7)  # 显示网格
 axs[0].legend(fontsize=12)
 # 在第一张图上标记 (a)
@@ -91,7 +91,7 @@ axs[1].plot(
 )
 axs[1].set_title("Relative Rotation Error", fontsize=16)
 axs[1].set_xlabel("H/D", fontsize=12)
-axs[1].set_ylabel("Mean Relative Rotation Error", fontsize=12)
+axs[1].set_ylabel("Mean Relative Rotation Error(%)", fontsize=12)
 axs[1].grid(axis="both", linestyle="--", alpha=0.7)  # 显示网格
 axs[1].legend(fontsize=12)
 # 在第二张图上标记 (b)

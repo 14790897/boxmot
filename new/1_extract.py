@@ -480,7 +480,7 @@ def process_data():
             print(f"id {i} Category 两点距离比例差距过大，不计算")
         if (
             height > 10.5
-        ):  # 10.68相对于刻度尺的11cm,（1024+751）/147 - (40+147+17)/147=10.68
+        ):  # 10.68相对于刻度尺的11cm,（1024+751）/147 - (40+147+17)/147=10.68   H/D
             results[id_]["not_use_rotation"] = True
             print(f"id {i} Category 高度大于10.68，只计算公转速")
         if len(category_changes) < 3:
