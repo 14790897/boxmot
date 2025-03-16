@@ -10,7 +10,7 @@ python tracking/track.py --yolo-model yolov9-s-50-only-you.pt --source assets\MO
 
 python tracking/track.py --yolo-model yolov8-particle-best.pt --source assets\MOT17-mini\train\new_modify\img1 --save --save-txt --conf 0.02 --iou 0.01
 
-### 论文用的图片
+### 论文用的图片(识别单张图片)
 
 python tracking/track.py --yolo-model yolov8-particle-best.pt --source example --save --save-txt --tracking-method bytetrack --conf 0.1 --iou 0.1
 
@@ -24,6 +24,14 @@ python tracking/val.py generate_dets_embs --yolo-model yolov8-particle-best.pt -
 
 python tracking/val.py --yolo-model yolov8-particle-best.pt --tracking-method bytetrack --source ./assets/MOT17-mini/train --verbose --conf 0.1 --iou 0.1
 python tracking/val.py --yolo-model yolov9-200.pt --tracking-method bytetrack --source ./assets/MOT17-mini/train --verbose --conf 0.1 --iou 0.1
+
+个人使用的方法
+
+1. 获取数据
+   python tracking/track.py --yolo-model yolov8-particle-best.pt --source assets\MOT17-mini\train\mot_particle\img1 --save --save-txt --conf 0.02 --iou 0.01 --tracking-method botsort
+2. convert
+   python .\convert_mot.py
+3. 使用 easy eval
 
 #### nano 效果不错
 

@@ -1,10 +1,11 @@
+# 只能使用这个来获得GT文件
 # 只保留指定范围内gt的检测结果
 import os
 import pandas as pd
 from natsort import natsorted  # 需要安装 natsort 库：pip install natsort
 
 # 配置路径
-input_folder = r"runs\track\exp5\labels"  # 预测框文件夹路径
+input_folder = r"runs\track\exp4\labels"  # 预测框文件夹路径
 output_file = r"gt_predfict.txt"  # 过滤后的预测框输出路径
 gt_file = r"assets\MOT17-mini\train\mot_particle\gt\gt.txt"  # 真实 GT 文件路径
 # gt_file = r"yolov7_result\gt.txt"  # 预测框文件夹路径
