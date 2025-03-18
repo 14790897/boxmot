@@ -28,7 +28,7 @@ python tracking/val.py --yolo-model yolov9-200.pt --tracking-method bytetrack --
 个人使用的方法
 
 1. 获取数据
-   python tracking/track.py --yolo-model yolov8-particle-best.pt --source assets\MOT17-mini\train\mot_particle\img1 --save --save-txt --conf 0.02 --iou 0.01 --tracking-method botsort
+   python tracking/track.py --yolo-model yolov8-particle-best.pt --source assets\MOT17-mini\train\mot_particle\img1 --save --save-txt --conf 0.02 --iou 0.01 --tracking-method bytetrack
 2. convert
    python .\convert_mot.py
 3. 使用 easy eval

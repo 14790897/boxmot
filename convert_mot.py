@@ -5,7 +5,7 @@ import pandas as pd
 from natsort import natsorted  # 需要安装 natsort 库：pip install natsort
 
 # 配置路径
-input_folder = r"runs\track\exp4\labels"  # 预测框文件夹路径
+input_folder = r"runs\track\exp6\labels"  # 预测框文件夹路径
 output_file = r"gt_predfict.txt"  # 过滤后的预测框输出路径
 gt_file = r"assets\MOT17-mini\train\mot_particle\gt\gt.txt"  # 真实 GT 文件路径
 # gt_file = r"yolov7_result\gt.txt"  # 预测框文件夹路径
@@ -16,8 +16,8 @@ image_width = 768
 image_height = 1024
 
 # 设置坐标区间（归一化范围）
-x_range = (0.4, 0.5)  # 中心点横坐标在 [0.3, 0.7]
-y_range = (0.5, 0.7)  # 中心点纵坐标在 [0.4, 0.8]
+x_range = (0.3, 0.7)  # 中心点横坐标在 [0.3, 0.7]
+y_range = (0.4, 0.7)  # 中心点纵坐标在 [0.4, 0.8]
 
 # 初始化结果列表
 all_pred_data = []  # 存储过滤后的预测数据
@@ -69,10 +69,10 @@ for _, row in gt_df.iterrows():
         continue  # 跳过不符合条件的框
 
     # 重新计算左上角坐标和宽高
-    adjusted_top_left_x = row["top_left_x"]-adjust_range*1.5//2+1
-    adjusted_top_left_y = row["top_left_y"]-adjust_range*1.5//2-2
+    adjusted_top_left_x = row["top_left_x"] - adjust_range * 0.45
+    adjusted_top_left_y = row["top_left_y"] - adjust_range * 0.5
     adjusted_w = row["w"] +adjust_range*1.5
-    adjusted_h = row["h"] +adjust_range*1.5 + 2
+    adjusted_h = row["h"] + adjust_range * 1.5
     confidence_score = row["confidence_score"]
 
     # 添加到过滤后的 GT 列表
