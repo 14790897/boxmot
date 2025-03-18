@@ -5,7 +5,7 @@ import pandas as pd
 from natsort import natsorted  # 需要安装 natsort 库：pip install natsort
 
 # 配置路径
-input_folder = r"runs\track\exp9\labels"  # 预测框文件夹路径
+input_folder = r"runs\track\exp11\labels"  # 预测框文件夹路径
 output_file = r"gt_predfict.txt"  # 过滤后的预测框输出路径
 gt_file = r"assets\MOT17-mini\train\275_particle\gt\gt.txt"  # 真实 GT 文件路径 assets\MOT17-mini\train\mot_particle\gt\gt.txt
 # gt_file = r"yolov7_result\gt.txt"  # 预测框文件夹路径
@@ -34,6 +34,9 @@ for file_name in file_list:
     with open(file_path, "r") as file:
         for line in file:
             parts = line.strip().split()
+            if len(parts) < 6:
+                print("No object_id found, skipping...", parts)
+                continue
             class_id, center_x, center_y, width, height, object_id = map(
                 float, parts[:6]
             )
