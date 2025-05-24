@@ -182,7 +182,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         alpha=0.7,
         label=f"{os.path.basename(base_name)}",
     )
-    axes[i, 0].set_xlabel("H/D")
+    axes[i, 0].set_xlabel(r"$h/D$")
     axes[i, 0].set_ylabel("Rotation (rad/s)")
     axes[i, 0].set_xlim(min_height, max_height)  # 设定相同的 x 轴范围
     if i == 0:
@@ -206,7 +206,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         color="orange",
         label=f"{os.path.basename(base_name)}",
     )
-    axes[i, 1].set_xlabel("H/D")
+    axes[i, 1].set_xlabel(r"$h/D$")
     axes[i, 1].set_ylabel("Revolution (rad/s)")
     if i == 0:
         axes[i, 1].set_title(f"Revolution vs Height")
@@ -222,7 +222,42 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
 
 
 # 绘制实验均值趋势图（最后一行）
-axes[-1, 0].plot(
+# axes[-1, 0].plot(
+#     exp_indices,
+#     exp_avg_abs_rot,
+#     alpha=0.7,
+#     color="blue",
+#     label="Average Rotation",
+#     marker="o",
+#     linestyle="-",
+# )
+# axes[-1, 0].set_xlabel("Inlet Flow Rate (L/h)")
+# axes[-1, 0].set_ylabel("Avg Rotation (rad/s)")
+# axes[-1, 0].set_title("Inlet Flow Rate vs Absolute Rotation")
+# # axes[-1, 0].grid()
+# axes[-1, 0].legend()
+
+# axes[-1, 1].plot(
+#     exp_indices,
+#     exp_avg_orb_rev,
+#     alpha=0.7,
+#     color="red",
+#     label="Average Orbital Revolution",
+#     marker="o",
+#     linestyle="-",
+# )
+# axes[-1, 1].set_xlabel("Inlet Flow Rate (L/h)")
+# axes[-1, 1].set_ylabel("Avg Orbital Revolution (rad/s)")
+# axes[-1, 1].set_title("Inlet Flow Rate vs Orbital Revolution")
+# # axes[-1, 1].grid()
+# axes[-1, 1].legend()
+
+
+# ==== 单独绘制平均趋势图 ====
+fig2, axes2 = plt.subplots(1, 2, figsize=(12, 6), constrained_layout=True)
+
+# 左图：Absolute Rotation vs Inlet Flow Rate（原右图）
+axes2[0].plot(
     exp_indices,
     exp_avg_abs_rot,
     alpha=0.7,
@@ -231,13 +266,13 @@ axes[-1, 0].plot(
     marker="o",
     linestyle="-",
 )
-axes[-1, 0].set_xlabel("Inlet Flow Rate (L/h)")
-axes[-1, 0].set_ylabel("Avg Rotation (rad/s)")
-axes[-1, 0].set_title("Inlet Flow Rate vs Absolute Rotation")
-# axes[-1, 0].grid()
-axes[-1, 0].legend()
+axes2[0].set_xlabel("Inlet Flow Rate (L/h)")
+axes2[0].set_ylabel("Avg Rotation (rad/s)")
+axes2[0].set_title("Inlet Flow Rate vs Absolute Rotation", fontsize=14)
+axes2[0].legend(loc="upper left")
 
-axes[-1, 1].plot(
+# 右图：Orbital Revolution vs Inlet Flow Rate（原左图）
+axes2[1].plot(
     exp_indices,
     exp_avg_orb_rev,
     alpha=0.7,
@@ -246,12 +281,9 @@ axes[-1, 1].plot(
     marker="o",
     linestyle="-",
 )
-axes[-1, 1].set_xlabel("Inlet Flow Rate (L/h)")
-axes[-1, 1].set_ylabel("Avg Orbital Revolution (rad/s)")
-axes[-1, 1].set_title("Inlet Flow Rate vs Orbital Revolution")
-# axes[-1, 1].grid()
-axes[-1, 1].legend()
-
-plt.subplots_adjust(hspace=0.5, wspace=0.3)
+axes2[1].set_xlabel("Inlet Flow Rate (L/h)")
+axes2[1].set_ylabel("Avg Orbital Revolution (rad/s)")
+axes2[1].set_title("Inlet Flow Rate vs Orbital Revolution", fontsize=14)
+axes2[1].legend(loc="upper left")
 
 plt.show()
