@@ -16,7 +16,7 @@ import pandas as pd
 
 def merge_stats(*folders):
     """
-    合并多个文件夹的 all_stats.json 数据，并为第二个及后续文件夹的数据键名加上 '-2', '-3', ...
+    合并每个流速的文件夹的 all_stats.json 数据，并为第二个及后续文件夹的数据键名加上 '-2', '-3', ...
 
     :param folders: 需要合并的文件夹路径列表
     :return: 合并后的 JSON 数据
@@ -38,9 +38,10 @@ def merge_stats(*folders):
                 for key, value in stats_data.items():
                     modified_key = f"{key}-{index+1}"  # 例如 key-2, key-3...
                     data[modified_key] = value
-                    if folder == r"runs/track\750" or folder == r"runs/track\750-2":
-                        # print("清空")
-                        data[modified_key]["orbital_rev"] = 0
+                    # 这边改了也没什么效果，还是顺其自然
+                    # if folder == r"runs/track\750" or folder == r"runs/track\750-2":
+                    #     # print("清空")
+                    #     data[modified_key]["orbital_rev"] = 0
                     # if index == 1 and len_folders > 2:
                     #     data[modified_key]["orbital_rev"] = 0
 
@@ -187,7 +188,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
     if i == 0:
         axes[i, 0].set_title(f"Absolute Rotation vs Height")
     # axes[i, 0].grid()
-    axes[i, 0].legend()
+    axes[i, 0].legend(loc="upper right")
     x_trend = np.linspace(min_height, max_height, 100)
     # 计算并绘制趋势线（线性拟合）
     if len(heights_abs_rot) > 1:
@@ -210,7 +211,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
     if i == 0:
         axes[i, 1].set_title(f"Orbital Revolution vs Height")
     # axes[i, 1].grid()
-    axes[i, 1].legend()
+    axes[i, 0].legend(loc="upper right")
     # 计算并绘制趋势线（线性拟合）
     if len(heights_orb_rev) > 1:
         poly_coeffs = np.polyfit(heights_orb_rev, orbital_revs, 2)  # 一阶线性拟合

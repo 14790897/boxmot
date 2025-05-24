@@ -5,7 +5,7 @@ import pandas as pd
 from natsort import natsorted  # 需要安装 natsort 库：pip install natsort
 
 # 配置路径
-input_folder = r"runs\track\exp11\labels"  # 预测框文件夹路径
+input_folder = r"runs\track\exp20\labels"  # 预测框文件夹路径
 output_file = r"gt_predfict.txt"  # 过滤后的预测框输出路径
 gt_file = r"assets\MOT17-mini\train\275_particle\gt\gt.txt"  # 真实 GT 文件路径 assets\MOT17-mini\train\mot_particle\gt\gt.txt
 # gt_file = r"yolov7_result\gt.txt"  # 预测框文件夹路径
@@ -19,6 +19,7 @@ image_height = 1024
 x_range = (0.25, 0.75)  # 中心点横坐标在 [0.3, 0.7]
 y_range = (0.2, 0.9)  # 中心点纵坐标在 [0.4, 0.8]
 center_y_threshold = 0.35  # 中心点纵坐标阈值
+local_x_range_preset = (0.35, 0.6)  # 锥段部分的 x 范围
 # 初始化结果列表
 all_pred_data = []  # 存储过滤后的预测数据
 filtered_gt_data = []  # 存储过滤后的真实 GT 数据
@@ -44,7 +45,7 @@ for file_name in file_list:
             # print(center_x, center_y, width, height, object_id)
             local_x_range = x_range  # 默认使用全局 x_range
             if center_y > center_y_threshold:  # 锥段部分需要继续缩小
-                local_x_range = (0.4, 0.6)
+                local_x_range = local_x_range_preset
 
             # 判断是否在坐标区间内
             if not (
@@ -98,7 +99,7 @@ for _, row in gt_df.iterrows():
     center_y = (row["top_left_y"] + row["h"] / 2) / image_height
     local_x_range = x_range  # 默认使用全局 x_range
     if center_y > center_y_threshold:  # 锥段部分需要继续缩小
-        local_x_range = (0.4, 0.6)
+        local_x_range = local_x_range_preset
 
     # 判断是否在坐标区间内
     if not (

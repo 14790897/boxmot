@@ -53,3 +53,11 @@ python new\plot_particle.py
 ## 画出相对误差图
 
 python relative_error.py
+
+
+## 批量后处理
+
+python postprocess.py
+
+## 目前是在处理一次后，手动更改目录名字为特定格式后，需要再次处理（python postprocess.py
+），才有正确答案
