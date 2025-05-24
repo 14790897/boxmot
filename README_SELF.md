@@ -61,3 +61,5 @@ python postprocess.py
 
 ## 目前是在处理一次后，手动更改目录名字为特定格式后，需要再次处理（python postprocess.py
 ），才有正确答案
+
+## mot计算，使用convert_mot.py，以及exp20(这个是mot验证需要的)

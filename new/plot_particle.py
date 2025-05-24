@@ -13,7 +13,7 @@ from process_utils import get_all_folders
 from collections import defaultdict
 from sklearn.neighbors import KernelDensity
 import pandas as pd
-
+plt.rcParams["font.family"] = "Times New Roman"
 def merge_stats(*folders):
     """
     合并每个流速的文件夹的 all_stats.json 数据，并为第二个及后续文件夹的数据键名加上 '-2', '-3', ...
@@ -186,7 +186,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
     axes[i, 0].set_ylabel("Rotation (rad/s)")
     axes[i, 0].set_xlim(min_height, max_height)  # 设定相同的 x 轴范围
     if i == 0:
-        axes[i, 0].set_title(f"Absolute Rotation vs Height")
+        axes[i, 0].set_title(f"Rotation vs Height")
     # axes[i, 0].grid()
     axes[i, 0].legend(loc="upper right")
     x_trend = np.linspace(min_height, max_height, 100)
@@ -209,9 +209,9 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
     axes[i, 1].set_xlabel("H/D")
     axes[i, 1].set_ylabel("Revolution (rad/s)")
     if i == 0:
-        axes[i, 1].set_title(f"Orbital Revolution vs Height")
+        axes[i, 1].set_title(f"Revolution vs Height")
     # axes[i, 1].grid()
-    axes[i, 0].legend(loc="upper right")
+    axes[i, 1].legend(loc="upper right")
     # 计算并绘制趋势线（线性拟合）
     if len(heights_orb_rev) > 1:
         poly_coeffs = np.polyfit(heights_orb_rev, orbital_revs, 2)  # 一阶线性拟合

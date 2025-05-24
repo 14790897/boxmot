@@ -19,7 +19,7 @@ image_height = 1024
 x_range = (0.25, 0.75)  # 中心点横坐标在 [0.3, 0.7]
 y_range = (0.2, 0.9)  # 中心点纵坐标在 [0.4, 0.8]
 center_y_threshold = 0.35  # 中心点纵坐标阈值
-local_x_range_preset = (0.35, 0.6)  # 锥段部分的 x 范围
+local_x_range_preset = (0.35, 0.6)  # 锥段部分的 x 范围 ，为什么取这段？是因为这段标注的比较准确，如果是旁边的话会有漏标的情况
 # 初始化结果列表
 all_pred_data = []  # 存储过滤后的预测数据
 filtered_gt_data = []  # 存储过滤后的真实 GT 数据
