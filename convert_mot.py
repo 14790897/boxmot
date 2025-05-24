@@ -1,5 +1,6 @@
 # 只能使用这个来获得GT文件
 # 只保留指定范围内gt的检测结果
+# 这里使用的数据是全新的数据
 import os
 import pandas as pd
 from natsort import natsorted  # 需要安装 natsort 库：pip install natsort
