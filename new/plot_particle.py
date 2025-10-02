@@ -6,13 +6,14 @@
 
 
 import json
-import matplotlib.pyplot as plt
 import os
-import numpy as np
-from process_utils import get_all_folders
 from collections import defaultdict
-from sklearn.neighbors import KernelDensity
+
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
+from process_utils import get_all_folders
+
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 16  # 设置全局字体大小
 def merge_stats(*folders):
@@ -187,7 +188,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
     axes[i, 0].set_ylabel("Rotation (rad/s)")
     axes[i, 0].set_xlim(min_height, max_height)  # 设定相同的 x 轴范围
     if i == 0:
-        axes[i, 0].set_title(f"Rotation vs Height", fontsize=22)
+        axes[i, 0].set_title("Rotation vs Height", fontsize=22)
     # axes[i, 0].grid()
     axes[i, 0].legend(loc="upper right")
     x_trend = np.linspace(min_height, max_height, 100)
@@ -210,7 +211,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
     axes[i, 1].set_xlabel(r"$h/D$")
     axes[i, 1].set_ylabel("Revolution (rad/s)")
     if i == 0:
-        axes[i, 1].set_title(f"Revolution vs Height", fontsize=22)
+        axes[i, 1].set_title("Revolution vs Height", fontsize=22)
     # axes[i, 1].grid()
     axes[i, 1].legend(loc="upper right")
     # 计算并绘制趋势线（线性拟合）
