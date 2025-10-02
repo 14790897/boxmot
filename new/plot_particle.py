@@ -14,6 +14,7 @@ from collections import defaultdict
 from sklearn.neighbors import KernelDensity
 import pandas as pd
 plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 16  # 设置全局字体大小
 def merge_stats(*folders):
     """
     合并每个流速的文件夹的 all_stats.json 数据，并为第二个及后续文件夹的数据键名加上 '-2', '-3', ...
@@ -125,7 +126,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
             inner_diameter = value.get("inner_diameter", 0)
             # 存储数据
             if abs_rotation > 0:
-                heights_abs_rot.append(height / inner_diameter * 147)
+                heights_abs_rot.append(height / inner_diameter * 147)  # h/D
                 abs_rotations.append(abs_rotation)
 
             if orbital_rev > 0:
@@ -186,7 +187,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
     axes[i, 0].set_ylabel("Rotation (rad/s)")
     axes[i, 0].set_xlim(min_height, max_height)  # 设定相同的 x 轴范围
     if i == 0:
-        axes[i, 0].set_title(f"Rotation vs Height")
+        axes[i, 0].set_title(f"Rotation vs Height", fontsize=22)
     # axes[i, 0].grid()
     axes[i, 0].legend(loc="upper right")
     x_trend = np.linspace(min_height, max_height, 100)
@@ -209,7 +210,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
     axes[i, 1].set_xlabel(r"$h/D$")
     axes[i, 1].set_ylabel("Revolution (rad/s)")
     if i == 0:
-        axes[i, 1].set_title(f"Revolution vs Height")
+        axes[i, 1].set_title(f"Revolution vs Height", fontsize=22)
     # axes[i, 1].grid()
     axes[i, 1].legend(loc="upper right")
     # 计算并绘制趋势线（线性拟合）
@@ -268,7 +269,7 @@ axes2[0].plot(
 )
 axes2[0].set_xlabel("Inlet Flow Rate (L/h)")
 axes2[0].set_ylabel("Avg Rotation (rad/s)")
-axes2[0].set_title("Inlet Flow Rate vs Absolute Rotation", fontsize=14)
+axes2[0].set_title("Inlet Flow Rate vs Absolute Rotation", fontsize=18)
 axes2[0].legend(loc="upper left")
 
 # 右图：Orbital Revolution vs Inlet Flow Rate（原左图）
@@ -283,7 +284,7 @@ axes2[1].plot(
 )
 axes2[1].set_xlabel("Inlet Flow Rate (L/h)")
 axes2[1].set_ylabel("Avg Orbital Revolution (rad/s)")
-axes2[1].set_title("Inlet Flow Rate vs Orbital Revolution", fontsize=14)
+axes2[1].set_title("Inlet Flow Rate vs Orbital Revolution", fontsize=18)
 axes2[1].legend(loc="upper left")
 
 plt.show()
