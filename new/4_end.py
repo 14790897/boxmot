@@ -70,7 +70,7 @@ for key, value in all_stats.items():
         )  # 这里margin应该还要进行换算,缩放比例147 / 101
 
         # 遍历数据并进行过滤
-
+        # 下面这个步骤是为了排除有些从下往上走的粒子,因为比较模糊要排除
         # 事实上可以这样子想如果说这个距离超过了使我们就可以认为他这个点可能这个时候还根本没有出现,所以就让它变成最大值
         if (
             radius < d1_origin * 0.8
@@ -83,7 +83,7 @@ for key, value in all_stats.items():
                     f"{key} 的 d1_origin 大于 radius, radius: {radius}, d1_origin: {d1_origin}, margin: {margin}"
                 )
                 revolution_notice = (
-                    f"d1_origin0.9:{d1_origin * 0.9} too large, radius: {radius}"
+                    f"d1_origin:{d1_origin * 0.8} too large, radius: {radius}"
                 )
                 radius = (inner_diameter / 2) - 8 * 147 / 101
                 not_use_revolution_margin_large = True
