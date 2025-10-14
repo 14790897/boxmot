@@ -16,6 +16,106 @@ from process_utils import get_all_folders
 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 16  # 设置全局字体大小
+
+def load_excel_true_data():
+    """
+    从 Excel 文件中加载 TRUE_rotation 和 TRUE_revolution 数据，
+    根据表格结构自动处理转置
+    """
+    # 读取 Excel 文件
+    data = pd.read_excel(
+        r"C:\git-program\particle_detect\manual_caculate\data\relative error.xlsx",
+        sheet_name="Sheet1",
+        header=None,  # 先不设置表头
+    )
+    
+    print("原始数据形状:", data.shape)
+    print("第一列前10个值:", data.iloc[:10, 0].tolist())
+    
+    # 检查第一列是否包含我们期望的字段名
+    expected_fields = ['flow_velocity', 'TRUE_rotation', 'TRUE_revolution', 'height', 'diameter']
+    first_column_values = data.iloc[:, 0].astype(str).str.lower().tolist()
+    
+    has_expected_fields = any(field.lower() in ' '.join(first_column_values) for field in expected_fields)
+    
+    if has_expected_fields:
+        # 第一列包含字段名，需要转置
+        print("检测到表格需要转置")
+        data = data.T
+        data.columns = data.iloc[0]  # 使用第一行作为列名
+        data = data[1:]  # 删除第一行
+    else:
+        # 第一行是列名
+        print("表格已经是正确格式")
+        data.columns = data.iloc[0]
+        data = data[1:]
+    
+    # 清理列名
+    data.columns = data.columns.astype(str).str.strip()
+    print("处理后的列名:", data.columns.tolist())
+    
+    # 检查并处理必要的列（支持不同的列名变体）
+    column_mapping = {
+        'height': ['height', 'Height', 'HEIGHT'],
+        'diameter': ['diameter', 'Diameter', 'DIAMETER'],
+        'TRUE_rotation': ['TRUE_rotation', 'true_rotation', 'True_rotation'],
+        'TRUE_revolution': ['TRUE_revolution', 'true_revolution', 'True_revolution'],
+        'flow_velocity': ['flow_velocity', 'flow_velocitiy', 'Flow_velocity']  # 注意拼写错误的兼容
+    }
+    
+    # 找到实际的列名
+    actual_columns = {}
+    for standard_name, variants in column_mapping.items():
+        found = False
+        for variant in variants:
+            if variant in data.columns:
+                actual_columns[standard_name] = variant
+                found = True
+                break
+        if not found:
+            print(f"警告：未找到列 {standard_name}")
+    
+    if len(actual_columns) < 5:
+        print(f"警告：只找到了 {len(actual_columns)} 个必需的列")
+        return pd.DataFrame(columns=['H/D', 'TRUE_rotation', 'TRUE_revolution', 'flow_velocity'])
+    
+    # 重命名列为标准名称
+    rename_dict = {v: k for k, v in actual_columns.items()}
+    data = data.rename(columns=rename_dict)
+    
+    # 确保相关列转换为数值类型
+    numeric_columns = ['height', 'diameter', 'TRUE_rotation', 'TRUE_revolution']
+    for col in numeric_columns:
+        if col in data.columns:
+            data[col] = pd.to_numeric(data[col], errors="coerce")
+    
+    # 计算 H/D 比值
+    if 'height' in data.columns and 'diameter' in data.columns:
+        data["H/D"] = data["height"] / data["diameter"] * 147
+    
+    # 处理 flow_velocity 列
+    if 'flow_velocity' in data.columns:
+        data['flow_velocity'] = data['flow_velocity'].astype(str)
+    else:
+        print("警告：表格中没有找到 'flow_velocity' 列")
+        data['flow_velocity'] = 'unknown'
+    
+    # 过滤掉无效数据
+    required_for_filter = [col for col in ['TRUE_rotation', 'TRUE_revolution', 'H/D'] if col in data.columns]
+    if required_for_filter:
+        valid_data = data.dropna(subset=required_for_filter)
+        # 过滤掉 flow_velocity 为空或 'nan' 的数据
+        valid_data = valid_data[valid_data['flow_velocity'].notna()]
+        valid_data = valid_data[valid_data['flow_velocity'] != 'nan']
+        valid_data = valid_data[valid_data['flow_velocity'] != 'None']
+    else:
+        valid_data = data
+    
+    print(f"有效数据行数: {len(valid_data)}")
+    if len(valid_data) > 0 and 'flow_velocity' in valid_data.columns:
+        print("流速分组:", valid_data['flow_velocity'].unique())
+    
+    return valid_data
 def merge_stats(*folders):
     """
     合并每个流速的文件夹的 all_stats.json 数据，并为第二个及后续文件夹的数据键名加上 '-2', '-3', ...
@@ -53,6 +153,9 @@ def merge_stats(*folders):
 # 设置基础路径
 base_path = "runs/track"
 folders = get_all_folders(base_path)
+
+# 加载 Excel 中的真实数据
+true_data = load_excel_true_data()
 
 # 过滤出 '-2' 版本的文件夹并匹配主文件夹
 # 初始化字典，按 "头部名称" 归类
@@ -184,6 +287,32 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         alpha=0.7,
         label=f"{os.path.basename(base_name)}",
     )
+    
+    # 添加对应流速的TRUE_rotation数据叠加
+    folder_name = os.path.basename(base_name)  # 获取文件夹名称，如 '550', '750' 等
+    
+    # 过滤出匹配当前文件夹流速的TRUE数据
+    matching_true_data = true_data[true_data['flow_velocity'].str.contains(folder_name, na=False)]
+    
+    if not matching_true_data.empty:
+        # 合并所有匹配的流速数据，统一显示为一个标签
+        all_h_d = []
+        all_true_rotation = []
+        
+        for flow_vel, flow_data in matching_true_data.groupby('flow_velocity'):
+            all_h_d.extend(flow_data['H/D'].tolist())
+            all_true_rotation.extend(flow_data['TRUE_rotation'].tolist())
+        
+        # 统一显示为一个标签
+        axes[i, 0].scatter(
+            all_h_d,
+            all_true_rotation,
+            alpha=0.8,
+            marker='x',
+            s=50,
+            label=f"TRUE {folder_name}",
+        )
+    
     axes[i, 0].set_xlabel(r"$h/D$")
     axes[i, 0].set_ylabel("Rotation (rad/s)")
     axes[i, 0].set_xlim(min_height, max_height)  # 设定相同的 x 轴范围
@@ -199,8 +328,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         axes[i, 0].plot(
             x_trend, trend_line(x_trend), color="blue", linestyle="--", label="Trend"
         )
-        #  sampled_data["height"],
-        # sampled_data["orb_rev"],
+
     axes[i, 1].scatter(
         heights_orb_rev,
         orbital_revs,
@@ -208,6 +336,28 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         color="orange",
         label=f"{os.path.basename(base_name)}",
     )
+    
+    # 添加对应流速的TRUE_revolution数据叠加
+    if not matching_true_data.empty:
+        # 合并所有匹配的流速数据，统一显示为一个标签
+        all_h_d_rev = []
+        all_true_revolution = []
+        
+        for flow_vel, flow_data in matching_true_data.groupby('flow_velocity'):
+            all_h_d_rev.extend(flow_data['H/D'].tolist())
+            all_true_revolution.extend(flow_data['TRUE_revolution'].tolist())
+        
+        # 统一显示为一个标签
+        axes[i, 1].scatter(
+            all_h_d_rev,
+            all_true_revolution,
+            alpha=0.8,
+            marker='x',
+            s=50,
+            color='red',
+            label=f"TRUE {folder_name}",
+        )
+    
     axes[i, 1].set_xlabel(r"$h/D$")
     axes[i, 1].set_ylabel("Revolution (rad/s)")
     if i == 0:
