@@ -298,6 +298,7 @@ def process_data():
 
             d_total_right = result_right[0]
             x_right = result_right[1]
+            # 只找出在这个范围内的变化
             category_changes = find_changes_within_range(
                 category_changes,
                 x_left,
