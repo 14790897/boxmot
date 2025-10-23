@@ -72,7 +72,7 @@ exp_avg_orb_rev = []  # 存储每次实验的平均公转
 # 设置画布
 num_folders = len(folder_groups)
 fig, axes = plt.subplots(
-    num_folders + 1, 2, figsize=(12, 6 * (num_folders + 1)), constrained_layout=True
+    num_folders, 2, figsize=(12, 6 * num_folders), constrained_layout=True
 )  # 多个子图
 
 all_heights = []
@@ -182,7 +182,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         heights_abs_rot,
         abs_rotations,
         alpha=0.7,
-        label=f"{os.path.basename(base_name)}",
+        label=f"Inlet Flow Rate: {os.path.basename(base_name)} L/h",
     )
     axes[i, 0].set_xlabel(r"$h/D$")
     axes[i, 0].set_ylabel("Rotation (rad/s)")
@@ -190,7 +190,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
     if i == 0:
         axes[i, 0].set_title("Rotation vs Height", fontsize=22)
     # axes[i, 0].grid()
-    axes[i, 0].legend(loc="upper right")
+    axes[i, 0].legend(loc="upper right", handlelength=0, handletextpad=0, markerscale=0)
     x_trend = np.linspace(min_height, max_height, 100)
     # 计算并绘制趋势线（线性拟合）
     if len(heights_abs_rot) > 1:
@@ -206,14 +206,14 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         orbital_revs,
         alpha=0.7,
         color="orange",
-        label=f"{os.path.basename(base_name)}",
+        label=f"Inlet Flow Rate: {os.path.basename(base_name)} L/h",
     )
     axes[i, 1].set_xlabel(r"$h/D$")
     axes[i, 1].set_ylabel("Revolution (rad/s)")
     if i == 0:
         axes[i, 1].set_title("Revolution vs Height", fontsize=22)
     # axes[i, 1].grid()
-    axes[i, 1].legend(loc="upper right")
+    axes[i, 1].legend(loc="upper right", handlelength=0, handletextpad=0, markerscale=0)
     # 计算并绘制趋势线（线性拟合）
     if len(heights_orb_rev) > 1:
         poly_coeffs = np.polyfit(heights_orb_rev, orbital_revs, 2)  # 一阶线性拟合
