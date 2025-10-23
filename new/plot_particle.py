@@ -73,7 +73,7 @@ exp_avg_orb_rev = []  # 存储每次实验的平均公转
 num_folders = len(folder_groups)
 fig, axes = plt.subplots(
     num_folders, 2, figsize=(12, 6 * num_folders), constrained_layout=True
-)  # 多个子图
+)  # 多个子图,每个子图六英寸高
 
 all_heights = []
 for folder_ in folders:
