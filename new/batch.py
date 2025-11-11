@@ -1,17 +1,37 @@
 # from sharp_ import process_image
-from .contrast import process_image
 import os
 
+from .contrast import process_image
 
-def process_images_in_directory(directory, output_directory, config=None):
-    """对目录下的所有JPEG文件进行处理"""
+
+def process_images_in_directory(directory, output_directory, config=None, max_files=None):
+    """
+    对目录下的JPEG文件进行处理
+    
+    Args:
+        directory: 输入目录
+        output_directory: 输出目录
+        config: 处理配置
+        max_files: 最大处理文件数量，None表示处理所有文件
+    """
     os.makedirs(output_directory, exist_ok=True)
-    for filename in os.listdir(directory):
-        if filename.lower().endswith(".jpg"):
-            image_path = os.path.join(directory, filename)
-            # print(f'{image_path} contrast enhancement...')
-            output_path = os.path.join(output_directory, "processed_" + filename)
-            process_image(image_path, output_path, config)
+    
+    # 获取所有jpg文件
+    jpg_files = [f for f in os.listdir(directory) if f.lower().endswith(".jpg")]
+    
+    # 限制文件数量
+    if max_files is not None and max_files > 0:
+        jpg_files = jpg_files[:max_files]
+        print(f"Processing {len(jpg_files)} files (limited to {max_files}) from {directory}")
+    else:
+        print(f"Processing all {len(jpg_files)} files from {directory}")
+    
+    # 处理文件
+    for filename in jpg_files:
+        image_path = os.path.join(directory, filename)
+        # print(f'{image_path} contrast enhancement...')
+        output_path = os.path.join(output_directory, "processed_" + filename)
+        process_image(image_path, output_path, config)
 
 
 def rename_files_in_directory(directory):

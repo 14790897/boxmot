@@ -1,5 +1,25 @@
-python tracking/track.py --yolo-model yolov8_best.pt --source xy1-650-S14-2_particle_video.mp4 --save --save-txt --save-id-crops --tracking-method bytetrack
---conf 0.1 --iou 0.1
+# Particle Auto Measure - BoxMOT
+
+## 📚 快速开始
+
+查看 **[USER_GUIDE.md](USER_GUIDE.md)** 获取完整的使用说明。
+
+### 启动Web界面
+```bash
+gradio app.py  # 推荐：支持热重载
+# 或
+python app.py
+```
+
+访问：http://127.0.0.1:7860
+
+---
+
+## 命令行使用示例
+
+```bash
+python tracking/track.py --yolo-model yolov8_best.pt --source xy1-650-S14-2_particle_video.mp4 --save --save-txt --save-id-crops --tracking-method bytetrack --conf 0.1 --iou 0.1
+
 python tracking/track.py --yolo-model yolov8-particle-best.pt --source 650-1-x1_particle_video.mp4 --save --save-txt --tracking-method bytetrack --conf 0.1 --iou 0.1
 python tracking/track.py --yolo-model yolov8-particle-best.pt --source assets\MOT17-mini\train\mot_particle\mot_particle-img1_particle_video.mp4 --save --save-txt --tracking-method bytetrack --conf 0.1 --iou 0.1
 python tracking/track.py --yolo-model yolov8-x.pt --source x_video.mp4 --save --save-txt --conf 0.02 --iou 0.01 --project "runs_x_me\detect"

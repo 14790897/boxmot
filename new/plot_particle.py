@@ -1,8 +1,8 @@
-# 550 是H:\shnu-graduation\alldata\alldata\20180117-hfq-y\Y1-550\相机No.1_C001H001S0001 x再算一次
-# 750 是 H:\shnu-graduation\alldata\alldata\20180117-hfq-y\Y1-750\No.1_C001H001S0002 后处理再算一次
-# 850 是 H:\shnu-graduation\alldata\alldata\20180117-hfq-y\Y1-850\相机No.1_C001H001S0001
-# 450  是 H:\shnu-graduation\alldata\alldata\20180117-hfq-y\y1-450\相机No.1_C001H001S0002
-# 650 是 H:\shnu-graduation\alldata\alldata\20180117-hfq-y\Y1-650\相机No.1_C001H001S0002
+# 550 是D:\shnu-graduation\alldata\all\20180117-hfq-y\Y1-550\相机No.1_C001H001S0001 x再算一次
+# 750 是 D:\shnu-graduation\alldata\all\20180117-hfq-y\Y1-750\No.1_C001H001S0002 后处理再算一次
+# 850 是 D:\shnu-graduation\alldata\all\20180117-hfq-y\Y1-850\相机No.1_C001H001S0001
+# 450  是 D:\shnu-graduation\alldata\all\20180117-hfq-y\y1-450\相机No.1_C001H001S0002
+# 650 是 D:\shnu-graduation\alldata\all\20180117-hfq-y\Y1-650\相机No.1_C001H001S0002
 
 
 import json

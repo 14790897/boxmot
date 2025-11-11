@@ -1,0 +1,12 @@
+{
+  "yolo_save_directories": {
+    "y_track_project": "runs/track2",
+    "y_track_name": "exp",
+    "x_detect_project": "runs_x_me/detect2",
+    "x_detect_name": "exp",
+    "video_output": "processed_video_gradio2"
+  },
+  "processing_options": {
+    "max_files_per_folder": 500
+  }
+}

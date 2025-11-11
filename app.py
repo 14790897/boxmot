@@ -1,24 +1,195 @@
 # 运行完成之后对于第二段需要修改目录名字为-2结尾,才能使用第二段的线的计算数据
-# gradio app.py支持热重载,python app.py不支持
-import gradio as gr
+# 启动方式:
+#   1. gradio app.py  - 推荐！支持热重载，修改代码后自动重启
+#   2. python app.py  - 普通模式，需要手动重启
+import json
+import os
+import re
+import shutil
 import subprocess
-import os, json, shutil, re
 import sys
-import itertools
-
 from pathlib import Path
+
+import gradio as gr
+
 from new.batch import process_images_in_directory, rename_files_in_directory
-from new.x_batch import tiff_to_jpeg
-from new.y_make_images_2_video import images_to_video, delete_invalid_jpg_files
-from new.x_make_images_2_video import images_to_video as x_images_to_video
-from new.process_utils import convert_to_mp4, get_latest_folder, clear_folder
 from new.convert import main_convert
+from new.process_utils import clear_folder, convert_to_mp4, get_latest_folder
+from new.x_batch import tiff_to_jpeg
+from new.y_make_images_2_video import delete_invalid_jpg_files, images_to_video
 
-# 视频输出目录
-base_path = r"runs/track"
-base_x_path = "runs_x_me/detect"
-base_video_path = "processed_video_gradio"
+# Configuration file path
+CONFIG_FILE = "config.json"
+BATCH_DIRS_FILE = "batch_directories.txt"
 
+# Default configuration
+DEFAULT_CONFIG = {
+    "yolo_save_directories": {
+        "y_track_project": "runs/track",
+        "y_track_name": "exp",
+        "x_detect_project": "runs_x_me/detect",
+        "x_detect_name": "exp",
+        "video_output": "processed_video_gradio"
+    },
+    "processing_options": {
+        "max_files_per_folder": None  # None means process all files
+    }
+}
+
+def load_config():
+    """Load configuration from config.json or create default"""
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+                # Ensure all required keys exist
+                if "yolo_save_directories" not in config:
+                    config = DEFAULT_CONFIG.copy()
+                else:
+                    # Fill in any missing keys with defaults
+                    for key, value in DEFAULT_CONFIG["yolo_save_directories"].items():
+                        if key not in config["yolo_save_directories"]:
+                            config["yolo_save_directories"][key] = value
+                    
+                    # Ensure processing_options exist
+                    if "processing_options" not in config:
+                        config["processing_options"] = DEFAULT_CONFIG["processing_options"].copy()
+                    else:
+                        for key, value in DEFAULT_CONFIG["processing_options"].items():
+                            if key not in config["processing_options"]:
+                                config["processing_options"][key] = value
+                return config
+        except Exception as e:
+            print(f"Error loading config: {e}, using default configuration")
+            return DEFAULT_CONFIG
+    else:
+        # Create default config file
+        save_config(DEFAULT_CONFIG)
+        return DEFAULT_CONFIG
+
+def save_config(config):
+    """Save configuration to config.json"""
+    try:
+        with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
+            json.dump(config, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception as e:
+        print(f"Error saving config: {e}")
+        return False
+
+# Load initial configuration
+config = load_config()
+
+# 视频输出目录 - Now loaded from config
+base_path = config["yolo_save_directories"]["y_track_project"]
+base_x_path = config["yolo_save_directories"]["x_detect_project"]
+base_video_path = config["yolo_save_directories"]["video_output"]
+
+
+def update_config_values(y_track_proj, y_track_name, x_detect_proj, x_detect_name, video_out):
+    """Update configuration values"""
+    global config, base_path, base_x_path, base_video_path
+    
+    config["yolo_save_directories"]["y_track_project"] = y_track_proj
+    config["yolo_save_directories"]["y_track_name"] = y_track_name
+    config["yolo_save_directories"]["x_detect_project"] = x_detect_proj
+    config["yolo_save_directories"]["x_detect_name"] = x_detect_name
+    config["yolo_save_directories"]["video_output"] = video_out
+    
+    if save_config(config):
+        # Update global variables
+        base_path = y_track_proj
+        base_x_path = x_detect_proj
+        base_video_path = video_out
+        return "Configuration saved successfully!"
+    else:
+        return "Error saving configuration!"
+
+def reset_config():
+    """Reset configuration to default values"""
+    global config, base_path, base_x_path, base_video_path
+    
+    config = DEFAULT_CONFIG.copy()
+    if save_config(config):
+        base_path = config["yolo_save_directories"]["y_track_project"]
+        base_x_path = config["yolo_save_directories"]["x_detect_project"]
+        base_video_path = config["yolo_save_directories"]["video_output"]
+        return (
+            base_path,
+            config["yolo_save_directories"]["y_track_name"],
+            base_x_path,
+            config["yolo_save_directories"]["x_detect_name"],
+            base_video_path,
+            "Configuration reset to default successfully!"
+        )
+    else:
+        return (
+            base_path,
+            config["yolo_save_directories"]["y_track_name"],
+            base_x_path,
+            config["yolo_save_directories"]["x_detect_name"],
+            base_video_path,
+            "Error resetting configuration!"
+        )
+
+def load_batch_directories(file_path):
+    """
+    Load directory pairs from a text file.
+    Each line should contain two directories separated by comma or tab:
+    y_directory, x_directory
+    or
+    y_directory	x_directory
+    
+    Lines starting with # are treated as comments and ignored.
+    Empty lines are also ignored.
+    
+    Returns:
+        List of tuples: [(y_dir, x_dir), ...]
+    """
+    directory_pairs = []
+    
+    if not os.path.exists(file_path):
+        return directory_pairs
+    
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for line_num, line in enumerate(f, 1):
+                # Remove leading/trailing whitespace
+                line = line.strip()
+                
+                # Skip empty lines and comments
+                if not line or line.startswith('#'):
+                    continue
+                
+                # Split by comma or tab
+                if ',' in line:
+                    parts = [p.strip() for p in line.split(',', 1)]
+                elif '\t' in line:
+                    parts = [p.strip() for p in line.split('\t', 1)]
+                else:
+                    print(f"Warning: Line {line_num} doesn't contain comma or tab separator, skipping: {line}")
+                    continue
+                
+                if len(parts) == 2:
+                    y_dir, x_dir = parts
+                    # Validate directories exist
+                    if os.path.exists(y_dir) and os.path.exists(x_dir):
+                        directory_pairs.append((y_dir, x_dir))
+                        print(f"Added directory pair: Y={y_dir}, X={x_dir}")
+                    else:
+                        if not os.path.exists(y_dir):
+                            print(f"Warning: Y directory does not exist: {y_dir}")
+                        if not os.path.exists(x_dir):
+                            print(f"Warning: X directory does not exist: {x_dir}")
+                else:
+                    print(f"Warning: Line {line_num} doesn't have exactly 2 directories, skipping: {line}")
+        
+        print(f"Loaded {len(directory_pairs)} directory pairs from {file_path}")
+        return directory_pairs
+    
+    except Exception as e:
+        print(f"Error reading batch directories file: {e}")
+        return []
 
 def remove_chinese(text):
     return re.sub(r"[^\x00-\x7F]", "", text)  # 保留 ASCII 字符
@@ -32,18 +203,35 @@ def process_with_subcommand(
     y_folder_path=None,
     x_folder_path=None,
     classify_checkbox=True,
+    batch_file_path=None,
+    max_files_per_folder=None,
 ):
     results = []
-    y_folder_list = (
-        [p.strip() for p in y_folder_path.split(",") if p.strip()]
-        if y_folder_path
-        else []
-    )
-    x_folder_list = (
-        [p.strip() for p in x_folder_path.split(",") if p.strip()]
-        if x_folder_path
-        else []
-    )
+    
+    # Convert max_files_per_folder: if 0 or None, set to None (process all)
+    if max_files_per_folder is not None and max_files_per_folder <= 0:
+        max_files_per_folder = None
+    
+    print(f"Max files per folder: {max_files_per_folder if max_files_per_folder else 'All files'}")
+    
+    # Check if we should load from batch file
+    if input_type == "batch file" and batch_file_path:
+        directory_pairs = load_batch_directories(batch_file_path)
+        if not directory_pairs:
+            return None, "No valid directory pairs found in batch file or file doesn't exist.", None
+        y_folder_list = [pair[0] for pair in directory_pairs]
+        x_folder_list = [pair[1] for pair in directory_pairs]
+    else:
+        y_folder_list = (
+            [p.strip() for p in y_folder_path.split(",") if p.strip()]
+            if y_folder_path
+            else []
+        )
+        x_folder_list = (
+            [p.strip() for p in x_folder_path.split(",") if p.strip()]
+            if x_folder_path
+            else []
+        )
     print(f"y_folder_list: {y_folder_list}")
     for y_video, x_video in zip(y_folder_list, x_folder_list):
         y_input_video_path = None
@@ -62,7 +250,7 @@ def process_with_subcommand(
             if os.path.exists(y_output_directory):
                 print(f"Deleting existing output directory: {y_output_directory}")
                 shutil.rmtree(y_output_directory)
-            process_images_in_directory(y_input_directory, y_output_directory)
+            process_images_in_directory(y_input_directory, y_output_directory, max_files=max_files_per_folder)
             frame_rate = 1  # 每秒帧数
             path_parts = os.path.normpath(y_input_directory).split(os.sep)
             # 去除中文字符
@@ -89,7 +277,7 @@ def process_with_subcommand(
                 shutil.rmtree(jpeg_directory)
             rename_files_in_directory(x_input_directory)
             tiff_to_jpeg(x_input_directory, jpeg_directory)
-            process_images_in_directory(jpeg_directory, x_output_directory)
+            process_images_in_directory(jpeg_directory, x_output_directory, max_files=max_files_per_folder)
             x_output_video = os.path.join(
                 base_video_path, f"x_{output_name}_particle_video.mp4"
             )
@@ -111,8 +299,10 @@ def process_with_subcommand(
             "0.01",  # 置信度阈值
             "--iou",
             "0.01",  # IOU 阈值
-            # "--name",
-            # y_input_video_path,
+            "--project",
+            config["yolo_save_directories"]["y_track_project"],
+            "--name",
+            config["yolo_save_directories"]["y_track_name"],
         ]
         x_command = [
             sys.executable,
@@ -128,7 +318,9 @@ def process_with_subcommand(
             "--iou",
             "0.01",  # IOU 阈值
             "--project",
-            base_x_path,
+            config["yolo_save_directories"]["x_detect_project"],
+            "--name",
+            config["yolo_save_directories"]["x_detect_name"],
         ]
         try:
             subprocess.run(y_command, check=True)
@@ -209,8 +401,83 @@ def post_process(classify):
 
 # 创建 Gradio 界面
 with gr.Blocks() as demo:
-    gr.Markdown("# particle process interface")
+    gr.Markdown("# Particle Process Interface")
     os.makedirs(base_video_path, exist_ok=True)
+
+    # Configuration section
+    with gr.Accordion("YOLO Save Directory Configuration", open=False):
+        gr.Markdown("""
+        Configure the save directories for YOLO tracking and detection results.
+        All paths are relative to the project root directory.
+        """)
+        
+        with gr.Row():
+            with gr.Column():
+                gr.Markdown("### Y-axis Tracking Configuration")
+                y_track_project_input = gr.Textbox(
+                    label="Y-axis Tracking Project Directory",
+                    value=config["yolo_save_directories"]["y_track_project"],
+                    placeholder="e.g., runs/track"
+                )
+                y_track_name_input = gr.Textbox(
+                    label="Y-axis Tracking Name",
+                    value=config["yolo_save_directories"]["y_track_name"],
+                    placeholder="e.g., exp"
+                )
+            
+            with gr.Column():
+                gr.Markdown("### X-axis Detection Configuration")
+                x_detect_project_input = gr.Textbox(
+                    label="X-axis Detection Project Directory",
+                    value=config["yolo_save_directories"]["x_detect_project"],
+                    placeholder="e.g., runs_x_me/detect"
+                )
+                x_detect_name_input = gr.Textbox(
+                    label="X-axis Detection Name",
+                    value=config["yolo_save_directories"]["x_detect_name"],
+                    placeholder="e.g., exp"
+                )
+        
+        video_output_input = gr.Textbox(
+            label="Video Output Directory",
+            value=config["yolo_save_directories"]["video_output"],
+            placeholder="e.g., processed_video_gradio"
+        )
+        
+        with gr.Row():
+            save_config_button = gr.Button("Save Configuration", variant="primary")
+            reset_config_button = gr.Button("Reset to Default")
+        
+        config_status = gr.Textbox(label="Configuration Status", interactive=False)
+        
+        # Configuration button actions
+        save_config_button.click(
+            fn=update_config_values,
+            inputs=[
+                y_track_project_input,
+                y_track_name_input,
+                x_detect_project_input,
+                x_detect_name_input,
+                video_output_input
+            ],
+            outputs=config_status
+        )
+        
+        reset_config_button.click(
+            fn=reset_config,
+            inputs=[],
+            outputs=[
+                y_track_project_input,
+                y_track_name_input,
+                x_detect_project_input,
+                x_detect_name_input,
+                video_output_input,
+                config_status
+            ]
+        )
+
+    gr.Markdown("---")  # Separator
+    gr.Markdown("## Processing Interface")
 
     # 动态显示输入组件
     def toggle_inputs(input_type):
@@ -220,12 +487,22 @@ with gr.Blocks() as demo:
                 gr.update(visible=True),
                 gr.update(visible=False),
                 gr.update(visible=False),
+                gr.update(visible=False),
             )
         elif input_type == "upload folder":
             return (
                 gr.update(visible=False),
                 gr.update(visible=False),
                 gr.update(visible=True),
+                gr.update(visible=True),
+                gr.update(visible=False),
+            )
+        elif input_type == "batch file":
+            return (
+                gr.update(visible=False),
+                gr.update(visible=False),
+                gr.update(visible=False),
+                gr.update(visible=False),
                 gr.update(visible=True),
             )
 
@@ -234,7 +511,9 @@ with gr.Blocks() as demo:
             # video_input = gr.Video(label="原始视频", interactive=True)
             # 用户选择输入类型
             input_type = gr.Radio(
-                ["upload video", "upload folder"], label="select input type"
+                ["upload video", "upload folder", "batch file"], 
+                label="select input type",
+                value="upload folder"
             )
 
             # 上传视频组件
@@ -243,6 +522,13 @@ with gr.Blocks() as demo:
             # 输入文件夹路径组件
             y_folder_input = gr.Textbox(label="y_folder_input", visible=False)
             x_folder_input = gr.Textbox(label="x_folder_input", visible=False)
+            # 批量文件输入组件
+            batch_file_input = gr.Textbox(
+                label="Batch Directories File Path",
+                placeholder=f"e.g., {BATCH_DIRS_FILE}",
+                visible=False,
+                info="Path to a text file containing Y and X directory pairs (one pair per line, separated by comma or tab)"
+            )
             y_folder_input.change(
                 fn=lambda y: y,  # lambda 直接返回输入值
                 inputs=y_folder_input,  # 输入 y_folder_input 的值
@@ -256,12 +542,25 @@ with gr.Blocks() as demo:
                     x_uploaded_video,
                     y_folder_input,
                     x_folder_input,
+                    batch_file_input,
                 ],
             )
         with gr.Column(scale=1):  # 右侧视频框
             video_output = gr.Video(label="processed video")
 
-    classify_checkbox = gr.Checkbox(label="classify", value=True)
+    # 处理选项
+    with gr.Row():
+        with gr.Column():
+            classify_checkbox = gr.Checkbox(label="classify", value=True)
+        with gr.Column():
+            max_files_input = gr.Number(
+                label="Max Files Per Folder",
+                value=None,
+                precision=0,
+                minimum=1,
+                info="Maximum number of files to process per folder (leave empty or 0 for all files)"
+            )
+    
     process_button = gr.Button("start process")
     # post_process_button = gr.Button("post process")
     text_output = gr.Textbox(label="result", type="text", lines=10)
@@ -286,6 +585,8 @@ with gr.Blocks() as demo:
             y_folder_input,
             x_folder_input,
             classify_checkbox,
+            batch_file_input,
+            max_files_input,
         ],
         outputs=[video_output, text_output, log_output],
     )
@@ -299,7 +600,11 @@ with gr.Blocks() as demo:
     # y_uploaded_video.change(
     #     fn=lambda x: x, inputs=y_uploaded_video, outputs=video_output
     # )
-demo.launch(debug=True)
+
+if __name__ == "__main__":
+    # 使用 debug=True 启用调试模式
+    # 使用 gradio app.py 命令可以获得热重载功能
+    demo.launch(debug=True)
 # H:\shnu-graduation\alldata\all\20180117-hfq-y\y1-450\相机No.1_C001H001S0001,H:\shnu-graduation\alldata\all\20180117-hfq-y\y1-550\相机No.1_C001H001S0001,H:\shnu-graduation\alldata\all\20180117-hfq-y\y1-650\相机No.1_C001H001S0001,H:\shnu-graduation\alldata\all\20180117-hfq-y\y1-750\相机No.1_C001H001S0001,H:\shnu-graduation\alldata\all\20180117-hfq-y\y1-850\相机No.1_C001H001S0001,H:\shnu-graduation\alldata\all\20180117-hfq-y\Y2-450\相机No.1_C001H001S0001,H:\shnu-graduation\alldata\all\20180117-hfq-y\Y2-550\相机No.1_C001H001S0001,H:\shnu-graduation\alldata\all\20180117-hfq-y\Y2-650\相机No.1_C001H001S0001,H:\shnu-graduation\alldata\all\20180117-hfq-y\Y2-750\相机No.1_C001H001S0001,H:\shnu-graduation\alldata\all\20180117-hfq-y\Y2-850\相机No.1_C001H001S0001,H:\shnu-graduation\alldata\all\20180117-hfq-y\Y1-750\相机No.1_C001H001S0002
 
 # H:\shnu-graduation\alldata\all\20180117hefengqin-x\x1-450\Acq_A_001,H:\shnu-graduation\alldata\all\20180117hefengqin-x\x1-550\Acq_A_001,H:\shnu-graduation\alldata\all\20180117hefengqin-x\x1-650\Acq_A_002,H:\shnu-graduation\alldata\all\20180117hefengqin-x\x1-750\Acq_A_001,H:\shnu-graduation\alldata\all\20180117hefengqin-x\x1-850\Acq_A_001,H:\shnu-graduation\alldata\all\20180117hefengqin-x\x2-450\Acq_A_001,H:\shnu-graduation\alldata\all\20180117hefengqin-x\x2-550\Acq_A_001,H:\shnu-graduation\alldata\all\20180117hefengqin-x\x2-650\Acq_A_001,H:\shnu-graduation\alldata\all\20180117hefengqin-x\x2-750\Acq_A_001,H:\shnu-graduation\alldata\all\20180117hefengqin-x\x2-850\Acq_A_001,H:\shnu-graduation\alldata\all\20180117hefengqin-x\x1-750\Acq_A_002
