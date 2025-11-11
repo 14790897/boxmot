@@ -544,6 +544,23 @@ def post_process(classify):
     except Exception as e:
         print(f"图表生成时发生错误: {e}")
     
+    # 自动删除视频文件以释放空间
+    try:
+        print("\n正在自动删除视频文件以释放磁盘空间...")
+        
+        # 删除 Y 轴跟踪目录中的视频
+        print(f"\n1. 清理 Y 轴跟踪目录: {y_track_proj}")
+        delete_result_y = delete_video_files(y_track_proj, dry_run=False)
+        print(delete_result_y)
+        
+        # 删除视频输出目录中的视频
+        print(f"\n2. 清理视频输出目录: {video_out}")
+        delete_result_video = delete_video_files(video_out, dry_run=False)
+        print(delete_result_video)
+        
+    except Exception as e:
+        print(f"视频删除失败: {e}")
+    
     latest_folder_path = get_latest_folder(base_path)
     initial_result_directory = os.path.join(latest_folder_path, "initial_result")
     calculation_results_path = os.path.join(

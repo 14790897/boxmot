@@ -7,7 +7,7 @@
     "video_output": "processed_video_gradio2"
   },
   "processing_options": {
-    "max_files_per_folder": 500
+    "max_files_per_folder": 0
   },
   "batch_directories": [
     {
