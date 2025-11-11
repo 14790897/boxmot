@@ -195,6 +195,36 @@ def remove_chinese(text):
     return re.sub(r"[^\x00-\x7F]", "", text)  # 保留 ASCII 字符
 
 
+def auto_name_from_path(path):
+    """
+    Determine track/detect name automatically from a directory or file path.
+    Rules:
+      - Look for one of the flow prefixes: 450, 550, 650 in the path name.
+      - If the path name indicates a "second" set (contains y2, _2, -2 or ends with 2),
+        append "-2" to the base flow (e.g. "550-2").
+      - Return None if no flow prefix is found.
+    """
+    if not path:
+        return None
+    try:
+        name = os.path.basename(os.path.normpath(str(path)))
+    except Exception:
+        return None
+
+    # strip extension if any (in case a file path was passed)
+    name = os.path.splitext(name)[0]
+
+    m = re.search(r"(450|550|650|750|850)", name)
+    if not m:
+        return None
+    base = m.group(1)
+
+    # detect second dataset marker: y2, _2, -2, trailing 2 as a separate token
+    if re.search(r"(?:y2|_2|-2|\b2\b)$", name, re.I):
+        return f"{base}-2"
+    return base
+
+
 # 子命令处理函数
 def process_with_subcommand(
     input_type,
@@ -236,11 +266,15 @@ def process_with_subcommand(
     for y_video, x_video in zip(y_folder_list, x_folder_list):
         y_input_video_path = None
         x_input_video_path = None
+        y_input_directory = None
+        x_input_directory = None
+        
         if input_type == "upload video":
-            y_input_video_path = str(Path(y_uploaded_video_path))
-            x_input_video_path = str(Path(x_uploaded_video_path))
+            # guard against None to satisfy static checks
+            y_input_video_path = str(Path(y_uploaded_video_path)) if y_uploaded_video_path else None
+            x_input_video_path = str(Path(x_uploaded_video_path)) if x_uploaded_video_path else None
 
-        elif input_type == "upload folder":
+        elif input_type == "upload folder" or input_type == "batch file":
             y_input_directory = str(Path(y_video))
             y_output_directory = r"processed_y1_gradio"  # 自定义输出目录
             x_input_directory = str(Path(x_video))
@@ -284,6 +318,27 @@ def process_with_subcommand(
             images_to_video(x_output_directory, x_output_video, frame_rate)
             x_input_video_path = x_output_video
 
+        # Try to automatically determine the --name values from the folder/file names
+        # Prefer explicit processed/input directories if available, fall back to the original list entry
+        y_candidate = None
+        x_candidate = None
+        # if upload video, prefer the uploaded path
+        if input_type == "upload video":
+            y_candidate = y_uploaded_video_path or y_input_video_path or y_video
+            x_candidate = x_uploaded_video_path or x_input_video_path or x_video
+        else:
+            # for upload folder or batch file modes, use the input directory
+            y_candidate = y_input_directory or y_input_video_path or y_video
+            x_candidate = x_input_directory or x_input_video_path or x_video
+
+        y_auto_name = auto_name_from_path(y_candidate)
+        x_auto_name = auto_name_from_path(x_candidate)
+        
+        print(f"Auto-detected names: Y={y_auto_name}, X={x_auto_name} (from Y={y_candidate}, X={x_candidate})")
+
+        y_name_for_cmd = y_auto_name if y_auto_name else config["yolo_save_directories"]["y_track_name"]
+        x_name_for_cmd = x_auto_name if x_auto_name else config["yolo_save_directories"]["x_detect_name"]
+
         y_command = [
             sys.executable,
             "tracking/track.py",
@@ -302,7 +357,7 @@ def process_with_subcommand(
             "--project",
             config["yolo_save_directories"]["y_track_project"],
             "--name",
-            config["yolo_save_directories"]["y_track_name"],
+            y_name_for_cmd,
         ]
         x_command = [
             sys.executable,
@@ -320,7 +375,7 @@ def process_with_subcommand(
             "--project",
             config["yolo_save_directories"]["x_detect_project"],
             "--name",
-            config["yolo_save_directories"]["x_detect_name"],
+            x_name_for_cmd,
         ]
         try:
             subprocess.run(y_command, check=True)
@@ -328,10 +383,22 @@ def process_with_subcommand(
         except subprocess.CalledProcessError as e:
             return f"Error during processing: {e}"
 
-        output_path = os.path.join(
-            get_latest_folder(base_path),
-            os.path.basename(os.path.splitext(y_input_video_path)[0] + ".avi"),
-        )
+        # Safely determine a base name for the output using available candidates
+        name_src = None
+        if y_input_video_path:
+            name_src = y_input_video_path
+        elif y_input_directory:
+            # If we processed a directory, use that directory name
+            name_src = y_input_directory
+        else:
+            name_src = y_video
+
+        if name_src:
+            base_name = os.path.basename(os.path.splitext(str(name_src))[0])
+        else:
+            base_name = "output"
+
+        output_path = os.path.join(get_latest_folder(base_path), base_name + ".avi")
         output_path = convert_to_mp4(output_path)
         txt_result, log_output = post_process(classify_checkbox)
         results.append((output_path, txt_result, log_output))
