@@ -2,6 +2,7 @@
 # 启动方式:
 #   1. gradio app.py  - 推荐！支持热重载，修改代码后自动重启
 #   2. python app.py  - 普通模式，需要手动重启
+import importlib.util
 import json
 import os
 import re
@@ -17,6 +18,18 @@ from new.convert import main_convert
 from new.process_utils import clear_folder, convert_to_mp4, get_latest_folder
 from new.x_batch import tiff_to_jpeg
 from new.y_make_images_2_video import delete_invalid_jpg_files, images_to_video
+
+# Import delete_video_files function from 5_delete_videos.py
+_delete_videos_spec = importlib.util.spec_from_file_location(
+    "delete_videos_module",
+    os.path.join(os.path.dirname(__file__), "new", "4_delete_videos.py")
+)
+if _delete_videos_spec and _delete_videos_spec.loader:
+    _delete_videos_module = importlib.util.module_from_spec(_delete_videos_spec)
+    _delete_videos_spec.loader.exec_module(_delete_videos_module)
+    delete_video_files = _delete_videos_module.delete_video_files
+else:
+    raise ImportError("Failed to load 4_delete_videos.py module")
 
 # Configuration file path
 CONFIG_FILE = "config.json"
@@ -485,13 +498,13 @@ def post_process(classify):
         ],
         [
             sys.executable,
-            "new/3_images_x.py",
+            "new/2_images_x.py",
             y_track_proj,
             x_detect_proj,
         ],
         [
             sys.executable,
-            "new/4_end.py",
+            "new/3_end.py",
             y_track_proj,
         ],
     ]
@@ -721,7 +734,15 @@ with gr.Blocks() as demo:
     
     # clear folder
     gr.Markdown("---")  # Separator
-    clear_button = gr.Button("clear folder")
+    gr.Markdown("## Cleanup Operations")
+    
+    with gr.Row():
+        clear_button = gr.Button("Clear Working Folders", variant="secondary")
+        preview_delete_videos_button = gr.Button("Preview Video Files", variant="secondary")
+        delete_videos_button = gr.Button("Confirm Delete Videos", variant="stop")
+    
+    delete_videos_output = gr.Textbox(label="Video Deletion Status", lines=15, interactive=False)
+    
     # 绑定按钮事件
     clear_button.click(
         fn=lambda: (
@@ -731,6 +752,18 @@ with gr.Blocks() as demo:
         ),
         inputs=[],
         outputs=[],
+    )
+    
+    preview_delete_videos_button.click(
+        fn=lambda: delete_video_files(config["yolo_save_directories"]["y_track_project"], dry_run=True),
+        inputs=[],
+        outputs=delete_videos_output,
+    )
+    
+    delete_videos_button.click(
+        fn=lambda: delete_video_files(config["yolo_save_directories"]["y_track_project"], dry_run=False),
+        inputs=[],
+        outputs=delete_videos_output,
     )
     
     process_button.click(

@@ -6,8 +6,8 @@ import sys
 
 scripts = [
     [sys.executable, "new/1_extract.py"],
-    [sys.executable, "new/3_images_x.py"],
-    [sys.executable, "new/4_end.py"],
+    [sys.executable, "new/2_images_x.py"],
+    [sys.executable, "new/3_end.py"],
 ]
 
 
