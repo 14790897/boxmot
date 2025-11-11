@@ -248,7 +248,18 @@ def process_with_subcommand(
             else []
         )
     print(f"y_folder_list: {y_folder_list}")
-    for y_video, x_video in zip(y_folder_list, x_folder_list):
+    total_pairs = len(y_folder_list)
+    print(f"\n{'='*60}")
+    print(f"Starting batch processing: {total_pairs} directory pairs")
+    print(f"{'='*60}\n")
+    
+    for idx, (y_video, x_video) in enumerate(zip(y_folder_list, x_folder_list), 1):
+        print(f"\n{'='*60}")
+        print(f"Processing pair {idx}/{total_pairs}")
+        print(f"Y: {y_video}")
+        print(f"X: {x_video}")
+        print(f"{'='*60}\n")
+        
         y_input_video_path = None
         x_input_video_path = None
         y_input_directory = None
@@ -391,6 +402,14 @@ def process_with_subcommand(
         output_path = convert_to_mp4(output_path)
         txt_result, log_output = post_process(classify_checkbox)
         results.append((output_path, txt_result, log_output))
+        
+        print(f"\n{'='*60}")
+        print(f"✓ Completed pair {idx}/{total_pairs}")
+        print(f"{'='*60}\n")
+        
+    print(f"\n{'='*60}")
+    print(f"Batch processing complete! Processed {total_pairs} directory pairs")
+    print(f"{'='*60}\n")
     print(f"results: {results}")
     if len(results) == 1:
         return results[0][0], results[0][1], results[0][2]
@@ -581,7 +600,7 @@ with gr.Blocks() as demo:
             input_type = gr.Radio(
                 ["upload video", "upload folder", "batch file"], 
                 label="select input type",
-                value="upload folder"
+                value="batch file"
             )
 
             # 上传视频组件
