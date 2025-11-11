@@ -7,12 +7,26 @@
 
 import json
 import os
+import sys
 from collections import defaultdict
 
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from process_utils import get_all_folders
+
+# 检查是否需要非交互式模式（用于批处理）
+if len(sys.argv) > 1 and sys.argv[1] == "--save":
+    matplotlib.use('Agg')  # 使用非交互式后端
+    SAVE_MODE = True
+    if len(sys.argv) > 2:
+        BASE_PATH = sys.argv[2]  # 允许传入自定义路径
+    else:
+        BASE_PATH = "runs/track"
+else:
+    SAVE_MODE = False
+    BASE_PATH = "runs/track"
 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 16  # 设置全局字体大小
@@ -51,7 +65,7 @@ def merge_stats(*folders):
 
 
 # 设置基础路径
-base_path = "runs/track"
+base_path = BASE_PATH
 folders = get_all_folders(base_path)
 
 # 过滤出 '-2' 版本的文件夹并匹配主文件夹
@@ -288,4 +302,20 @@ axes2[1].set_ylabel("Avg Orbital Revolution (rad/s)")
 axes2[1].set_title("Inlet Flow Rate vs Orbital Revolution", fontsize=18)
 axes2[1].legend(loc="upper left")
 
-plt.show()
+# 根据模式决定是显示还是保存图表
+if SAVE_MODE:
+    # 保存图表
+    output_dir = os.path.join(base_path, "plots")
+    os.makedirs(output_dir, exist_ok=True)
+    
+    fig.savefig(os.path.join(output_dir, "particle_analysis_detailed.png"), dpi=300, bbox_inches='tight')
+    fig2.savefig(os.path.join(output_dir, "particle_analysis_summary.png"), dpi=300, bbox_inches='tight')
+    
+    print(f"图表已保存到: {output_dir}")
+    print(f"  - particle_analysis_detailed.png (详细分析)")
+    print(f"  - particle_analysis_summary.png (汇总)")
+    
+    plt.close('all')  # 关闭所有图表释放内存
+else:
+    # 显示图表
+    plt.show()

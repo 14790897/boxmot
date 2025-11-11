@@ -416,6 +416,38 @@ def process_with_subcommand(
     return None, results, None
 
 
+def generate_plots():
+    """Generate and return plot images"""
+    y_track_proj = config["yolo_save_directories"]["y_track_project"]
+    
+    try:
+        print("正在生成粒子运动分析图表...")
+        plot_script = [sys.executable, "new/plot_particle.py", "--save", y_track_proj]
+        result = subprocess.run(
+            plot_script, check=True, capture_output=True, text=True
+        )
+        print(f"图表生成完成:\n{result.stdout}")
+        
+        # 返回生成的图表路径
+        output_dir = os.path.join(y_track_proj, "plots")
+        detailed_plot = os.path.join(output_dir, "particle_analysis_detailed.png")
+        summary_plot = os.path.join(output_dir, "particle_analysis_summary.png")
+        
+        if os.path.exists(detailed_plot) and os.path.exists(summary_plot):
+            return detailed_plot, summary_plot, "图表生成成功！"
+        else:
+            return None, None, "图表文件未找到，请确保有处理数据。"
+            
+    except subprocess.CalledProcessError as e:
+        error_msg = f"图表生成失败，错误:\n{e.stderr}"
+        print(error_msg)
+        return None, None, error_msg
+    except Exception as e:
+        error_msg = f"图表生成时发生错误: {e}"
+        print(error_msg)
+        return None, None, error_msg
+
+
 def post_process(classify):
     log_output = ""
     # 准备配置路径参数
@@ -469,6 +501,20 @@ def post_process(classify):
         except subprocess.CalledProcessError as e:
             print(f"脚本 {script[1]} 执行失败，错误:\n{e.stderr}")
             break
+    
+    # 生成绘图
+    try:
+        print("正在生成粒子运动分析图表...")
+        plot_script = [sys.executable, "new/plot_particle.py", "--save", y_track_proj]
+        result = subprocess.run(
+            plot_script, check=True, capture_output=True, text=True
+        )
+        print(f"图表生成完成:\n{result.stdout}")
+    except subprocess.CalledProcessError as e:
+        print(f"图表生成失败，错误:\n{e.stderr}")
+    except Exception as e:
+        print(f"图表生成时发生错误: {e}")
+    
     latest_folder_path = get_latest_folder(base_path)
     initial_result_directory = os.path.join(latest_folder_path, "initial_result")
     calculation_results_path = os.path.join(
@@ -644,8 +690,23 @@ with gr.Blocks() as demo:
     # post_process_button = gr.Button("post process")
     text_output = gr.Textbox(label="result", type="text", lines=10)
     log_output = gr.Textbox(label="log", type="text", lines=10)
+    
+    # 添加图表生成和显示部分
+    gr.Markdown("---")  # Separator
+    gr.Markdown("## Particle Analysis Plots")
+    
+    with gr.Row():
+        generate_plot_button = gr.Button("Generate and Display Plots", variant="secondary")
+    
+    plot_status = gr.Textbox(label="Plot Status", interactive=False)
+    
+    detailed_plot_output = gr.Image(label="Detailed Analysis (Rotation & Revolution vs Height)", type="filepath")
+    summary_plot_output = gr.Image(label="Summary (Flow Rate vs Avg Rotation & Revolution)", type="filepath")
+    
     # clear folder
+    gr.Markdown("---")  # Separator
     clear_button = gr.Button("clear folder")
+    # 绑定按钮事件
     clear_button.click(
         fn=lambda: (
             clear_folder(base_path),
@@ -655,6 +716,7 @@ with gr.Blocks() as demo:
         inputs=[],
         outputs=[],
     )
+    
     process_button.click(
         fn=process_with_subcommand,
         inputs=[
@@ -668,6 +730,12 @@ with gr.Blocks() as demo:
             max_files_input,
         ],
         outputs=[video_output, text_output, log_output],
+    )
+    
+    generate_plot_button.click(
+        fn=generate_plots,
+        inputs=[],
+        outputs=[detailed_plot_output, summary_plot_output, plot_status],
     )
     # post_process_button.click(
     #     fn=post_process, inputs=classify_checkbox, outputs=text_output
