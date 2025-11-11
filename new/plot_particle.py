@@ -21,13 +21,14 @@ if len(sys.argv) > 1 and sys.argv[1] == "--save":
     matplotlib.use('Agg')  # 使用非交互式后端
     SAVE_MODE = True
     if len(sys.argv) > 2:
-        BASE_PATH = sys.argv[2]  # 允许传入自定义路径
+        BASE_PATH = os.path.normpath(sys.argv[2])  # 规范化路径
     else:
         BASE_PATH = "runs/track"
 else:
     SAVE_MODE = False
     BASE_PATH = "runs/track"
 
+print(f"路径:{BASE_PATH}")
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 16  # 设置全局字体大小
 def merge_stats(*folders):

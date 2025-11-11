@@ -3,6 +3,7 @@
 import json
 import math
 import os
+import shutil
 import sys
 
 from process_utils import get_latest_folder
@@ -10,7 +11,8 @@ from process_utils import get_latest_folder
 # 支持命令行参数或默认值
 y_track_project = sys.argv[1] if len(sys.argv) > 1 else "runs/track"
 
-base_path = y_track_project
+# 规范化路径，确保在 Windows 上正确处理
+base_path = os.path.normpath(y_track_project)
 initial_result_directory = os.path.join(get_latest_folder(base_path), "initial_result")
 stats_file_path = os.path.join(initial_result_directory, "all_stats.json")
 calculation_results_path = os.path.join(
@@ -23,6 +25,7 @@ else:
     print("all_stats.json 文件不存在，退出")
     exit()
 calculation_results = []
+keys_to_delete = []  # 记录需要删除的 key
 
 # 遍历字典并将数据赋值给变量
 for key, value in all_stats.items():
@@ -79,7 +82,7 @@ for key, value in all_stats.items():
             radius < d1_origin * 0.8
         ):  # 这里因为粒子是往下走的所以这个d1_origin可能有点虚高所以这里要乘以0.8，在柱段的话就不可能触发所以对柱段是没有影响
             # radius = max(d1, d2)
-            not_use_revolution = True# 这个参数应该是没有用 
+            # not_use_revolution = True# 这个参数应该是没有用 
             if margin > 30:
 
                 print(
@@ -88,19 +91,17 @@ for key, value in all_stats.items():
                 revolution_notice = (
                     f"d1_origin:{d1_origin * 0.8} too large, radius: {radius}"
                 )
-                radius = (inner_diameter / 2) - 8 * 147 / 101
                 not_use_revolution_margin_large = True
                 # radius = max(
                 #     d1_with_range_revolution, d2_with_range_revolution
                 # )这是错误的
         if radius < d2_origin * 0.8:
             # radius = max(d1, d2)
-            not_use_revolution = True
+            # not_use_revolution = True
             if margin > 30:
                 print(
                     f"{key} 的 d2_origin 大于 radius, radius: {radius}, d2_origin: {d2_origin}, margin: {margin}"
                 )
-                radius = inner_diameter / 2 - 8 * 147 / 101
                 revolution_notice = (
                     f"d2_origin0.9:{d1_origin * 0.9} too large, radius: {radius}"
                 )
@@ -124,6 +125,25 @@ for key, value in all_stats.items():
         if not_use_revolution_margin_large:
             # margin 大于 18 的情况下不进行公转速度的计算
             orbital_rev = 0
+            not_use_revolution = True  # 标记为不可用
+        
+        # 检查是否需要删除：rotation 和 revolution 都不可用
+        should_delete = False
+        if (not_use_rotation or not_use) and (not_use_revolution or not_use_revolution_margin_large):
+            should_delete = True
+            id_folder_path = os.path.join(initial_result_directory, str(key))
+            print(f"ID {key}: rotation 和 revolution 都不可用，删除文件夹")
+            try:
+                if os.path.exists(id_folder_path):
+                    shutil.rmtree(id_folder_path)
+                    print(f"  ✓ 成功删除文件夹: {id_folder_path}")
+                    keys_to_delete.append(key)  # 标记为待删除
+                else:
+                    print(f"  ⚠ 文件夹不存在: {id_folder_path}")
+            except Exception as e:
+                print(f"  ✗ 删除失败: {id_folder_path}, 错误: {e}")
+            continue  # 跳过后续计算
+        
         if not must_not_use:
             if not_use_rotation or not_use:
                 # print(f"跳过编号为 {key} 的条目,因为误差较大")
@@ -165,6 +185,12 @@ for key, value in all_stats.items():
         print(f"Error processing entry with key {key}: {e}")
     except Exception as e:
         print(f"Unexpected error processing entry with key {key}: {e}")
+
+# 从 all_stats 中删除已删除文件夹对应的记录
+for key in keys_to_delete:
+    if key in all_stats:
+        del all_stats[key]
+        print(f"从 all_stats 中删除记录: {key}")
 
 # 可以选择将更新后的 all_stats 写回文件
 with open(stats_file_path, "w") as stats_file:

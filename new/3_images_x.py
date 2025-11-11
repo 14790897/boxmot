@@ -20,7 +20,8 @@ from process_utils import (
 y_track_project = sys.argv[1] if len(sys.argv) > 1 else "runs/track"
 x_detect_project = sys.argv[2] if len(sys.argv) > 2 else "runs_x_me/detect"
 
-base_path = y_track_project
+# 规范化路径，确保在 Windows 上正确处理
+base_path = os.path.normpath(y_track_project)
 initial_result_directory = os.path.join(get_latest_folder(base_path), "initial_result")
 if not get_latest_folder(base_path).endswith("-2"):
     # 旋流器右边的两条线

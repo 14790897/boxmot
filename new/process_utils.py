@@ -268,7 +268,7 @@ def detect_frame_difference(data):
                     data[key]["not_use"] = True
                     data[key][
                         "reason"
-                    ] = f"have a long time not change，at frame {current_frame}"
+                    ] = f"have a long time not change,at frame {current_frame}"
             # **如果帧差为 3 的次数 >= 2，才标记为 not_use**
             if count_frame_3_diff >= 2:
                 print(
