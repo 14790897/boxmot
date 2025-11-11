@@ -184,28 +184,28 @@ def auto_name_from_path(path):
     """
     Determine track/detect name automatically from a directory or file path.
     Rules:
-      - Look for one of the flow prefixes: 450, 550, 650 in the path name.
-      - If the path name indicates a "second" set (contains y2, _2, -2 or ends with 2),
+      - Look for one of the flow prefixes: 450, 550, 650, 750, 850 in the parent directory name.
+      - If the parent directory name indicates a "second" set (contains y2, Y2, _2, -2),
         append "-2" to the base flow (e.g. "550-2").
       - Return None if no flow prefix is found.
     """
     if not path:
         return None
     try:
-        name = os.path.basename(os.path.normpath(str(path)))
+        # Get the parent directory name (the directory containing the actual data)
+        # e.g., from "D:/path/Y1-550/相机No.1_C001H001S0001" -> "Y1-550"
+        parent_dir = os.path.basename(os.path.dirname(os.path.normpath(str(path))))
     except Exception:
         return None
 
-    # strip extension if any (in case a file path was passed)
-    name = os.path.splitext(name)[0]
-
-    m = re.search(r"(450|550|650|750|850)", name)
+    # Search for flow rate in parent directory name
+    m = re.search(r"(450|550|650|750|850)", parent_dir)
     if not m:
         return None
     base = m.group(1)
 
-    # detect second dataset marker: y2, _2, -2, trailing 2 as a separate token
-    if re.search(r"(?:y2|_2|-2|\b2\b)$", name, re.I):
+    # detect second dataset marker: Y2, y2, _2, -2 in parent directory name
+    if re.search(r"(?:y2|Y2|_2|-2)", parent_dir):
         return f"{base}-2"
     return base
 
