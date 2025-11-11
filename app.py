@@ -363,10 +363,14 @@ def process_with_subcommand(
             x_name_for_cmd,
         ]
         try:
-            subprocess.run(y_command, check=True)
-            subprocess.run(x_command, check=True)
+            # 确保在项目根目录运行，这样可以导入 boxmot 模块
+            project_root = os.path.dirname(os.path.abspath(__file__))
+            subprocess.run(y_command, check=True, cwd=project_root)
+            subprocess.run(x_command, check=True, cwd=project_root)
         except subprocess.CalledProcessError as e:
-            return f"Error during processing: {e}"
+            error_msg = f"Error during processing: {e}"
+            print(error_msg)
+            return None, error_msg, None
 
         # Safely determine a base name for the output using available candidates
         name_src = None
@@ -611,7 +615,7 @@ with gr.Blocks() as demo:
         with gr.Column():
             max_files_input = gr.Number(
                 label="Max Files Per Folder",
-                value=None,
+                value=config["processing_options"]["max_files_per_folder"],
                 precision=0,
                 minimum=1,
                 info="Maximum number of files to process per folder (leave empty or 0 for all files)"
