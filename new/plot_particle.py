@@ -312,8 +312,8 @@ if SAVE_MODE:
     fig2.savefig(os.path.join(output_dir, "particle_analysis_summary.png"), dpi=300, bbox_inches='tight')
     
     print(f"图表已保存到: {output_dir}")
-    print(f"  - particle_analysis_detailed.png (详细分析)")
-    print(f"  - particle_analysis_summary.png (汇总)")
+    print("  - particle_analysis_detailed.png (详细分析)")
+    print("  - particle_analysis_summary.png (汇总)")
     
     plt.close('all')  # 关闭所有图表释放内存
 else:

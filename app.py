@@ -410,6 +410,22 @@ def process_with_subcommand(
     print(f"\n{'='*60}")
     print(f"Batch processing complete! Processed {total_pairs} directory pairs")
     print(f"{'='*60}\n")
+    
+    # 清理临时目录
+    print("\n清理临时文件...")
+    temp_dirs = [
+        "processed_y1_gradio",
+        "processed_x1_gradio", 
+        "jpeg_x"
+    ]
+    for temp_dir in temp_dirs:
+        if os.path.exists(temp_dir):
+            try:
+                shutil.rmtree(temp_dir)
+                print(f"✓ 已删除临时目录: {temp_dir}")
+            except Exception as e:
+                print(f"✗ 删除临时目录失败 {temp_dir}: {e}")
+    
     print(f"results: {results}")
     if len(results) == 1:
         return results[0][0], results[0][1], results[0][2]
