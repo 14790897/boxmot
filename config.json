@@ -8,5 +8,27 @@
   },
   "processing_options": {
     "max_files_per_folder": 500
-  }
+  },
+  "batch_directories": [
+    {
+      "y": "D:\\shnu-graduation\\alldata\\all\\20180117-hfq-y\\Y1-550\\相机No.1_C001H001S0001",
+      "x": "D:\\shnu-graduation\\alldata\\all\\20180117hefengqin-x\\x1-550\\Acq_A_001"
+    },
+    {
+      "y": "D:\\shnu-graduation\\alldata\\all\\20180117-hfq-y\\Y1-750\\相机No.1_C001H001S0002",
+      "x": "D:\\shnu-graduation\\alldata\\all\\20180117hefengqin-x\\x1-750\\Acq_A_001"
+    },
+    {
+      "y": "D:\\shnu-graduation\\alldata\\all\\20180117-hfq-y\\Y1-850\\相机No.1_C001H001S0001",
+      "x": "D:\\shnu-graduation\\alldata\\all\\20180117hefengqin-x\\x1-850\\Acq_A_001"
+    },
+    {
+      "y": "D:\\shnu-graduation\\alldata\\all\\20180117-hfq-y\\y1-450\\相机No.1_C001H001S0002",
+      "x": "D:\\shnu-graduation\\alldata\\all\\20180117hefengqin-x\\x1-450\\Acq_A_001"
+    },
+    {
+      "y": "D:\\shnu-graduation\\alldata\\all\\20180117-hfq-y\\Y1-650\\相机No.1_C001H001S0002",
+      "x": "D:\\shnu-graduation\\alldata\\all\\20180117hefengqin-x\\x1-650\\Acq_A_002"
+    }
+  ]
 }

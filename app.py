@@ -20,7 +20,6 @@ from new.y_make_images_2_video import delete_invalid_jpg_files, images_to_video
 
 # Configuration file path
 CONFIG_FILE = "config.json"
-BATCH_DIRS_FILE = "batch_directories.txt"
 
 # Default configuration
 DEFAULT_CONFIG = {
@@ -33,7 +32,11 @@ DEFAULT_CONFIG = {
     },
     "processing_options": {
         "max_files_per_folder": None  # None means process all files
-    }
+    },
+    "batch_directories": [
+        # Example format:
+        # {"y": "path/to/y/dir", "x": "path/to/x/dir"}
+    ]
 }
 
 def load_config():
@@ -58,6 +61,11 @@ def load_config():
                         for key, value in DEFAULT_CONFIG["processing_options"].items():
                             if key not in config["processing_options"]:
                                 config["processing_options"][key] = value
+                    
+                    # Ensure batch_directories exist
+                    if "batch_directories" not in config:
+                        config["batch_directories"] = DEFAULT_CONFIG["batch_directories"].copy()
+                        
                 return config
         except Exception as e:
             print(f"Error loading config: {e}, using default configuration")
@@ -132,64 +140,41 @@ def reset_config():
             "Error resetting configuration!"
         )
 
-def load_batch_directories(file_path):
+def get_batch_directories_from_config():
     """
-    Load directory pairs from a text file.
-    Each line should contain two directories separated by comma or tab:
-    y_directory, x_directory
-    or
-    y_directory	x_directory
-    
-    Lines starting with # are treated as comments and ignored.
-    Empty lines are also ignored.
+    Get directory pairs from config.json batch_directories field.
     
     Returns:
         List of tuples: [(y_dir, x_dir), ...]
     """
     directory_pairs = []
     
-    if not os.path.exists(file_path):
-        return directory_pairs
+    batch_dirs = config.get("batch_directories", [])
     
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            for line_num, line in enumerate(f, 1):
-                # Remove leading/trailing whitespace
-                line = line.strip()
-                
-                # Skip empty lines and comments
-                if not line or line.startswith('#'):
-                    continue
-                
-                # Split by comma or tab
-                if ',' in line:
-                    parts = [p.strip() for p in line.split(',', 1)]
-                elif '\t' in line:
-                    parts = [p.strip() for p in line.split('\t', 1)]
-                else:
-                    print(f"Warning: Line {line_num} doesn't contain comma or tab separator, skipping: {line}")
-                    continue
-                
-                if len(parts) == 2:
-                    y_dir, x_dir = parts
-                    # Validate directories exist
-                    if os.path.exists(y_dir) and os.path.exists(x_dir):
-                        directory_pairs.append((y_dir, x_dir))
-                        print(f"Added directory pair: Y={y_dir}, X={x_dir}")
-                    else:
-                        if not os.path.exists(y_dir):
-                            print(f"Warning: Y directory does not exist: {y_dir}")
-                        if not os.path.exists(x_dir):
-                            print(f"Warning: X directory does not exist: {x_dir}")
-                else:
-                    print(f"Warning: Line {line_num} doesn't have exactly 2 directories, skipping: {line}")
+    for idx, entry in enumerate(batch_dirs, 1):
+        if not isinstance(entry, dict):
+            print(f"Warning: Entry {idx} is not a dictionary, skipping")
+            continue
+            
+        y_dir = entry.get("y")
+        x_dir = entry.get("x")
         
-        print(f"Loaded {len(directory_pairs)} directory pairs from {file_path}")
-        return directory_pairs
+        if not y_dir or not x_dir:
+            print(f"Warning: Entry {idx} missing 'y' or 'x' field, skipping")
+            continue
+        
+        # Validate directories exist
+        if os.path.exists(y_dir) and os.path.exists(x_dir):
+            directory_pairs.append((y_dir, x_dir))
+            print(f"Added directory pair: Y={y_dir}, X={x_dir}")
+        else:
+            if not os.path.exists(y_dir):
+                print(f"Warning: Y directory does not exist: {y_dir}")
+            if not os.path.exists(x_dir):
+                print(f"Warning: X directory does not exist: {x_dir}")
     
-    except Exception as e:
-        print(f"Error reading batch directories file: {e}")
-        return []
+    print(f"Loaded {len(directory_pairs)} directory pairs from config")
+    return directory_pairs
 
 def remove_chinese(text):
     return re.sub(r"[^\x00-\x7F]", "", text)  # 保留 ASCII 字符
@@ -244,11 +229,11 @@ def process_with_subcommand(
     
     print(f"Max files per folder: {max_files_per_folder if max_files_per_folder else 'All files'}")
     
-    # Check if we should load from batch file
-    if input_type == "batch file" and batch_file_path:
-        directory_pairs = load_batch_directories(batch_file_path)
+    # Check if we should load from config batch_directories
+    if input_type == "batch file":
+        directory_pairs = get_batch_directories_from_config()
         if not directory_pairs:
-            return None, "No valid directory pairs found in batch file or file doesn't exist.", None
+            return None, "No valid directory pairs found in config.json batch_directories.", None
         y_folder_list = [pair[0] for pair in directory_pairs]
         x_folder_list = [pair[1] for pair in directory_pairs]
     else:
@@ -569,7 +554,6 @@ with gr.Blocks() as demo:
                 gr.update(visible=True),
                 gr.update(visible=False),
                 gr.update(visible=False),
-                gr.update(visible=False),
             )
         elif input_type == "upload folder":
             return (
@@ -577,7 +561,6 @@ with gr.Blocks() as demo:
                 gr.update(visible=False),
                 gr.update(visible=True),
                 gr.update(visible=True),
-                gr.update(visible=False),
             )
         elif input_type == "batch file":
             return (
@@ -585,7 +568,6 @@ with gr.Blocks() as demo:
                 gr.update(visible=False),
                 gr.update(visible=False),
                 gr.update(visible=False),
-                gr.update(visible=True),
             )
 
     with gr.Row():
@@ -604,13 +586,6 @@ with gr.Blocks() as demo:
             # 输入文件夹路径组件
             y_folder_input = gr.Textbox(label="y_folder_input", visible=False)
             x_folder_input = gr.Textbox(label="x_folder_input", visible=False)
-            # 批量文件输入组件
-            batch_file_input = gr.Textbox(
-                label="Batch Directories File Path",
-                placeholder=f"e.g., {BATCH_DIRS_FILE}",
-                visible=False,
-                info="Path to a text file containing Y and X directory pairs (one pair per line, separated by comma or tab)"
-            )
             y_folder_input.change(
                 fn=lambda y: y,  # lambda 直接返回输入值
                 inputs=y_folder_input,  # 输入 y_folder_input 的值
@@ -624,7 +599,6 @@ with gr.Blocks() as demo:
                     x_uploaded_video,
                     y_folder_input,
                     x_folder_input,
-                    batch_file_input,
                 ],
             )
         with gr.Column(scale=1):  # 右侧视频框
@@ -667,7 +641,7 @@ with gr.Blocks() as demo:
             y_folder_input,
             x_folder_input,
             classify_checkbox,
-            batch_file_input,
+            gr.Textbox(visible=False),  # batch_file_path not used anymore
             max_files_input,
         ],
         outputs=[video_output, text_output, log_output],
