@@ -81,9 +81,9 @@ def delete_video_files(base_path, dry_run=False):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("用法: python new/5_delete_videos.py <track_base_path> [--confirm]")
-        print("示例: python new/5_delete_videos.py runs/track")
-        print("      python new/5_delete_videos.py runs/track --confirm  # 确认删除")
+        print("用法: python new/4_delete_videos.py <track_base_path> [--confirm]")
+        print("示例: python new/4_delete_videos.py runs/track")
+        print("      python new/4_delete_videos.py runs/track --confirm  # 确认删除")
         sys.exit(1)
     
     track_base_path = sys.argv[1]
