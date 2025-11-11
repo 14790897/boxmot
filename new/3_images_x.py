@@ -1,14 +1,14 @@
 # 先运行my_detect.py ， 求出每个id距离边距最近的那个点
 # 这个测的是哪个入口流量的？
 # 图片手动检测那个图片它是最开始的最后一张图片的左右两边合成在一起吗？
-import shutil
-import os
 import json
-from PIL import Image, ImageDraw, ImageFont
-import cv2
-from datetime import datetime
+import os
+import shutil
+import sys
 from collections import defaultdict
+from datetime import datetime
 
+import cv2
 from process_utils import (
     calculate_distance_and_draw,
     draw_line_with_label,
@@ -16,7 +16,11 @@ from process_utils import (
     get_latest_folder,
 )
 
-base_path = "runs/track"
+# 支持命令行参数或默认值
+y_track_project = sys.argv[1] if len(sys.argv) > 1 else "runs/track"
+x_detect_project = sys.argv[2] if len(sys.argv) > 2 else "runs_x_me/detect"
+
+base_path = y_track_project
 initial_result_directory = os.path.join(get_latest_folder(base_path), "initial_result")
 if not get_latest_folder(base_path).endswith("-2"):
     # 旋流器右边的两条线
@@ -31,7 +35,7 @@ current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 if os.path.exists(stats_file_path):
     with open(stats_file_path, "r") as stats_file:
         all_stats = json.load(stats_file)
-base_path = r"runs_x_me\detect"
+base_path = x_detect_project
 x_detect_result_path = os.path.join(get_latest_folder(base_path), "detections.json")
 # x_detect_result_path = r"runs_x_me\detect\exp3\detections.json"  # exp2是750 exp是550
 

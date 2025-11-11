@@ -1,13 +1,16 @@
 # 147，101是y,x像素对厘米的比例; 什么是相对自转速度什么是绝对自转速度？计算方式得看huanyuan的论文。 用X图片检测边距是因为它是中间的，比较准确
 # 计算公转速度的时候应该使用弦长公式而不是弧长公式，其实不是，因为投影不是在弦的位置
-import math
 import json
+import math
 import os
-from process_utils import (
-    get_latest_folder,
-)
+import sys
 
-base_path = "runs/track"
+from process_utils import get_latest_folder
+
+# 支持命令行参数或默认值
+y_track_project = sys.argv[1] if len(sys.argv) > 1 else "runs/track"
+
+base_path = y_track_project
 initial_result_directory = os.path.join(get_latest_folder(base_path), "initial_result")
 stats_file_path = os.path.join(initial_result_directory, "all_stats.json")
 calculation_results_path = os.path.join(

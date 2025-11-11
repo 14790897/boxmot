@@ -1,15 +1,15 @@
 import json
-import time
 import os
-from .process_utils import get_latest_folder, find_video_files, extract_frame
-import cv2
-from PIL import Image
+import time
 
-from torchvision.models import efficientnet_b1, EfficientNet_B1_Weights
+import cv2
 import torch
 import torch.nn as nn
-from torchvision import models
+from PIL import Image
 from torchvision import transforms
+from torchvision.models import EfficientNet_B1_Weights, efficientnet_b1
+
+from .process_utils import extract_frame, find_video_files, get_latest_folder
 
 times = []  # 存储所有运行时间
 
@@ -39,7 +39,7 @@ def convert_results(
             id = int(result[5])  # 物体 ID
         except IndexError:
             id = 99999
-            print(f"检测结果中缺少 ID, 需要注意")
+            print("检测结果中缺少 ID, 需要注意")
         # 计算边框的左上角和右下角坐标
         x1 = round(x_center - width / 2)
         y1 = round(y_center - height / 2)
@@ -129,14 +129,15 @@ def convert_results(
             print(f"物体 {id} 的数据已保存到 {output_file} (空文件初始化)")
 
 
-def main_convert(classify=True):
+def main_convert(classify=True, y_track_project=None, video_output=None):
     # 因为这里是直接调用函数的所以它这个上面的如果写死全局变量的话它是不会更新的所以只能放在函数里
-    base_video_path = "processed_video_gradio"
+    # 使用传入的参数或默认值
+    base_video_path = video_output if video_output else "processed_video_gradio"
     image_width = 768
     image_height = 1024
-    base_path = "runs/track"
+    base_path = y_track_project if y_track_project else "runs/track"
     track_data_path = os.path.join(get_latest_folder(base_path), "labels")
-    track_base_path = get_latest_folder(base_path)
+    track_base_path = get_latest_folder(base_path) # 获取最新的track文件夹
     # result
     initial_result_directory = "initial_result"
     initial_result_path = os.path.join(track_base_path, initial_result_directory)

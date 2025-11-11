@@ -1,18 +1,17 @@
 import json
 import os
-from process_utils import get_latest_folder, find_video_files, extract_frame
-import cv2
-from PIL import Image
+import sys
 
-from torchvision.models import efficientnet_b1, EfficientNet_B1_Weights
-import torch
-import torch.nn as nn
-from torchvision import models
-from torchvision import transforms
-base_video_path = "processed_video_gradio"
+from process_utils import find_video_files, get_latest_folder
+
+# 支持命令行参数或默认值
+x_detect_project = sys.argv[1] if len(sys.argv) > 1 else "runs_x_me/detect"
+video_output = sys.argv[2] if len(sys.argv) > 2 else "processed_video_gradio"
+
+base_video_path = video_output
 image_width = 360
 image_height = 640
-base_path = r"runs_x_me\detect"
+base_path = x_detect_project
 track_data_path = os.path.join(get_latest_folder(base_path), "labels")
 track_base_path = get_latest_folder(base_path)
 # result

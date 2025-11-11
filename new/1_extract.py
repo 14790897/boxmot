@@ -1,21 +1,24 @@
 # 先运行 python .\my_detect_and_track.py --source output_video.mp4 --weights "best_c_s.pt"
 # 先过滤掉只维持一帧的状态然后排除掉最后几帧,因为最后几帧它已经开始往后面旋转所以不能使用这个数据而且看不清
+import copy
 import json
 import os
-import copy
 import shutil
-from collections import defaultdict, OrderedDict
+import sys
+from collections import OrderedDict, defaultdict
+
 from process_utils import (
-    extract_and_stitch_columns,
-    find_changes_within_range,
     calculate_distance_and_draw,
     detect_frame_difference,
+    find_changes_within_range,
     get_latest_folder,
-    remove_long_time_not_change,
     remove_empty,
 )
-import cv2
-base_path = "runs/track"
+
+# 支持命令行参数或默认值
+y_track_project = sys.argv[1] if len(sys.argv) > 1 else "runs/track"
+
+base_path = y_track_project
 initial_result_directory = os.path.join(get_latest_folder(base_path), "initial_result")
 video_path = "my_process_particle_video.avi"
 # 如果是下半部分的话文件夹名字需要以-2结尾

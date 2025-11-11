@@ -410,26 +410,41 @@ def process_with_subcommand(
 
 def post_process(classify):
     log_output = ""
+    # 准备配置路径参数
+    y_track_proj = config["yolo_save_directories"]["y_track_project"]
+    x_detect_proj = config["yolo_save_directories"]["x_detect_project"]
+    video_out = config["yolo_save_directories"]["video_output"]
+    
     scripts = [
         [
             sys.executable,
             "new/detect_convert.py",
+            x_detect_proj,
+            video_out,
         ],
         [
             sys.executable,
             "new/1_extract.py",
+            y_track_proj,
         ],
         [
             sys.executable,
             "new/3_images_x.py",
+            y_track_proj,
+            x_detect_proj,
         ],
         [
             sys.executable,
             "new/4_end.py",
+            y_track_proj,
         ],
     ]
     print("正在执行脚本: main_convert")
-    main_convert(classify)
+    main_convert(
+        classify,
+        y_track_project=y_track_proj,
+        video_output=video_out
+    )
     for script in scripts:
         try:
             print(f"正在执行脚本: {script[1]}...")
