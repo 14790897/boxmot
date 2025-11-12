@@ -11,6 +11,7 @@ from torchvision import models, transforms
 from .process_utils import extract_frame, find_video_files, get_latest_folder
 
 times = []  # 存储所有运行时间
+missing_id_count = 0  # 统计缺少 ID 的检测结果数量
 
 
 def convert_results(
@@ -28,6 +29,8 @@ def convert_results(
     """
     将检测结果转换为 JSON 格式，并保存为以 id 为名字的文件夹中的 JSON 文件
     """
+    global missing_id_count  # 声明使用全局变量
+    
     for index, result in enumerate(detection_results):
         category = int(result[0])  # 物体类别
         x_center = float(result[1]) * image_width  # 中心点 x 坐标
@@ -38,7 +41,7 @@ def convert_results(
             id = int(result[5])  # 物体 ID
         except IndexError:
             id = 99999
-            print("检测结果中缺少 ID, 需要注意")
+            missing_id_count += 1  # 统计缺少 ID 的数量
         # 计算边框的左上角和右下角坐标
         x1 = round(x_center - width / 2)
         y1 = round(y_center - height / 2)
@@ -131,6 +134,9 @@ def convert_results(
 def main_convert(classify=True, y_track_project=None, video_output=None):
     # 因为这里是直接调用函数的所以它这个上面的如果写死全局变量的话它是不会更新的所以只能放在函数里
     # 使用传入的参数或默认值
+    global missing_id_count  # 声明使用全局变量
+    missing_id_count = 0  # 重置计数器
+    
     base_video_path = video_output if video_output else "processed_video_gradio"
     image_width = 768
     image_height = 1024
@@ -262,6 +268,15 @@ def main_convert(classify=True, y_track_project=None, video_output=None):
         average_time = sum(times) / len(times)
         if index % 100 == 0:
             print(f"平均目标分类时间: {average_time:.6f} 秒")
+    
+    # 处理完成后显示统计信息
+    total_frames = index + 1
+    print("\n✓ 检测结果转换完成")
+    print(f"  - 总帧数: {total_frames}")
+    if missing_id_count > 0:
+        print(f"  - ⚠️  缺少 ID 的检测结果: {missing_id_count} 个（已分配 ID=99999）")
+    else:
+        print("  - ✓ 所有检测结果都有 ID")
 
 
 if __name__ == "__main__":

@@ -415,6 +415,7 @@ def process_with_subcommand(
         output_path = os.path.join(get_latest_folder(base_path), base_name + ".avi")
         # 如果需要展示视频, 取消注释
         # output_path = convert_to_mp4(output_path)
+        # 后处理以及分类算法
         txt_result, log_output = post_process(classify_checkbox)
         results.append((output_path, txt_result, log_output))
         
