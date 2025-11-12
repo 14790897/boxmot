@@ -1,0 +1,54 @@
+{
+  "yolo_save_directories": {
+    "y_track_project": "runs/track",
+    "y_track_name": "exp",
+    "x_detect_project": "runs_x_me/detect",
+    "x_detect_name": "exp",
+    "video_output": "processed_video_gradio2"
+  },
+  "processing_options": {
+    "max_files_per_folder": 7000
+  },
+  "batch_directories": [
+    {
+      "y": "D:/shnu-graduation/alldata/all/20180117-hfq-y/y1-450/相机No.1_C001H001S0002",
+      "x": "D:/shnu-graduation/alldata/all/20180117hefengqin-x/x1-450/Acq_A_002"
+    },
+    {
+      "y": "D:/shnu-graduation/alldata/all/20180117-hfq-y/Y1-550/相机No.1_C001H001S0001",
+      "x": "D:/shnu-graduation/alldata/all/20180117hefengqin-x/x1-550/Acq_A_001"
+    },
+    {
+      "y": "D:/shnu-graduation/alldata/all/20180117-hfq-y/Y1-650/相机No.1_C001H001S0002",
+      "x": "D:/shnu-graduation/alldata/all/20180117hefengqin-x/x1-650/Acq_A_002"
+    },
+    {
+      "y": "D:/shnu-graduation/alldata/all/20180117-hfq-y/Y1-750/相机No.1_C001H001S0002",
+      "x": "D:/shnu-graduation/alldata/all/20180117hefengqin-x/x1-750/Acq_A_002"
+    },
+    {
+      "y": "D:/shnu-graduation/alldata/all/20180117-hfq-y/Y1-850/相机No.1_C001H001S0001",
+      "x": "D:/shnu-graduation/alldata/all/20180117hefengqin-x/x1-850/Acq_A_001"
+    },
+    {
+      "y": "D:/shnu-graduation/alldata/all/20180117-hfq-y/y2-450/相机No.1_C001H001S0002",
+      "x": "D:/shnu-graduation/alldata/all/20180117hefengqin-x/x2-450/Acq_A_002"
+    },
+    {
+      "y": "D:/shnu-graduation/alldata/all/20180117-hfq-y/Y2-550/相机No.1_C001H001S0001",
+      "x": "D:/shnu-graduation/alldata/all/20180117hefengqin-x/x2-550/Acq_A_001"
+    },
+    {
+      "y": "D:/shnu-graduation/alldata/all/20180117-hfq-y/Y2-650/相机No.1_C001H001S0002",
+      "x": "D:/shnu-graduation/alldata/all/20180117hefengqin-x/x2-650/Acq_A_002"
+    },
+    {
+      "y": "D:/shnu-graduation/alldata/all/20180117-hfq-y/Y2-750/相机No.1_C001H001S0002",
+      "x": "D:/shnu-graduation/alldata/all/20180117hefengqin-x/x2-750/Acq_A_002"
+    },
+    {
+      "y": "D:/shnu-graduation/alldata/all/20180117-hfq-y/Y2-850/相机No.1_C001H001S0001",
+      "x": "D:/shnu-graduation/alldata/all/20180117hefengqin-x/x2-850/Acq_A_001"
+    }
+  ]
+}

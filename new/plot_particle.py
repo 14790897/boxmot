@@ -305,8 +305,11 @@ axes2[1].legend(loc="upper left")
 
 # 根据模式决定是显示还是保存图表
 if SAVE_MODE:
-    # 保存图表
-    output_dir = os.path.join(base_path, "plots")
+    # 保存图表到项目根目录（app.py 所在目录）
+    # 获取当前脚本所在目录的父目录（即项目根目录）
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)  # 上一级目录
+    output_dir = os.path.join(project_root, "plots")
     os.makedirs(output_dir, exist_ok=True)
     
     fig.savefig(os.path.join(output_dir, "particle_analysis_detailed.png"), dpi=300, bbox_inches='tight')

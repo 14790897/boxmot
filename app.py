@@ -457,8 +457,8 @@ def generate_plots():
         )
         print(f"图表生成完成:\n{result.stdout}")
         
-        # 返回生成的图表路径
-        output_dir = os.path.join(y_track_proj, "plots")
+        # 图表保存在项目根目录的 plots 文件夹
+        output_dir = "plots"
         detailed_plot = os.path.join(output_dir, "particle_analysis_detailed.png")
         summary_plot = os.path.join(output_dir, "particle_analysis_summary.png")
         
