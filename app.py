@@ -15,7 +15,7 @@ import gradio as gr
 
 from new.batch import process_images_in_directory, rename_files_in_directory
 from new.convert import main_convert
-from new.process_utils import clear_folder, convert_to_mp4, get_latest_folder
+from new.process_utils import clear_folder, get_latest_folder
 from new.x_batch import tiff_to_jpeg
 from new.y_make_images_2_video import delete_invalid_jpg_files, images_to_video
 
@@ -198,16 +198,21 @@ def auto_name_from_path(path):
     Determine track/detect name automatically from a directory or file path.
     Rules:
       - Look for one of the flow prefixes: 450, 550, 650, 750, 850 in the parent directory name.
-      - If the parent directory name indicates a "second" set (contains y2, Y2, _2, -2),
-        append "-2" to the base flow (e.g. "550-2").
+      - Extract the sequence number from the folder name (e.g., S0001 -> 001, Acq_A_002 -> 002).
+      - If the parent directory name indicates a "second" set (contains y2, Y2, X2, x2, _2, -2),
+        append "-2" suffix (e.g. "850-002-2").
+      - Return format: "flow-seq" or "flow-seq-2" (e.g., "850-002" or "850-002-2").
       - Return None if no flow prefix is found.
     """
     if not path:
         return None
     try:
-        # Get the parent directory name (the directory containing the actual data)
-        # e.g., from "D:/path/Y1-550/相机No.1_C001H001S0001" -> "Y1-550"
-        parent_dir = os.path.basename(os.path.dirname(os.path.normpath(str(path))))
+        # Get the parent directory name and the current folder name
+        # e.g., from "D:/path/Y1-550/相机No.1_C001H001S0001"
+        # parent_dir = "Y1-550", current_folder = "相机No.1_C001H001S0001"
+        normalized_path = os.path.normpath(str(path))
+        current_folder = os.path.basename(normalized_path)
+        parent_dir = os.path.basename(os.path.dirname(normalized_path))
     except Exception:
         return None
 
@@ -217,10 +222,27 @@ def auto_name_from_path(path):
         return None
     base = m.group(1)
 
+    # Extract sequence number from current folder name
+    # Pattern 1: S0001, S0002, etc. (Y-axis format)
+    seq_match = re.search(r"S(\d{4})", current_folder)
+    if seq_match:
+        seq_num = seq_match.group(1)  # e.g., "0001"
+    else:
+        # Pattern 2: Acq_A_001, Acq_A_002, etc. (X-axis format)
+        seq_match = re.search(r"_(\d{3})$", current_folder)
+        if seq_match:
+            seq_num = seq_match.group(1)  # e.g., "001"
+        else:
+            seq_num = "001"  # Default if no pattern matches
+
+    # Build the name: flow-seq or flow-seq-2
+    name = f"{base}-{seq_num}"
+    
     # detect second dataset marker: Y2, y2, X2, x2, _2, -2 in parent directory name
     if re.search(r"(?:[yYxX]2|_2|-2)", parent_dir):
-        return f"{base}-2"
-    return base
+        name = f"{name}-2"
+    
+    return name
 
 
 # 子命令处理函数
