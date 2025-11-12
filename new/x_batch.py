@@ -1,7 +1,9 @@
 # from sharp_ import process_image
-from .contrast import process_image
-from PIL import Image, UnidentifiedImageError
 import os
+
+from PIL import Image, UnidentifiedImageError
+
+from .contrast import process_image
 
 
 def tiff_to_jpeg(directory, output_directory):
@@ -21,15 +23,21 @@ def tiff_to_jpeg(directory, output_directory):
                     rotated_img = img.convert("RGB").rotate(-90, expand=True)
                     rotated_img.save(jpeg_path, "JPEG")
                 count += 1
-                print(f"已将 {tiff_path} 转换为 {jpeg_path}")
-
-                if count >= 1500:
-                    print("已处理1500张图片")
+                
+                # 每 1000 张播报一次进度
+                if count % 1000 == 0:
+                    print(f"已转换 {count} 张 TIFF 图片")
 
             except UnidentifiedImageError:
                 print(f"跳过无法识别的 TIFF 文件: {tiff_path}")
             except Exception as e:
                 print(f"处理 {tiff_path} 时发生错误: {e}")
+    
+    # 完成后打印总结
+    if count > 0:
+        print(f"✓ TIFF 转换完成，共处理 {count} 张图片")
+    else:
+        print("未找到 TIFF 文件")
 
 
 def process_images_in_directory(directory, output_directory, config=None):
@@ -39,12 +47,21 @@ def process_images_in_directory(directory, output_directory, config=None):
     for filename in os.listdir(directory):
         if filename.lower().endswith(".jpg"):
             image_path = os.path.join(directory, filename)
-            print(f"处理图像: {image_path}")
             output_path = os.path.join(output_directory, f"x-{count + 1}.jpg")
             process_image(image_path, output_path, config)
             count += 1
+            
+            # 每 1000 张播报一次进度
+            if count % 1000 == 0:
+                print(f"已处理 {count} 张图片")
             # if count >= 1500:  # 仅处理前500张
             #     break
+    
+    # 完成后打印总结
+    if count > 0:
+        print(f"✓ 图片处理完成，共处理 {count} 张图片")
+    else:
+        print("未找到 JPG 文件")
 
 
 def rename_files_in_directory(directory):

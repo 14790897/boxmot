@@ -29,7 +29,7 @@ def process_images_in_directory(directory, output_directory, config=None, max_fi
     # 处理文件
     total_files = len(jpg_files)
     for file_idx, filename in enumerate(jpg_files, 1):
-        if file_idx % 10 == 0 or file_idx == total_files:  # 每10个文件或最后一个文件打印进度
+        if file_idx % 1000 == 0 or file_idx == total_files:  # 每1000个文件或最后一个文件打印进度
             print(f"  Progress: {file_idx}/{total_files} files processed ({file_idx*100//total_files}%)")
         image_path = os.path.join(directory, filename)
         # print(f'{image_path} contrast enhancement...')
