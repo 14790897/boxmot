@@ -217,8 +217,8 @@ def auto_name_from_path(path):
         return None
     base = m.group(1)
 
-    # detect second dataset marker: Y2, y2, _2, -2 in parent directory name
-    if re.search(r"(?:y2|Y2|_2|-2)", parent_dir):
+    # detect second dataset marker: Y2, y2, X2, x2, _2, -2 in parent directory name
+    if re.search(r"(?:[yYxX]2|_2|-2)", parent_dir):
         return f"{base}-2"
     return base
 
@@ -372,7 +372,7 @@ def process_with_subcommand(
             sys.executable,
             "tracking/track.py",
             "--yolo-model",
-            "yolov8_best.pt",  # 使用的 YOLO 模型
+            "yolov8-particle-best.pt",  # 使用的 YOLO 模型 之前是yolov8_best.pt
             "--source",
             x_input_video_path,  # 输入视频路径
             "--save",  # 保存结果

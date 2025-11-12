@@ -160,9 +160,9 @@ for key, value in all_stats.items():
                 )
                 rel_rotation = orbital_rev + abs_rotation
                 result = (
-                    f"id: {key}, revolution: {orbital_rev:.2f}rad/s，rotation: {abs_rotation:.2f}rad/s, relative: {rel_rotation:.2f}rad/s, height: {height}cm"
+                    f"id: {key}, revolution: {orbital_rev:.2f}rad/s, rotation: {abs_rotation:.2f}rad/s, relative: {rel_rotation:.2f}rad/s, height: {height}cm"
                     if not not_use_revolution
-                    else f"id: {key}, revolution: {orbital_rev:.2f}rad/s，rotation: {abs_rotation:.2f}rad/s, relative: {rel_rotation:.2f}rad/s, height: {height}cm, not_use_revolution"
+                    else f"id: {key}, revolution: {orbital_rev:.2f}rad/s, rotation: {abs_rotation:.2f}rad/s, relative: {rel_rotation:.2f}rad/s, height: {height}cm, not_use_revolution"
                 )
         else:
             orbital_rev = 0
