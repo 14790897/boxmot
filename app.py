@@ -293,11 +293,10 @@ def process_with_subcommand(
             if os.path.exists(y_output_directory):
                 print(f"Deleting existing output directory: {y_output_directory}")
                 shutil.rmtree(y_output_directory)
+            # 重命名和增强对比度
             process_images_in_directory(y_input_directory, y_output_directory, max_files=max_files_per_folder)
             frame_rate = 1  # 每秒帧数
             path_parts = os.path.normpath(y_input_directory).split(os.sep)
-            # 去除中文字符
-
             # 处理每个路径部分
             processed_parts = [remove_chinese(part) for part in path_parts]
 
@@ -307,6 +306,7 @@ def process_with_subcommand(
             output_video = os.path.join(
                 base_video_path, f"{output_name}_particle_video.mp4"
             )
+            # 把图片变成视频,用于yolo输入
             images_to_video(y_output_directory, output_video, frame_rate)
             y_input_video_path = output_video
 
@@ -320,6 +320,7 @@ def process_with_subcommand(
                 shutil.rmtree(jpeg_directory)
             rename_files_in_directory(x_input_directory)
             tiff_to_jpeg(x_input_directory, jpeg_directory)
+            # 对x目录进行处理,重命名和增强对比度
             process_images_in_directory(jpeg_directory, x_output_directory, max_files=max_files_per_folder)
             x_output_video = os.path.join(
                 base_video_path, f"x_{output_name}_particle_video.mp4"
@@ -412,7 +413,8 @@ def process_with_subcommand(
             base_name = "output"
 
         output_path = os.path.join(get_latest_folder(base_path), base_name + ".avi")
-        output_path = convert_to_mp4(output_path)
+        # 如果需要展示视频, 取消注释
+        # output_path = convert_to_mp4(output_path)
         txt_result, log_output = post_process(classify_checkbox)
         results.append((output_path, txt_result, log_output))
         
