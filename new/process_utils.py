@@ -1,7 +1,10 @@
-import cv2, os, shutil
-from PIL import Image, ImageDraw, ImageFont
+import os
+import shutil
+
+import cv2
 import numpy as np
 from natsort import natsorted
+from PIL import Image
 
 # for line_coords in line_dict.values():
 #     draw.line(line_coords, fill=(255, 0, 0), width=2)
@@ -541,12 +544,23 @@ def _convert_to_mp4_opencv(input_video: str, output_video: str) -> None:
         print("The input video has been replaced with the converted MP4 file.")
     else:
         print("Warning: Conversion may have failed. Original file retained.")
-        print("The input video has been replaced with the converted MP4 file.")
 
-    else:
+
+def convert_to_mp4_old(input_video: str) -> str:
+    """
+    旧版本的转换函数（已废弃，保留用于参考）
+    """
+    input_video = os.path.normpath(input_video)
+    output_video = os.path.splitext(input_video)[0] + ".mp4"
+    
+    if input_video.lower().endswith(".mp4"):
         print(
             f"The input video '{input_video}' is already in MP4 format. No conversion needed."
         )
+    else:
+        # 转换逻辑...
+        pass
+    
     return output_video
 
 

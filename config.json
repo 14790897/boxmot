@@ -4,7 +4,7 @@
     "y_track_name": "exp",
     "x_detect_project": "runs_x_me/detect",
     "x_detect_name": "exp",
-    "video_output": "processed_video_gradio2"
+    "video_output": "processed_video_gradio"
   },
   "processing_options": {
     "max_files_per_folder": 7000
@@ -17,10 +17,6 @@
     {
       "y": "D:/shnu-graduation/alldata/all/20180117-hfq-y/Y1-550/相机No.1_C001H001S0002",
       "x": "D:/shnu-graduation/alldata/all/20180117hefengqin-x/x1-550/Acq_A_002"
-    },
-    {
-      "y": "D:/shnu-graduation/alldata/all/20180117-hfq-y/Y1-650/相机No.1_C001H001S0001",
-      "x": "D:/shnu-graduation/alldata/all/20180117hefengqin-x/x1-650/Acq_A_001"
     },
     {
       "y": "D:/shnu-graduation/alldata/all/20180117-hfq-y/Y1-750/相机No.1_C001H001S0001",
