@@ -395,7 +395,7 @@ def process_with_subcommand(
             sys.executable,
             "tracking/track.py",
             "--yolo-model",
-            "yolov8-particle-best.pt",  # 使用的 YOLO 模型 之前是yolov8_best.pt
+            "yolov8_best.pt",  # 使用的 YOLO 模型 之前是yolov8_best.pt
             "--source",
             x_input_video_path,  # 输入视频路径
             "--save",  # 保存结果
