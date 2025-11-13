@@ -1,10 +1,7 @@
-import os
-import shutil
-
-import cv2
+import cv2, os, shutil
+from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 from natsort import natsorted
-from PIL import Image
 
 # for line_coords in line_dict.values():
 #     draw.line(line_coords, fill=(255, 0, 0), width=2)
@@ -405,162 +402,68 @@ def find_video_files(directory):
 def convert_to_mp4(input_video: str) -> None:
     """
     将输入的视频文件直接转换为 .mp4 格式，并替换原文件。如果输入文件已为 .mp4 格式，则不进行转换。
-    使用 FFmpeg 进行转换以避免 OpenCV 编码器兼容性问题。
 
     :param input_video: 输入视频文件路径（包括文件名和扩展名）
     :return: 转换后的 .mp4 文件路径
     """
     input_video = os.path.normpath(input_video)
     output_video = os.path.splitext(input_video)[0] + ".mp4"
-    
     # 检查输入视频文件是否为 MP4 格式
     if not input_video.lower().endswith(".mp4"):
         print(f"The input video '{input_video}' is not in MP4 format.")
-        print("Proceeding to convert the video to MP4 format using FFmpeg.")
+        print("Proceeding to convert the video to MP4 format.")
+
+        # 构造转换后的 .mp4 文件路径，使用原始文件路径，但修改扩展名为 .mp4
 
         # 如果目标文件已经存在，先删除它（直接替换）
         if os.path.exists(output_video):
             print(f"The file '{output_video}' already exists. It will be replaced.")
             os.remove(output_video)
 
-        try:
-            # 使用 FFmpeg 进行视频转换
-            # -i: 输入文件
-            # -c:v libx264: 使用 H.264 视频编码器
-            # -preset fast: 编码速度预设
-            # -crf 23: 恒定质量因子 (18-28, 越小质量越好)
-            # -c:a aac: 音频编码器
-            # -y: 覆盖输出文件
-            import subprocess
-            
-            ffmpeg_command = [
-                "ffmpeg",
-                "-i", input_video,
-                "-c:v", "libx264",
-                "-preset", "fast",
-                "-crf", "23",
-                "-c:a", "aac",
-                "-y",
-                output_video
-            ]
-            
-            result = subprocess.run(
-                ffmpeg_command,
-                capture_output=True,
-                text=True,
-                check=True
-            )
-            
-            print(f"Video conversion complete. Saved as '{output_video}'.")
-            
-            # 删除原始文件
-            if os.path.exists(output_video):
-                os.remove(input_video)
-                print("The input video has been replaced with the converted MP4 file.")
-            
-        except subprocess.CalledProcessError as e:
-            print(f"FFmpeg conversion failed: {e}")
-            print(f"FFmpeg stderr: {e.stderr}")
-            
-            # 如果 FFmpeg 失败，回退到 OpenCV 方法（虽然可能有警告）
-            print("\nFalling back to OpenCV conversion method...")
-            _convert_to_mp4_opencv(input_video, output_video)
-            
-        except FileNotFoundError:
-            print("FFmpeg not found in system PATH.")
-            print("Please install FFmpeg or falling back to OpenCV conversion method...")
-            _convert_to_mp4_opencv(input_video, output_video)
+        # 打开输入视频文件
+        cap = cv2.VideoCapture(input_video)
 
+        # 检查视频是否成功打开
+        if not cap.isOpened():
+            print("Error: Couldn't open the video file.")
+            error_code = cap.get(cv2.CAP_PROP_FOURCC)
+            print(f"Error Code: {error_code}")
+            return
 
-def _convert_to_mp4_opencv(input_video: str, output_video: str) -> None:
-    """
-    使用 OpenCV 将视频转换为 MP4 格式的备用方法。
-    
-    :param input_video: 输入视频文件路径
-    :param output_video: 输出视频文件路径
-    """
-    # 打开输入视频文件
-    cap = cv2.VideoCapture(input_video)
+        # 获取视频的宽度、高度和帧率
+        frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        frame_rate = cap.get(cv2.CAP_PROP_FPS)
 
-    # 检查视频是否成功打开
-    if not cap.isOpened():
-        print("Error: Couldn't open the video file.")
-        error_code = cap.get(cv2.CAP_PROP_FOURCC)
-        print(f"Error Code: {error_code}")
-        return
+        # 创建 VideoWriter 对象，指定输出文件，编码器，帧率和帧大小
+        fourcc = cv2.VideoWriter_fourcc(*"h264")  # 'h264' 编码器，适用于 .mp4 文件
+        out = cv2.VideoWriter(
+            output_video, fourcc, frame_rate, (frame_width, frame_height)
+        )
 
-    # 获取视频的宽度、高度和帧率
-    frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    frame_rate = cap.get(cv2.CAP_PROP_FPS)
+        # 循环读取每一帧并写入输出视频
+        while cap.isOpened():
+            ret, frame = cap.read()
 
-    # 尝试使用不同的编码器，优先级从高到低
-    codecs = ["avc1", "mp4v", "h264"]
-    out = None
-    
-    for codec in codecs:
-        try:
-            fourcc = cv2.VideoWriter_fourcc(*codec)
-            out = cv2.VideoWriter(
-                output_video, fourcc, frame_rate, (frame_width, frame_height)
-            )
-            if out.isOpened():
-                print(f"Successfully initialized VideoWriter with codec: {codec}")
-                break
-            else:
-                out.release()
-                out = None
-        except Exception as e:
-            print(f"Failed to use codec {codec}: {e}")
-            continue
-    
-    if out is None or not out.isOpened():
-        print("Error: Failed to initialize VideoWriter with any codec.")
+            if not ret:
+                break  # 如果视频读完，退出循环
+
+            # 将每一帧写入输出视频文件
+            out.write(frame)
+
+        # 释放资源
         cap.release()
-        return
+        out.release()
 
-    # 循环读取每一帧并写入输出视频
-    frame_count = 0
-    while cap.isOpened():
-        ret, frame = cap.read()
+        print(f"Video conversion complete. Saved as '{output_video}'.")
 
-        if not ret:
-            break  # 如果视频读完，退出循环
-
-        # 将每一帧写入输出视频文件
-        out.write(frame)
-        frame_count += 1
-
-    # 释放资源
-    cap.release()
-    out.release()
-
-    print(f"OpenCV conversion complete. Processed {frame_count} frames.")
-    print(f"Saved as '{output_video}'.")
-
-    # 删除原始文件
-    if os.path.exists(output_video) and os.path.getsize(output_video) > 0:
         os.remove(input_video)
         print("The input video has been replaced with the converted MP4 file.")
+
     else:
-        print("Warning: Conversion may have failed. Original file retained.")
-
-
-def convert_to_mp4_old(input_video: str) -> str:
-    """
-    旧版本的转换函数（已废弃，保留用于参考）
-    """
-    input_video = os.path.normpath(input_video)
-    output_video = os.path.splitext(input_video)[0] + ".mp4"
-    
-    if input_video.lower().endswith(".mp4"):
         print(
             f"The input video '{input_video}' is already in MP4 format. No conversion needed."
         )
-    else:
-        # 转换逻辑...
-        pass
-    
     return output_video
 
 
