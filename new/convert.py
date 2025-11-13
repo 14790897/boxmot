@@ -136,6 +136,9 @@ def main_convert(classify=True, y_track_project=None, video_output=None):
     # 使用传入的参数或默认值
     global missing_id_count  # 声明使用全局变量
     missing_id_count = 0  # 重置计数器
+    start_ts = time.time()
+    start_iso = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start_ts))
+    print(f"\n开始转换 - {start_iso}")
     
     base_video_path = video_output if video_output else "processed_video_gradio"
     image_width = 768
@@ -267,16 +270,27 @@ def main_convert(classify=True, y_track_project=None, video_output=None):
         )
         average_time = sum(times) / len(times)
         if index % 100 == 0:
-            print(f"平均目标分类时间: {average_time:.6f} 秒")
+            elapsed = time.time() - start_ts
+            print(f"已处理 {index+1} 帧 | 平均分类时间: {average_time:.6f}秒 | 已用时: {elapsed:.1f}秒")
     
     # 处理完成后显示统计信息
     total_frames = index + 1
-    print("\n✓ 检测结果转换完成")
+    end_ts = time.time()
+    duration = end_ts - start_ts
+    end_iso = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_ts))
+    
+    print("\n" + "="*60)
+    print(f"✓ 检测结果转换完成 - {end_iso}")
     print(f"  - 总帧数: {total_frames}")
+    print(f"  - 总耗时: {duration:.2f}秒 ({duration/60:.1f}分钟)")
+    if times:
+        avg_classify = sum(times) / len(times)
+        print(f"  - 平均分类时间: {avg_classify:.6f}秒")
     if missing_id_count > 0:
         print(f"  - ⚠️  缺少 ID 的检测结果: {missing_id_count} 个（已分配 ID=99999）")
     else:
         print("  - ✓ 所有检测结果都有 ID")
+    print("="*60 + "\n")
 
 
 if __name__ == "__main__":
