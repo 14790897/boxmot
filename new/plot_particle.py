@@ -174,31 +174,6 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
             "orb_rev": orbital_revs,
         }
     )
-
-    # 使用核密度估计（KDE）来计算密度
-    # kde = KernelDensity(kernel="gaussian", bandwidth=7).fit(
-    #     np.array(data["height"]).reshape(-1, 1)
-    # )
-    # log_density = kde.score_samples(np.array(data["height"]).reshape(-1, 1))
-    # density = np.exp(log_density)  # 转换为线性密度
-
-    # # 计算采样权重：密度的倒数
-    # weights = 1 / density
-    # normalized_weights = weights / weights.sum()  # 标准化为概率分布
-
-    # # 根据权重随机采样
-    # num_samples = 150  # 采样的点数
-    # sampled_indices = np.random.choice(
-    #     data.index, size=num_samples, replace=False, p=normalized_weights
-    # )
-    # sampled_data = data.loc[sampled_indices]
-    # num_bins = 50  # 设定高度的分箱数
-    # data["bin"] = pd.qcut(data["height"], num_bins, duplicates="drop")  # 按分位数分箱
-    # sampled_data = (
-    #     data.groupby("bin")
-    #     .apply(lambda x: x.sample(n=1, replace=True))
-    #     .reset_index(drop=True)
-    # )
     # print("sampled_data:", sampled_data)
     avg_abs_rotation = np.mean(abs_rotations) if abs_rotations else 0
     avg_orbital_rev = np.mean(orbital_revs) if orbital_revs else 0
