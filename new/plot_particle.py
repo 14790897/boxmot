@@ -4,7 +4,7 @@
 # 450  是 D:\shnu-graduation\alldata\all\20180117-hfq-y\y1-450\相机No.1_C001H001S0002
 # 650 是 D:\shnu-graduation\alldata\all\20180117-hfq-y\Y1-650\相机No.1_C001H001S0002
 
-
+# h/d = 1.22的地方是拐角  那么 h = 1.22 * d 
 import json
 import os
 import sys
@@ -212,7 +212,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         color="orange",
     )
 
-    ax.set_xlabel(r"$h$")
+    ax.set_xlabel(r"$h$ (cm)")
     ax.set_ylabel("Speed (rad/s)")
     ax.set_xlim(min_height, max_height)
 
@@ -268,7 +268,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
     # 添加子图标题 (a), (b), (c), (d), (e)
     subplot_labels = ['(a)', '(b)', '(c)', '(d)', '(e)']
     if i < len(subplot_labels):
-        ax.set_title(subplot_labels[i], pad=15, loc='left', x=-0.13)
+        ax.set_title(subplot_labels[i], pad=3, loc='left', x=-0.13)
 
     # 设置刻度
     ax.xaxis.set_minor_locator(AutoMinorLocator(2))

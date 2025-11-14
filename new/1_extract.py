@@ -22,6 +22,7 @@ base_path = os.path.normpath(y_track_project)
 initial_result_directory = os.path.join(get_latest_folder(base_path), "initial_result")
 video_path = "my_process_particle_video.avi"
 # 如果是下半部分的话文件夹名字需要以-2结尾
+# 下面是旋流器上半部分 一三代表了两边, 一二是同侧的,  437是拐点  高度是 437/147=2.97cm
 if not get_latest_folder(base_path).endswith("-2"):
     line_dict = {
         "1": (175, 31, 175, 437),
@@ -34,7 +35,7 @@ if not get_latest_folder(base_path).endswith("-2"):
     y_min = 20  # 最小 y 坐标（根据实际需求调整）
     y_max = 980  # 最大 y 坐标（根据实际需求调整）,注意这里对应的x图像的高度其实并没有它对应的坐标
 else:
-    # 切换位置
+    # 一三代表了两边, 下面的二四和一三其实是一样的
     line_dict = {
         "1": (193, 0, 250, 1021),
         "2": (193, 0, 250, 1021),
@@ -446,7 +447,7 @@ def process_data():
                 (box[1] + box[3]) / 2 / 147
             )  # + 42 / 147（0-1缺失的部分）不要了，因为高度从旋流器顶端算
         else:
-            # 切换位置
+            # 如果是下侧的话需要加上之前的高度, 减去重叠的部分
             height = (box[1] + box[3]) / 2 / 147 + 1024 / 147 - (40 + 147 + 17) / 147
             # 举例 ,6对应的位置是y=838,height=838/147,y2=17,height=837/147
         results[id_]["changes"] = (

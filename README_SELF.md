@@ -4,7 +4,8 @@
 
 查看 **[USER_GUIDE.md](USER_GUIDE.md)** 获取完整的使用说明。
 
-### 启动Web界面
+### 启动 Web 界面
+
 ```bash
 gradio app.py  # 推荐：支持热重载
 # 或
@@ -36,6 +37,7 @@ python tracking/track.py --yolo-model yolov8-particle-best.pt --source assets\MO
 python tracking/track.py --yolo-model yolov9-s-50-only-you.pt --source assets\MOT17-mini\train\modify\img1 --save --save-txt --conf 0.02 --iou 0.01
 
 python tracking/track.py --yolo-model yolov8-particle-best.pt --source assets\MOT17-mini\train\new_modify\img1 --save --save-txt --conf 0.02 --iou 0.01
+```
 
 ### 论文用的图片(识别单张图片)
 
@@ -57,7 +59,7 @@ python tracking/val.py --yolo-model yolov9-200.pt --tracking-method bytetrack --
 1. 获取数据
    python tracking/track.py --yolo-model yolov8-particle-best.pt --source assets\MOT17-mini\train\mot_particle\img1 --save --save-txt --conf 0.02 --iou 0.01 --tracking-method bytetrack
 
-      python tracking/track.py --yolo-model yolov8-particle-best.pt --source assets\MOT17-mini\train\275_particle\img1 --save --save-txt --conf 0.02 --iou 0.01 --tracking-method bytetrack
+   python tracking/track.py --yolo-model yolov8-particle-best.pt --source assets\MOT17-mini\train\275_particle\img1 --save --save-txt --conf 0.02 --iou 0.01 --tracking-method bytetrack
 
 2. convert
    python .\convert_mot.py
@@ -81,14 +83,18 @@ python new\plot_particle.py
 
 python relative_error.py
 
-
 ## 批量后处理
 
 python postprocess.py
 
 ## 真实和机器学习计算对比
+
 python .\new\compare_true_predict.py
 
-## 目前是在处理一次后，手动更改目录名字为特定格式后，需要再次处理（python postprocess.py），才有正确答案, 因为一开始生成目录的名字叫exp所以并不知道是-1还是-2,这部分逻辑需要优化  还有就是X标注的框里有点小的看不清真实的样子
+## 目前是在处理一次后，手动更改目录名字为特定格式后，需要再次处理（python postprocess.py），才有正确答案, 因为一开始生成目录的名字叫 exp 所以并不知道是-1 还是-2,这部分逻辑需要优化 还有就是 X 标注的框里有点小的看不清真实的样子
 
-## mot计算，使用convert_mot.py，以及exp20(这个是mot验证需要的)
+## mot 计算，使用 convert_mot.py，以及 exp20(这个是 mot 验证需要的)
+
+## 论文todo
+
+一个是高度要改成现在的高度  还有就是机器学习模型 还有那个摄像头的分辨率也其实应该是 1024 乘以 760
