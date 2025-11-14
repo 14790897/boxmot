@@ -14,6 +14,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.ticker import AutoMinorLocator
 from process_utils import get_all_folders
 
 # 检查是否需要非交互式模式（用于批处理）
@@ -96,8 +97,8 @@ exp_avg_orb_rev = []  # 存储每次实验的平均公转
 # 设置画布
 num_folders = len(folder_groups)
 fig, axes = plt.subplots(
-    num_folders, 1, figsize=(12, 6 * num_folders), constrained_layout=True
-)  # 多个子图,每个子图六英寸高
+    num_folders, 1, figsize=(8, 4 * num_folders), constrained_layout=True
+)  # 多个子图,每个子图四英寸高
 
 
 all_heights = []
@@ -232,8 +233,11 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         color="blue",
         # label="Rotation",
     )
-    ax1.set_xlabel(r"$h/D$")
-    ax1.set_ylabel("Rotation (rad/s)", color="blue")
+    # 4
+    # ax1.set_xlabel(r"$h/D$")
+
+    ax1.set_xlabel(r"$h$")
+    ax1.set_ylabel("Rotation Speed (rad/s)", color="blue")
     ax1.tick_params(axis='y', labelcolor='blue')
     ax1.set_xlim(min_height, max_height)  # 设定相同的 x 轴范围
     
@@ -245,11 +249,11 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         color="orange",
         # label="Revolution",
     )
-    ax2.set_ylabel("Revolution (rad/s)", color="orange")
+    ax2.set_ylabel("Revolution Speed (rad/s)", color="orange")
     ax2.tick_params(axis='y', labelcolor='orange')
     
-    if i == 0:
-        ax1.set_title("Rotation and Revolution vs Height", fontsize=22)
+    # if i == 0:
+    #     ax1.set_title("Rotation and Revolution vs Height", fontsize=22)
     
     # 计算趋势线的x值
     x_trend = np.linspace(min_height, max_height, 100)
@@ -271,20 +275,36 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         )
     
     # 添加流量标注（图例）
-    flow_text = f"Inlet Flow Rate: {os.path.basename(base_name)} L/h"
+    flow_text = f"{os.path.basename(base_name)} L/h"
     ax1.text(0.98, 0.98, flow_text, transform=ax1.transAxes, 
              verticalalignment='top', horizontalalignment='right',
-             bbox=dict(boxstyle='round', facecolor='white', alpha=0.8),
              fontsize=14)
     
-    # 合并图例
+    # 添加子图标题 (a), (b), (c), (d), (e)
+    subplot_labels = ['(a)', '(b)', '(c)', '(d)', '(e)']
+    if i < len(subplot_labels):
+        ax1.set_title(subplot_labels[i], pad=15, loc='left', x=-0.13)
+    
+    # 合并图例 - 只在有标签时显示
     lines1, labels1 = ax1.get_legend_handles_labels()
     lines2, labels2 = ax2.get_legend_handles_labels()
-    ax1.legend(lines1 + lines2, labels1 + labels2, loc="upper left")
+    if labels1 or labels2:  # 只有当有标签时才显示图例
+        ax1.legend(lines1 + lines2, labels1 + labels2, loc="upper left")
+    
+    # 设置刻度 - ax1 (左Y轴)
+    ax1.xaxis.set_minor_locator(AutoMinorLocator(2))
+    ax1.yaxis.set_minor_locator(AutoMinorLocator(2))
+    ax1.tick_params(which='minor', direction='in')
+    ax1.tick_params(which='major', direction='in')
+    
+    # 设置刻度 - ax2 (右Y轴)
+    ax2.yaxis.set_minor_locator(AutoMinorLocator(2))
+    ax2.tick_params(which='minor', direction='in')
+    ax2.tick_params(which='major', direction='in')
 
 
 # ==== 单独绘制平均趋势图 - 使用双Y轴 ====
-fig2, ax_left = plt.subplots(1, 1, figsize=(10, 6), constrained_layout=True)
+fig2, ax_left = plt.subplots(1, 1, figsize=(7, 4.5), constrained_layout=True)
 ax_right = ax_left.twinx()  # 创建右侧Y轴
 
 # 获取汇总数据的极值
@@ -311,10 +331,10 @@ line1 = ax_left.plot(
     linewidth=2,
 )
 ax_left.set_xlabel("Inlet Flow Rate (L/h)")
-ax_left.set_ylabel("Avg Rotation (rad/s)", color="blue")
+ax_left.set_ylabel("Avg Rotation Speed(rad/s)", color="blue")
 ax_left.tick_params(axis='y', labelcolor='blue')
 
-# 右Y轴：Average Orbital Revolution（橙色）
+# 右Y轴：Average Revolution（橙色）
 line2 = ax_right.plot(
     exp_indices,
     exp_avg_orb_rev,
@@ -325,16 +345,22 @@ line2 = ax_right.plot(
     linestyle="-",
     linewidth=2,
 )
-ax_right.set_ylabel("Avg Orbital Revolution (rad/s)", color="orange")
+ax_right.set_ylabel("Avg Revolution Speed(rad/s)", color="orange")
 ax_right.tick_params(axis='y', labelcolor='orange')
 
 # 设置标题
-ax_left.set_title("Inlet Flow Rate vs Rotation and Revolution", fontsize=18)
+# ax_left.set_title("Inlet Flow Rate vs Rotation and Revolution", fontsize=18)
 
-# 合并图例
-lines = line1 + line2
-labels = [line.get_label() for line in lines]
-ax_left.legend(lines, labels, loc="upper left")
+# 设置刻度 - ax_left (左Y轴)
+ax_left.xaxis.set_minor_locator(AutoMinorLocator(2))
+ax_left.yaxis.set_minor_locator(AutoMinorLocator(2))
+ax_left.tick_params(which='minor', direction='in')
+ax_left.tick_params(which='major', direction='in')
+
+# 设置刻度 - ax_right (右Y轴)
+ax_right.yaxis.set_minor_locator(AutoMinorLocator(2))
+ax_right.tick_params(which='minor', direction='in')
+ax_right.tick_params(which='major', direction='in')
 
 # 根据模式决定是显示还是保存图表
 if SAVE_MODE:

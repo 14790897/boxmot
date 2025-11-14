@@ -89,12 +89,14 @@ def plot_comparison():
         
         # 左图：旋转对比
         # 分别处理有旋转数据的点
-        rotation_data = flow_data.dropna(subset=['H/D','TRUE_rotation', 'predict_rotation'])
+        rotation_data = flow_data.dropna(subset=['H/D','TRUE_rotation', 'predict_rotation','height'])
         
         if len(rotation_data) > 0:
             # 散点图
             axes[i, 0].scatter(
-                rotation_data['H/D'], 
+                # 6
+                # rotation_data['H/D'], 
+                rotation_data['height'],
                 rotation_data['TRUE_rotation'], 
                 alpha=0.8, 
                 color='blue', 
@@ -102,7 +104,9 @@ def plot_comparison():
                 marker='o'
             )
             axes[i, 0].scatter(
-                rotation_data['H/D'], 
+                # 7
+                # rotation_data['H/D'], 
+                rotation_data['height'],
                 rotation_data['predict_rotation'], 
                 alpha=0.8, 
                 color='red', 
