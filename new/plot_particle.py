@@ -118,7 +118,9 @@ for folder_ in folders:
         else:
             height = value.get("height")
         inner_diameter = value.get("inner_diameter", 0)
-        all_heights.append(height / inner_diameter * 147)
+        # 1
+        # all_heights.append(height / inner_diameter * 147)
+        all_heights.append(height)
 
 # 获取全局的最小和最大高度
 min_height = min(all_heights)
@@ -152,11 +154,15 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
             inner_diameter = value.get("inner_diameter", 0)
             # 存储数据
             if abs_rotation > 0:
-                heights_abs_rot.append(height / inner_diameter * 147)  # h/D
+                # 2
+                # heights_abs_rot.append(height / inner_diameter * 147)  # h/D
+                heights_abs_rot.append(height)
                 abs_rotations.append(abs_rotation)
 
             if orbital_rev > 0:
-                heights_orb_rev.append(height / inner_diameter * 147)
+                # 3
+                # heights_orb_rev.append(height / inner_diameter * 147)
+                heights_orb_rev.append(height)
                 orbital_revs.append(orbital_rev)
 
         except Exception as e:
@@ -291,7 +297,7 @@ ax_left.set_ylim(y1_min_avg - 500, y1_max_avg * 1.1)
 
 # 设置右轴 (ax_right)：让 Revolution 数据"沉"到下方
 # 通过提高上限来在数据上方创建空白区域
-ax_right.set_ylim(0, y2_max_avg * 2)
+ax_right.set_ylim(200, y2_max_avg * 1.5)
 
 # 左Y轴：Average Rotation（蓝色）
 line1 = ax_left.plot(
