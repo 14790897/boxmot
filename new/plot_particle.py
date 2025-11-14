@@ -97,8 +97,9 @@ exp_avg_orb_rev = []  # 存储每次实验的平均公转
 # 设置画布
 num_folders = len(folder_groups)
 fig, axes = plt.subplots(
-    num_folders, 1, figsize=(8, 4 * num_folders), constrained_layout=True
-)  # 多个子图,每个子图四英寸高
+    num_folders, 1, figsize=(8, 3.5 * num_folders),
+    gridspec_kw={'hspace': 0.25}
+)  # 多个子图,减小子图间距
 
 
 all_heights = []
@@ -184,158 +185,137 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
     exp_avg_abs_rot.append(avg_abs_rotation)
     exp_avg_orb_rev.append(avg_orbital_rev)
 
-    # 绘制当前文件夹的图 - 使用双Y轴
-    ax1 = axes[i]  # 左侧Y轴 (Rotation)
-    ax2 = ax1.twinx()  # 右侧Y轴 (Revolution)
-    
-    # 1. 获取数据的极值（假设你的数据变量名如下）
+    # 绘制当前文件夹的图 - 使用单一Y轴
+    ax = axes[i]
+
+    # 获取数据的极值
     y1_min, y1_max = min(abs_rotations), max(abs_rotations)
     y2_min, y2_max = min(orbital_revs), max(orbital_revs)
-    # 1. 设置左轴 (ax1)：让它“浮”到上方
-    # 技巧：上限不动，把【下限】设得非常低（负数）
-    # 原理：在数据下面增加巨大的空白区域，数据就被挤到天花板去了
-    ax1.set_ylim(y1_min - 1500, y1_max * 1.1)
 
-    # 2. 设置右轴 (ax2)：让它“沉”到下方
-    # 技巧：下限不动（通常是0），把【上限】设得非常大
-    # 原理：在数据头顶增加巨大的空白区域，数据就被压到地板上去了
-    ax2.set_ylim(0, y2_max * 2)
-    # 绘制 Rotation 数据（左Y轴，蓝色）
-    scatter1 = ax1.scatter(
+    # 合并所有数据以确定整体范围
+    all_speeds = abs_rotations + orbital_revs
+    y_min, y_max = min(all_speeds), max(all_speeds)
+
+    # 绘制 Rotation 数据（蓝色）
+    scatter1 = ax.scatter(
         heights_abs_rot,
         abs_rotations,
         alpha=0.7,
         color="blue",
-        # label="Rotation",
     )
-    # 4
-    # ax1.set_xlabel(r"$h/D$")
 
-    ax1.set_xlabel(r"$h$")
-    ax1.set_ylabel("Rotation Speed (rad/s)", color="blue")
-    ax1.tick_params(axis='y', labelcolor='blue')
-    ax1.set_xlim(min_height, max_height)  # 设定相同的 x 轴范围
-    
-    # 绘制 Revolution 数据（右Y轴，橙色）
-    scatter2 = ax2.scatter(
+    # 绘制 Revolution 数据（橙色）
+    scatter2 = ax.scatter(
         heights_orb_rev,
         orbital_revs,
         alpha=0.7,
         color="orange",
-        # label="Revolution",
     )
-    ax2.set_ylabel("Revolution Speed (rad/s)", color="orange")
-    ax2.tick_params(axis='y', labelcolor='orange')
-    
-    # if i == 0:
-    #     ax1.set_title("Rotation and Revolution vs Height", fontsize=22)
-    
+
+    ax.set_xlabel(r"$h$")
+    ax.set_ylabel("Speed (rad/s)")
+    ax.set_xlim(min_height, max_height)
+
+    # 计算断裂位置：在公转最大值和自转最小值之间
+    revolution_max = max(orbital_revs)
+    rotation_min = min(abs_rotations)
+
+    # 设置Y轴范围
+    ax.set_ylim(y_min * 0.95, y_max * 1.05)
+
+    # 在公转最大值和自转最小值之间添加断裂标记
+    if rotation_min > revolution_max:  # 确保有间隙
+        # 计算断裂标记的中间位置
+        break_center = (revolution_max + rotation_min) / 2
+
+        # 计算断裂位置在Y轴上的相对位置（0-1之间）
+        y_range = y_max * 1.05 - y_min * 0.95
+        break_pos = (break_center - y_min * 0.95) / y_range
+
+        # 添加断裂标记（斜线）
+        d = 0.015  # 断裂标记的大小
+        kwargs = dict(transform=ax.transAxes, color='k', clip_on=False, linewidth=1.5)
+
+        # 在Y轴左侧绘制断裂标记（两条平行斜线）
+        ax.plot((-d, +d), (break_pos - d, break_pos + d), **kwargs)
+        ax.plot((-d, +d), (break_pos + 0.015 - d, break_pos + 0.015 + d), **kwargs)
+
     # 计算趋势线的x值
     x_trend = np.linspace(min_height, max_height, 100)
-    
-    # 计算并绘制 Rotation 趋势线（左Y轴，蓝色虚线）
+
+    # 计算并绘制 Rotation 趋势线（蓝色虚线）
     if len(heights_abs_rot) > 1:
         poly_coeffs = np.polyfit(heights_abs_rot, abs_rotations, 2)
         trend_line = np.poly1d(poly_coeffs)
-        line1 = ax1.plot(
-            x_trend, trend_line(x_trend), color="blue", linestyle="--"
+        line1 = ax.plot(
+            x_trend, trend_line(x_trend), color="blue", linestyle="--", alpha=0.5
         )
-    
-    # 计算并绘制 Revolution 趋势线（右Y轴，橙色虚线）
+
+    # 计算并绘制 Revolution 趋势线（橙色虚线）
     if len(heights_orb_rev) > 1:
         poly_coeffs = np.polyfit(heights_orb_rev, orbital_revs, 2)
         trend_line = np.poly1d(poly_coeffs)
-        line2 = ax2.plot(
-            x_trend, trend_line(x_trend), color="orange", linestyle="--"
+        line2 = ax.plot(
+            x_trend, trend_line(x_trend), color="orange", linestyle="--", alpha=0.5
         )
-    
-    # 添加流量标注（图例）
+
+    # 添加流量标注
     flow_text = f"{os.path.basename(base_name)} L/h"
-    ax1.text(0.98, 0.98, flow_text, transform=ax1.transAxes, 
+    ax.text(0.98, 0.98, flow_text, transform=ax.transAxes,
              verticalalignment='top', horizontalalignment='right',
              fontsize=14)
-    
+
     # 添加子图标题 (a), (b), (c), (d), (e)
     subplot_labels = ['(a)', '(b)', '(c)', '(d)', '(e)']
     if i < len(subplot_labels):
-        ax1.set_title(subplot_labels[i], pad=15, loc='left', x=-0.13)
-    
-    # 合并图例 - 只在有标签时显示
-    lines1, labels1 = ax1.get_legend_handles_labels()
-    lines2, labels2 = ax2.get_legend_handles_labels()
-    if labels1 or labels2:  # 只有当有标签时才显示图例
-        ax1.legend(lines1 + lines2, labels1 + labels2, loc="upper left")
-    
-    # 设置刻度 - ax1 (左Y轴)
-    ax1.xaxis.set_minor_locator(AutoMinorLocator(2))
-    ax1.yaxis.set_minor_locator(AutoMinorLocator(2))
-    ax1.tick_params(which='minor', direction='in')
-    ax1.tick_params(which='major', direction='in')
-    
-    # 设置刻度 - ax2 (右Y轴)
-    ax2.yaxis.set_minor_locator(AutoMinorLocator(2))
-    ax2.tick_params(which='minor', direction='in')
-    ax2.tick_params(which='major', direction='in')
+        ax.set_title(subplot_labels[i], pad=15, loc='left', x=-0.13)
+
+    # 设置刻度
+    ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+    ax.yaxis.set_minor_locator(AutoMinorLocator(2))
+    ax.tick_params(which='minor', direction='in')
+    ax.tick_params(which='major', direction='in')
 
 
-# ==== 单独绘制平均趋势图 - 使用双Y轴 ====
-fig2, ax_left = plt.subplots(1, 1, figsize=(7, 4.5), constrained_layout=True)
-ax_right = ax_left.twinx()  # 创建右侧Y轴
+# ==== 单独绘制平均趋势图 - 使用单一Y轴 ====
+fig2, ax_summary = plt.subplots(1, 1, figsize=(7, 4.5), constrained_layout=True)
 
 # 获取汇总数据的极值
-y1_min_avg, y1_max_avg = min(exp_avg_abs_rot), max(exp_avg_abs_rot)
-y2_min_avg, y2_max_avg = min(exp_avg_orb_rev), max(exp_avg_orb_rev)
+all_avg_speeds = exp_avg_abs_rot + exp_avg_orb_rev
+y_min_summary = min(all_avg_speeds)
+y_max_summary = max(all_avg_speeds)
 
-# 设置左轴 (ax_left)：让 Rotation 数据"浮"到上方
-# 通过降低下限来在数据下方创建空白区域
-ax_left.set_ylim(y1_min_avg - 500, y1_max_avg * 1.1)
-
-# 设置右轴 (ax_right)：让 Revolution 数据"沉"到下方
-# 通过提高上限来在数据上方创建空白区域
-ax_right.set_ylim(200, y2_max_avg * 1.5)
-
-# 左Y轴：Average Rotation（蓝色）
-line1 = ax_left.plot(
+# Average Rotation（蓝色）
+line1 = ax_summary.plot(
     exp_indices,
     exp_avg_abs_rot,
     alpha=0.7,
     color="blue",
-    label="Average Rotation",
     marker="o",
     linestyle="-",
     linewidth=2,
 )
-ax_left.set_xlabel("Inlet Flow Rate (L/h)")
-ax_left.set_ylabel("Avg Rotation Speed(rad/s)", color="blue")
-ax_left.tick_params(axis='y', labelcolor='blue')
 
-# 右Y轴：Average Revolution（橙色）
-line2 = ax_right.plot(
+# Average Revolution（橙色）
+line2 = ax_summary.plot(
     exp_indices,
     exp_avg_orb_rev,
     alpha=0.7,
     color="orange",
-    label="Average Revolution",
     marker="s",
     linestyle="-",
     linewidth=2,
 )
-ax_right.set_ylabel("Avg Revolution Speed(rad/s)", color="orange")
-ax_right.tick_params(axis='y', labelcolor='orange')
 
-# 设置标题
-# ax_left.set_title("Inlet Flow Rate vs Rotation and Revolution", fontsize=18)
+ax_summary.set_xlabel("Inlet Flow Rate (L/h)")
+ax_summary.set_ylabel("Speed (rad/s)")
+ax_summary.set_ylim(y_min_summary * 0.9, y_max_summary * 1.1)
 
-# 设置刻度 - ax_left (左Y轴)
-ax_left.xaxis.set_minor_locator(AutoMinorLocator(2))
-ax_left.yaxis.set_minor_locator(AutoMinorLocator(2))
-ax_left.tick_params(which='minor', direction='in')
-ax_left.tick_params(which='major', direction='in')
-
-# 设置刻度 - ax_right (右Y轴)
-ax_right.yaxis.set_minor_locator(AutoMinorLocator(2))
-ax_right.tick_params(which='minor', direction='in')
-ax_right.tick_params(which='major', direction='in')
+# 设置刻度
+ax_summary.xaxis.set_minor_locator(AutoMinorLocator(2))
+ax_summary.yaxis.set_minor_locator(AutoMinorLocator(2))
+ax_summary.tick_params(which='minor', direction='in')
+ax_summary.tick_params(which='major', direction='in')
 
 # 根据模式决定是显示还是保存图表
 if SAVE_MODE:
