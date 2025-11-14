@@ -96,8 +96,9 @@ exp_avg_orb_rev = []  # 存储每次实验的平均公转
 # 设置画布
 num_folders = len(folder_groups)
 fig, axes = plt.subplots(
-    num_folders, 2, figsize=(12, 6 * num_folders), constrained_layout=True
+    num_folders, 1, figsize=(12, 6 * num_folders), constrained_layout=True
 )  # 多个子图,每个子图六英寸高
+
 
 all_heights = []
 for folder_ in folders:
@@ -201,82 +202,79 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
     exp_avg_abs_rot.append(avg_abs_rotation)
     exp_avg_orb_rev.append(avg_orbital_rev)
 
-    # 绘制当前文件夹的图
-    axes[i, 0].scatter(
+    # 绘制当前文件夹的图 - 使用双Y轴
+    ax1 = axes[i]  # 左侧Y轴 (Rotation)
+    ax2 = ax1.twinx()  # 右侧Y轴 (Revolution)
+    
+    # 1. 获取数据的极值（假设你的数据变量名如下）
+    y1_min, y1_max = min(abs_rotations), max(abs_rotations)
+    y2_min, y2_max = min(orbital_revs), max(orbital_revs)
+    # 1. 设置左轴 (ax1)：让它“浮”到上方
+    # 技巧：上限不动，把【下限】设得非常低（负数）
+    # 原理：在数据下面增加巨大的空白区域，数据就被挤到天花板去了
+    ax1.set_ylim(y1_min - 1500, y1_max * 1.1)
+
+    # 2. 设置右轴 (ax2)：让它“沉”到下方
+    # 技巧：下限不动（通常是0），把【上限】设得非常大
+    # 原理：在数据头顶增加巨大的空白区域，数据就被压到地板上去了
+    ax2.set_ylim(0, y2_max * 2)
+    # 绘制 Rotation 数据（左Y轴，蓝色）
+    scatter1 = ax1.scatter(
         heights_abs_rot,
         abs_rotations,
         alpha=0.7,
-        label=f"Inlet Flow Rate: {os.path.basename(base_name)} L/h",
+        color="blue",
+        # label="Rotation",
     )
-    axes[i, 0].set_xlabel(r"$h/D$")
-    axes[i, 0].set_ylabel("Rotation (rad/s)")
-    axes[i, 0].set_xlim(min_height, max_height)  # 设定相同的 x 轴范围
-    if i == 0:
-        axes[i, 0].set_title("Rotation vs Height", fontsize=22)
-    # axes[i, 0].grid()
-    axes[i, 0].legend(loc="upper right", handlelength=0, handletextpad=0, markerscale=0)
-    x_trend = np.linspace(min_height, max_height, 100)
-    # 计算并绘制趋势线（线性拟合）
-    if len(heights_abs_rot) > 1:
-        poly_coeffs = np.polyfit(heights_abs_rot, abs_rotations, 2)  # 一阶线性拟合
-        trend_line = np.poly1d(poly_coeffs)
-        axes[i, 0].plot(
-            x_trend, trend_line(x_trend), color="blue", linestyle="--", label="Trend"
-        )
-        #  sampled_data["height"],
-        # sampled_data["orb_rev"],
-    axes[i, 1].scatter(
+    ax1.set_xlabel(r"$h/D$")
+    ax1.set_ylabel("Rotation (rad/s)", color="blue")
+    ax1.tick_params(axis='y', labelcolor='blue')
+    ax1.set_xlim(min_height, max_height)  # 设定相同的 x 轴范围
+    
+    # 绘制 Revolution 数据（右Y轴，橙色）
+    scatter2 = ax2.scatter(
         heights_orb_rev,
         orbital_revs,
         alpha=0.7,
         color="orange",
-        label=f"Inlet Flow Rate: {os.path.basename(base_name)} L/h",
+        # label="Revolution",
     )
-    axes[i, 1].set_xlabel(r"$h/D$")
-    axes[i, 1].set_ylabel("Revolution (rad/s)")
+    ax2.set_ylabel("Revolution (rad/s)", color="orange")
+    ax2.tick_params(axis='y', labelcolor='orange')
+    
     if i == 0:
-        axes[i, 1].set_title("Revolution vs Height", fontsize=22)
-    # axes[i, 1].grid()
-    axes[i, 1].legend(loc="upper right", handlelength=0, handletextpad=0, markerscale=0)
-    # 计算并绘制趋势线（线性拟合）
-    if len(heights_orb_rev) > 1:
-        poly_coeffs = np.polyfit(heights_orb_rev, orbital_revs, 2)  # 一阶线性拟合
+        ax1.set_title("Rotation and Revolution vs Height", fontsize=22)
+    
+    # 计算趋势线的x值
+    x_trend = np.linspace(min_height, max_height, 100)
+    
+    # 计算并绘制 Rotation 趋势线（左Y轴，蓝色虚线）
+    if len(heights_abs_rot) > 1:
+        poly_coeffs = np.polyfit(heights_abs_rot, abs_rotations, 2)
         trend_line = np.poly1d(poly_coeffs)
-        axes[i, 1].plot(
-            x_trend, trend_line(x_trend), color="red", linestyle="--", label="Trend"
+        line1 = ax1.plot(
+            x_trend, trend_line(x_trend), color="blue", linestyle="--"
         )
-
-
-# 绘制实验均值趋势图（最后一行）
-# axes[-1, 0].plot(
-#     exp_indices,
-#     exp_avg_abs_rot,
-#     alpha=0.7,
-#     color="blue",
-#     label="Average Rotation",
-#     marker="o",
-#     linestyle="-",
-# )
-# axes[-1, 0].set_xlabel("Inlet Flow Rate (L/h)")
-# axes[-1, 0].set_ylabel("Avg Rotation (rad/s)")
-# axes[-1, 0].set_title("Inlet Flow Rate vs Absolute Rotation")
-# # axes[-1, 0].grid()
-# axes[-1, 0].legend()
-
-# axes[-1, 1].plot(
-#     exp_indices,
-#     exp_avg_orb_rev,
-#     alpha=0.7,
-#     color="red",
-#     label="Average Orbital Revolution",
-#     marker="o",
-#     linestyle="-",
-# )
-# axes[-1, 1].set_xlabel("Inlet Flow Rate (L/h)")
-# axes[-1, 1].set_ylabel("Avg Orbital Revolution (rad/s)")
-# axes[-1, 1].set_title("Inlet Flow Rate vs Orbital Revolution")
-# # axes[-1, 1].grid()
-# axes[-1, 1].legend()
+    
+    # 计算并绘制 Revolution 趋势线（右Y轴，橙色虚线）
+    if len(heights_orb_rev) > 1:
+        poly_coeffs = np.polyfit(heights_orb_rev, orbital_revs, 2)
+        trend_line = np.poly1d(poly_coeffs)
+        line2 = ax2.plot(
+            x_trend, trend_line(x_trend), color="orange", linestyle="--"
+        )
+    
+    # 添加流量标注（图例）
+    flow_text = f"Inlet Flow Rate: {os.path.basename(base_name)} L/h"
+    ax1.text(0.98, 0.98, flow_text, transform=ax1.transAxes, 
+             verticalalignment='top', horizontalalignment='right',
+             bbox=dict(boxstyle='round', facecolor='white', alpha=0.8),
+             fontsize=14)
+    
+    # 合并图例
+    lines1, labels1 = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax1.legend(lines1 + lines2, labels1 + labels2, loc="upper left")
 
 
 # ==== 单独绘制平均趋势图 ====
