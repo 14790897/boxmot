@@ -277,11 +277,24 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
     ax1.legend(lines1 + lines2, labels1 + labels2, loc="upper left")
 
 
-# ==== 单独绘制平均趋势图 ====
-fig2, axes2 = plt.subplots(1, 2, figsize=(12, 6), constrained_layout=True)
+# ==== 单独绘制平均趋势图 - 使用双Y轴 ====
+fig2, ax_left = plt.subplots(1, 1, figsize=(10, 6), constrained_layout=True)
+ax_right = ax_left.twinx()  # 创建右侧Y轴
 
-# 左图：Absolute Rotation vs Inlet Flow Rate（原右图）
-axes2[0].plot(
+# 获取汇总数据的极值
+y1_min_avg, y1_max_avg = min(exp_avg_abs_rot), max(exp_avg_abs_rot)
+y2_min_avg, y2_max_avg = min(exp_avg_orb_rev), max(exp_avg_orb_rev)
+
+# 设置左轴 (ax_left)：让 Rotation 数据"浮"到上方
+# 通过降低下限来在数据下方创建空白区域
+ax_left.set_ylim(y1_min_avg - 500, y1_max_avg * 1.1)
+
+# 设置右轴 (ax_right)：让 Revolution 数据"沉"到下方
+# 通过提高上限来在数据上方创建空白区域
+ax_right.set_ylim(0, y2_max_avg * 2)
+
+# 左Y轴：Average Rotation（蓝色）
+line1 = ax_left.plot(
     exp_indices,
     exp_avg_abs_rot,
     alpha=0.7,
@@ -289,26 +302,33 @@ axes2[0].plot(
     label="Average Rotation",
     marker="o",
     linestyle="-",
+    linewidth=2,
 )
-axes2[0].set_xlabel("Inlet Flow Rate (L/h)")
-axes2[0].set_ylabel("Avg Rotation (rad/s)")
-axes2[0].set_title("Inlet Flow Rate vs Absolute Rotation", fontsize=18)
-axes2[0].legend(loc="upper left")
+ax_left.set_xlabel("Inlet Flow Rate (L/h)")
+ax_left.set_ylabel("Avg Rotation (rad/s)", color="blue")
+ax_left.tick_params(axis='y', labelcolor='blue')
 
-# 右图：Orbital Revolution vs Inlet Flow Rate（原左图）
-axes2[1].plot(
+# 右Y轴：Average Orbital Revolution（橙色）
+line2 = ax_right.plot(
     exp_indices,
     exp_avg_orb_rev,
     alpha=0.7,
-    color="red",
-    label="Average Orbital Revolution",
-    marker="o",
+    color="orange",
+    label="Average Revolution",
+    marker="s",
     linestyle="-",
+    linewidth=2,
 )
-axes2[1].set_xlabel("Inlet Flow Rate (L/h)")
-axes2[1].set_ylabel("Avg Orbital Revolution (rad/s)")
-axes2[1].set_title("Inlet Flow Rate vs Orbital Revolution", fontsize=18)
-axes2[1].legend(loc="upper left")
+ax_right.set_ylabel("Avg Orbital Revolution (rad/s)", color="orange")
+ax_right.tick_params(axis='y', labelcolor='orange')
+
+# 设置标题
+ax_left.set_title("Inlet Flow Rate vs Rotation and Revolution", fontsize=18)
+
+# 合并图例
+lines = line1 + line2
+labels = [line.get_label() for line in lines]
+ax_left.legend(lines, labels, loc="upper left")
 
 # 根据模式决定是显示还是保存图表
 if SAVE_MODE:
