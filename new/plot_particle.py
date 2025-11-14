@@ -69,6 +69,15 @@ def merge_stats(*folders):
 base_path = BASE_PATH
 folders = get_all_folders(base_path)
 
+# 过滤：只保留以流量开头的文件夹（450, 550, 650, 750, 850）
+valid_flow_rates = ['450', '550', '650', '750', '850']
+folders = [
+    f for f in folders 
+    if any(os.path.basename(f).startswith(flow) for flow in valid_flow_rates)
+]
+print(f"过滤后的文件夹数量: {len(folders)}")
+print(f"文件夹列表: {[os.path.basename(f) for f in folders]}")
+
 # 过滤出 '-2' 版本的文件夹并匹配主文件夹
 # 初始化字典，按 "头部名称" 归类
 folder_groups = defaultdict(list)
