@@ -97,7 +97,7 @@ exp_avg_orb_rev = []  # 存储每次实验的平均公转
 # 设置画布
 num_folders = len(folder_groups)
 fig, axes = plt.subplots(
-    num_folders, 1, figsize=(8, 3.5 * num_folders),
+    num_folders, 1, figsize=(8, 3.3 * num_folders),
     gridspec_kw={'hspace': 0.25}
 )  # 多个子图,减小子图间距
 
@@ -220,8 +220,8 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
     revolution_max = max(orbital_revs)
     rotation_min = min(abs_rotations)
 
-    # 设置Y轴范围
-    ax.set_ylim(y_min * 0.95, y_max * 1.05)
+    # 设置Y轴范围为0到3000
+    ax.set_ylim(0, 3000)
 
     # 在公转最大值和自转最小值之间添加断裂标记
     if rotation_min > revolution_max:  # 确保有间隙
@@ -229,8 +229,8 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         break_center = (revolution_max + rotation_min) / 2
 
         # 计算断裂位置在Y轴上的相对位置（0-1之间）
-        y_range = y_max * 1.05 - y_min * 0.95
-        break_pos = (break_center - y_min * 0.95) / y_range
+        y_range = 3000
+        break_pos = break_center / y_range
 
         # 添加断裂标记（斜线）
         d = 0.015  # 断裂标记的大小
@@ -268,13 +268,16 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
     # 添加子图标题 (a), (b), (c), (d), (e)
     subplot_labels = ['(a)', '(b)', '(c)', '(d)', '(e)']
     if i < len(subplot_labels):
-        ax.set_title(subplot_labels[i], pad=3, loc='left', x=-0.13)
+        ax.set_title(subplot_labels[i], loc='left', x=-0.13,y=0.87)
 
     # 设置刻度
     ax.xaxis.set_minor_locator(AutoMinorLocator(2))
     ax.yaxis.set_minor_locator(AutoMinorLocator(2))
     ax.tick_params(which='minor', direction='in')
     ax.tick_params(which='major', direction='in')
+    
+    # 确保Y轴刻度显示到3000
+    ax.set_yticks([0, 1000, 2000, 3000])
 
 
 # ==== 单独绘制平均趋势图 - 使用单一Y轴 ====
