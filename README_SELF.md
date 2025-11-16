@@ -98,3 +98,4 @@ python .\new\compare_true_predict.py
 ## 论文todo
 
 一个是高度要改成现在的高度  还有就是机器学习模型 还有那个摄像头的分辨率也其实应该是 1024 乘以 760
+等一下我发现之前确实用的是efficient net b1的模型

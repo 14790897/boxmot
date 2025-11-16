@@ -18,16 +18,17 @@ from matplotlib.ticker import AutoMinorLocator
 from process_utils import get_all_folders
 
 # 检查是否需要非交互式模式（用于批处理）
+BASE_PATH_INITIAL = "runs/track"
 if len(sys.argv) > 1 and sys.argv[1] == "--save":
     matplotlib.use('Agg')  # 使用非交互式后端
     SAVE_MODE = True
     if len(sys.argv) > 2:
         BASE_PATH = os.path.normpath(sys.argv[2])  # 规范化路径
     else:
-        BASE_PATH = "runs/track"
+        BASE_PATH = BASE_PATH_INITIAL
 else:
     SAVE_MODE = False
-    BASE_PATH = "runs/track"
+    BASE_PATH = BASE_PATH_INITIAL
 
 print(f"路径:{BASE_PATH}")
 plt.rcParams["font.family"] = "Times New Roman"

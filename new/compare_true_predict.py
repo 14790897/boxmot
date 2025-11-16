@@ -1,5 +1,16 @@
+import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
+import sys
+import os
+from matplotlib.ticker import AutoMinorLocator
+
+# 检查是否需要非交互式模式（用于批处理）
+if len(sys.argv) > 1 and sys.argv[1] == "--save":
+    matplotlib.use('Agg')  # 使用非交互式后端
+    SAVE_MODE = True
+else:
+    SAVE_MODE = False
 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 16  # 设置全局字体大小
@@ -73,182 +84,233 @@ def plot_comparison():
     
     print(f"发现 {len(unique_flows)} 个不同的流速条件: {unique_flows}")
     
-    # 创建子图
+    # 创建子图 - 每个流速一个子图
     n_flows = len(unique_flows)
-    fig, axes = plt.subplots(n_flows, 2, figsize=(15, 6 * n_flows), constrained_layout=True)
-    
-    # 如果只有一个流速，确保axes是二维数组
+    fig, axes = plt.subplots(n_flows, 1, figsize=(10, 4.5 * n_flows),
+                            gridspec_kw={'hspace': 0.3})
+
+    # 如果只有一个流速，确保axes是数组
     if n_flows == 1:
-        axes = axes.reshape(1, -1)
-    
-    # 为每个流速创建对比图
+        axes = [axes]
+
+    # 为每个流速创建合并的对比图
     for i, flow_vel in enumerate(unique_flows):
         flow_data = flow_groups.get_group(flow_vel)
-        
+
         print(f"处理流速 {flow_vel}: {len(flow_data)} 个数据点")
-        
-        # 左图：旋转对比
-        # 分别处理有旋转数据的点
-        rotation_data = flow_data.dropna(subset=['H/D','TRUE_rotation', 'predict_rotation','height'])
-        
+
+        ax = axes[i]
+
+        # 收集所有速度数据用于确定Y轴范围和断裂位置
+        all_speeds = []
+        rotation_speeds = []
+        revolution_speeds = []
+
+        # 处理旋转数据
+        rotation_data = flow_data.dropna(subset=['height','TRUE_rotation', 'predict_rotation'])
+
         if len(rotation_data) > 0:
-            # 散点图
-            axes[i, 0].scatter(
-                # 6
-                # rotation_data['H/D'], 
+            # MANUAL 自转（蓝色圆圈）
+            ax.scatter(
                 rotation_data['height'],
-                rotation_data['TRUE_rotation'], 
-                alpha=0.8, 
-                color='blue', 
-                label=f'MANUAL {flow_vel}',
-                marker='o'
+                rotation_data['TRUE_rotation'],
+                alpha=0.8,
+                color='blue',
+                marker='o',
+                s=80,
+                label='Rotation (MANUAL)' if i == 0 else None
             )
-            axes[i, 0].scatter(
-                # 7
-                # rotation_data['H/D'], 
+            # THIS STUDY 自转（红色三角）
+            ax.scatter(
                 rotation_data['height'],
-                rotation_data['predict_rotation'], 
-                alpha=0.8, 
-                color='red', 
-                label=f'THIS STUDY {flow_vel}',
-                marker='^'
+                rotation_data['predict_rotation'],
+                alpha=0.8,
+                color='red',
+                marker='^',
+                s=80,
+                label='Rotation (THIS STUDY)' if i == 0 else None
             )
-            
-            # 连线显示对应关系
-            for idx, row in rotation_data.iterrows():
-                axes[i, 0].plot(
-                    [row['H/D'], row['H/D']], 
-                    [row['TRUE_rotation'], row['predict_rotation']], 
-                    'k--', alpha=0.3, linewidth=0.5
-                )
-            
+            all_speeds.extend(rotation_data['TRUE_rotation'].tolist())
+            all_speeds.extend(rotation_data['predict_rotation'].tolist())
+            rotation_speeds.extend(rotation_data['TRUE_rotation'].tolist())
+            rotation_speeds.extend(rotation_data['predict_rotation'].tolist())
+
             print(f"  - 旋转数据点: {len(rotation_data)} 个")
         else:
             print("  - 无旋转数据")
-            axes[i, 0].text(0.5, 0.5, 'No Rotation Data', 
-                          transform=axes[i, 0].transAxes, 
-                          ha='center', va='center', fontsize=14)
-        
-        axes[i, 0].set_xlabel(r"$h/D$")
-        axes[i, 0].set_ylabel("Rotation (rad/s)")
-        axes[i, 0].set_title(f"Rotation Comparison - Flow {flow_vel}", fontsize=18)
-        axes[i, 0].legend(loc="upper right")
-        axes[i, 0].grid(True, alpha=0.3)
-        
-        # 右图：公转对比
-        # 分别处理有公转数据的点
-        revolution_data = flow_data.dropna(subset=['H/D', 'TRUE_revolution', 'predict_revolution'])
-        
+
+        # 处理公转数据
+        revolution_data = flow_data.dropna(subset=['height', 'TRUE_revolution', 'predict_revolution'])
+
         if len(revolution_data) > 0:
-            # 散点图
-            axes[i, 1].scatter(
-                revolution_data['H/D'], 
-                revolution_data['TRUE_revolution'], 
-                alpha=0.8, 
-                color='green', 
-                label=f'MANUAL {flow_vel}',
-                marker='o'
+            # MANUAL 公转（绿色方块）
+            ax.scatter(
+                revolution_data['height'],
+                revolution_data['TRUE_revolution'],
+                alpha=0.8,
+                color='green',
+                marker='s',
+                s=80,
+                label='Revolution (MANUAL)' if i == 0 else None
             )
-            axes[i, 1].scatter(
-                revolution_data['H/D'], 
-                revolution_data['predict_revolution'], 
-                alpha=0.8, 
-                color='orange', 
-                label=f'THIS STUDY {flow_vel}',
-                marker='^'
+            # THIS STUDY 公转（橙色菱形）
+            ax.scatter(
+                revolution_data['height'],
+                revolution_data['predict_revolution'],
+                alpha=0.8,
+                color='orange',
+                marker='D',
+                s=80,
+                label='Revolution (THIS STUDY)' if i == 0 else None
             )
-            
-            # 连线显示对应关系
-            for idx, row in revolution_data.iterrows():
-                axes[i, 1].plot(
-                    [row['H/D'], row['H/D']], 
-                    [row['TRUE_revolution'], row['predict_revolution']], 
-                    'k--', alpha=0.3, linewidth=0.5
-                )
-            
+
+            all_speeds.extend(revolution_data['TRUE_revolution'].tolist())
+            all_speeds.extend(revolution_data['predict_revolution'].tolist())
+            revolution_speeds.extend(revolution_data['TRUE_revolution'].tolist())
+            revolution_speeds.extend(revolution_data['predict_revolution'].tolist())
+
             print(f"  - 公转数据点: {len(revolution_data)} 个")
         else:
             print("  - 无公转数据")
-            axes[i, 1].text(0.5, 0.5, 'No Revolution Data', 
-                          transform=axes[i, 1].transAxes, 
-                          ha='center', va='center', fontsize=14)
-        
-        axes[i, 1].set_xlabel(r"$h/D$")
-        axes[i, 1].set_ylabel("Revolution (rad/s)")
-        axes[i, 1].set_title(f"Revolution Comparison - Flow {flow_vel}", fontsize=18)
-        axes[i, 1].legend(loc="upper right")
-        axes[i, 1].grid(True, alpha=0.3)
-    
-    # plt.suptitle("TRUE vs PREDICT Data Comparison by Flow Velocity", fontsize=20, y=0.98)
-    plt.show()
+
+        # 设置坐标轴
+        ax.set_xlabel(r"$h$ (cm)")
+        ax.set_ylabel("Speed (rad/s)")
+
+        # 固定坐标轴范围
+        ax.set_xlim(0, 11)
+        ax.set_ylim(0, 3000)
+
+        # 设置纵坐标刻度
+        ax.set_yticks([0, 1000, 2000, 3000])
+
+        # 添加子图标题 (a), (b), (c), (d), (e)
+        subplot_labels = ['(a)', '(b)', '(c)', '(d)', '(e)']
+        if i < len(subplot_labels):
+            ax.set_title(subplot_labels[i], loc='left', x=-0.1, y=0.9)
+
+        # 添加流速标注
+        flow_text = f"{flow_vel} L/h"
+        ax.text(0.98, 0.98, flow_text, transform=ax.transAxes,
+        verticalalignment='top', horizontalalignment='right',
+        fontsize=14)
+
+        # 只在第一个子图显示图例
+        if i == 0:
+            ax.legend(loc="upper left", fontsize=12, framealpha=0.9, frameon=False)
+
+        # 设置刻度
+        ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+        ax.yaxis.set_minor_locator(AutoMinorLocator(2))
+        ax.tick_params(which='minor', direction='in')
+        ax.tick_params(which='major', direction='in')
+
+    # 根据模式决定是显示还是保存图表
+    if SAVE_MODE:
+        # 保存图表
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(script_dir)  # 上一级目录
+        output_dir = os.path.join(project_root, "plots")
+        os.makedirs(output_dir, exist_ok=True)
+
+        plt.tight_layout()
+        fig.savefig(os.path.join(output_dir, "comparison_by_flow.png"), dpi=300, bbox_inches='tight')
+
+        print(f"图表已保存到: {output_dir}")
+        print("  - comparison_by_flow.png (按流速对比)")
+
+        plt.close('all')  # 关闭所有图表释放内存
+    else:
+        # plt.suptitle("TRUE vs PREDICT Data Comparison by Flow Velocity", fontsize=20, y=0.98)
+        plt.show()
     
     # 创建总体对比图
-    create_overall_comparison(data)
+    # create_overall_comparison(data)
 
 def create_overall_comparison(data):
     """
-    创建总体的真实值vs预测值散点图
+    创建总体的真实值vs预测值散点图 - 使用单一纵坐标
     """
-    fig, axes = plt.subplots(1, 2, figsize=(15, 6), constrained_layout=True)
-    
-    # 左图：旋转数据对比
+    fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+
+    # 收集所有速度数据
+    all_speeds = []
+
+    # 按流速着色
+    unique_flows = sorted(data['flow_velocity_std'].unique())
+    colors_rotation = ['blue', 'cyan', 'navy', 'steelblue', 'dodgerblue']
+    colors_revolution = ['orange', 'coral', 'darkorange', 'orangered', 'tomato']
+
+    # 旋转数据对比
     if 'TRUE_rotation' in data.columns and 'predict_rotation' in data.columns:
-        valid_rotation = data.dropna(subset=['H/D','TRUE_rotation', 'predict_rotation'])
-        
-        # 按流速着色
-        unique_flows = sorted(data['flow_velocity_std'].unique())
-        colors = ['blue', 'red', 'green', 'orange', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan']
-        
+        valid_rotation = data.dropna(subset=['TRUE_rotation', 'predict_rotation'])
+
         for i, flow_vel in enumerate(unique_flows):
             flow_data = valid_rotation[valid_rotation['flow_velocity_std'] == flow_vel]
-            axes[0].scatter(
-                flow_data['TRUE_rotation'], 
-                flow_data['predict_rotation'],
-                alpha=0.7,
-                color=colors[i % len(colors)],
-                label=f'Flow {flow_vel}',
-                s=60
-            )
-        
-        # 添加y=x参考线
-        min_val = min(valid_rotation['TRUE_rotation'].min(), valid_rotation['predict_rotation'].min())
-        max_val = max(valid_rotation['TRUE_rotation'].max(), valid_rotation['predict_rotation'].max())
-        axes[0].plot([min_val, max_val], [min_val, max_val], 'k--', alpha=0.8, label='Perfect Prediction')
-        
-        axes[0].set_xlabel("MANUAL Rotation (rad/s)")
-        axes[0].set_ylabel("THIS STUDY Rotation (rad/s)")
-        axes[0].set_title("MANUAL vs THIS STUDY - Rotation", fontsize=18)
-        axes[0].legend()
-        axes[0].grid(True, alpha=0.3)
-    
-    # 右图：公转数据对比
+            if len(flow_data) > 0:
+                # 蓝色系表示旋转
+                ax.scatter(
+                    flow_data['TRUE_rotation'],
+                    flow_data['predict_rotation'],
+                    alpha=0.7,
+                    color=colors_rotation[i % len(colors_rotation)],
+                    s=80,
+                    marker='o'
+                )
+                all_speeds.extend(flow_data['TRUE_rotation'].tolist())
+                all_speeds.extend(flow_data['predict_rotation'].tolist())
+
+    # 公转数据对比
     if 'TRUE_revolution' in data.columns and 'predict_revolution' in data.columns:
-        valid_revolution = data.dropna(subset=['H/D','TRUE_revolution', 'predict_revolution'])
-        
+        valid_revolution = data.dropna(subset=['TRUE_revolution', 'predict_revolution'])
+
         for i, flow_vel in enumerate(unique_flows):
             flow_data = valid_revolution[valid_revolution['flow_velocity_std'] == flow_vel]
-            axes[1].scatter(
-                flow_data['TRUE_revolution'], 
-                flow_data['predict_revolution'],
-                alpha=0.7,
-                color=colors[i % len(colors)],
-                label=f'Flow {flow_vel}',
-                s=60
-            )
-        
-        # 添加y=x参考线
-        min_val = min(valid_revolution['TRUE_revolution'].min(), valid_revolution['predict_revolution'].min())
-        max_val = max(valid_revolution['TRUE_revolution'].max(), valid_revolution['predict_revolution'].max())
-        axes[1].plot([min_val, max_val], [min_val, max_val], 'k--', alpha=0.8, label='Perfect Prediction')
-        
-        axes[1].set_xlabel("MANUAL Revolution (rad/s)")
-        axes[1].set_ylabel("THIS STUDY Revolution (rad/s)")
-        axes[1].set_title("MANUAL vs THIS STUDY - Revolution", fontsize=18)
-        axes[1].legend()
-        axes[1].grid(True, alpha=0.3)
-    
-    # plt.suptitle("Overall MANUAL vs THIS STUDY Comparison", fontsize=20)
-    plt.show()
+            if len(flow_data) > 0:
+                # 橙色系表示公转
+                ax.scatter(
+                    flow_data['TRUE_revolution'],
+                    flow_data['predict_revolution'],
+                    alpha=0.7,
+                    color=colors_revolution[i % len(colors_revolution)],
+                    s=80,
+                    marker='^'
+                )
+                all_speeds.extend(flow_data['TRUE_revolution'].tolist())
+                all_speeds.extend(flow_data['predict_revolution'].tolist())
+
+    # 添加y=x参考线
+    if len(all_speeds) > 0:
+        min_val = min(all_speeds)
+        max_val = max(all_speeds)
+        ax.plot([min_val, max_val], [min_val, max_val], 'k--', alpha=0.8, linewidth=2)
+        ax.set_xlim(min_val * 0.95, max_val * 1.05)
+        ax.set_ylim(min_val * 0.95, max_val * 1.05)
+
+    ax.set_xlabel("MANUAL Speed (rad/s)")
+    ax.set_ylabel("THIS STUDY Speed (rad/s)")
+
+    # 设置刻度
+    ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+    ax.yaxis.set_minor_locator(AutoMinorLocator(2))
+    ax.tick_params(which='minor', direction='in')
+    ax.tick_params(which='major', direction='in')
+    ax.grid(True, alpha=0.3)
+
+    # 根据模式决定是显示还是保存图表
+    if SAVE_MODE:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(script_dir)
+        output_dir = os.path.join(project_root, "plots")
+        os.makedirs(output_dir, exist_ok=True)
+
+        plt.tight_layout()
+        fig.savefig(os.path.join(output_dir, "comparison_overall.png"), dpi=300, bbox_inches='tight')
+        print("  - comparison_overall.png (总体对比)")
+        plt.close('all')
+    else:
+        plt.tight_layout()
+        plt.show()
 
 if __name__ == "__main__":
     plot_comparison()
