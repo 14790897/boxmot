@@ -22,7 +22,7 @@ base_path = os.path.normpath(y_track_project)
 initial_result_directory = os.path.join(get_latest_folder(base_path), "initial_result")
 video_path = "my_process_particle_video.avi"
 # 如果是下半部分的话文件夹名字需要以-2结尾
-# 下面是旋流器上半部分 一三代表了两边, 一二是同侧的,  437是拐点  高度是 437/147=2.97cm
+# 下面是旋流器上半部分 一三代表了两边, 一二是同侧的,  437是拐点  高度是 437/147=2.97cm  末尾的位置是看到10.5
 if not get_latest_folder(base_path).endswith("-2"):
     line_dict = {
         "1": (175, 31, 175, 437),
