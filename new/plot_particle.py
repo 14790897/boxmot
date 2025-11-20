@@ -18,7 +18,10 @@ from matplotlib.ticker import AutoMinorLocator
 from process_utils import get_all_folders
 
 # 检查是否需要非交互式模式（用于批处理）
-BASE_PATH_INITIAL = "runs/track"
+BASE_PATH_INITIAL = "runs/eff1_new"
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)  # 上一级目录
+plot_output_dir = os.path.join(project_root, "plots-eff1-new")
 if len(sys.argv) > 1 and sys.argv[1] == "--save":
     matplotlib.use('Agg')  # 使用非交互式后端
     SAVE_MODE = True
@@ -325,15 +328,12 @@ ax_summary.tick_params(which='major', direction='in')
 if SAVE_MODE:
     # 保存图表到项目根目录（app.py 所在目录）
     # 获取当前脚本所在目录的父目录（即项目根目录）
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(script_dir)  # 上一级目录
-    output_dir = os.path.join(project_root, "plots")
-    os.makedirs(output_dir, exist_ok=True)
-    
-    fig.savefig(os.path.join(output_dir, "particle_analysis_detailed.png"), dpi=300, bbox_inches='tight')
-    fig2.savefig(os.path.join(output_dir, "particle_analysis_summary.png"), dpi=300, bbox_inches='tight')
-    
-    print(f"图表已保存到: {output_dir}")
+    os.makedirs(plot_output_dir, exist_ok=True)
+
+    fig.savefig(os.path.join(plot_output_dir, "particle_analysis_detailed.png"), dpi=300, bbox_inches='tight')
+    fig2.savefig(os.path.join(plot_output_dir, "particle_analysis_summary.png"), dpi=300, bbox_inches='tight')
+
+    print(f"图表已保存到: {plot_output_dir}")
     print("  - particle_analysis_detailed.png (详细分析)")
     print("  - particle_analysis_summary.png (汇总)")
     
