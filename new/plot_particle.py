@@ -1,10 +1,10 @@
-# 550 是D:\shnu-graduation\alldata\all\20180117-hfq-y\Y1-550\相机No.1_C001H001S0001 
-# 750 是 D:\shnu-graduation\alldata\all\20180117-hfq-y\Y1-750\No.1_C001H001S0002 
+# 550 是D:\shnu-graduation\alldata\all\20180117-hfq-y\Y1-550\相机No.1_C001H001S0001
+# 750 是 D:\shnu-graduation\alldata\all\20180117-hfq-y\Y1-750\No.1_C001H001S0002
 # 850 是 D:\shnu-graduation\alldata\all\20180117-hfq-y\Y1-850\相机No.1_C001H001S0001
 # 450  是 D:\shnu-graduation\alldata\all\20180117-hfq-y\y1-450\相机No.1_C001H001S0002
 # 650 是 D:\shnu-graduation\alldata\all\20180117-hfq-y\Y1-650\相机No.1_C001H001S0002
 
-# h/d = 1.22的地方是拐角  那么 h = 1.22 * d 
+# h/d = 1.22的地方是拐角  那么 h = 1.22 * d
 import json
 import os
 import sys
@@ -23,7 +23,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(script_dir)  # 上一级目录
 plot_output_dir = os.path.join(project_root, "plots-eff1-new")
 if len(sys.argv) > 1 and sys.argv[1] == "--save":
-    matplotlib.use('Agg')  # 使用非交互式后端
+    matplotlib.use("Agg")  # 使用非交互式后端
     SAVE_MODE = True
     if len(sys.argv) > 2:
         BASE_PATH = os.path.normpath(sys.argv[2])  # 规范化路径
@@ -36,6 +36,8 @@ else:
 print(f"路径:{BASE_PATH}")
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 16  # 设置全局字体大小
+
+
 def merge_stats(*folders):
     """
     合并每个流速的文件夹的 all_stats.json 数据，并为第二个及后续文件夹的数据键名加上 '-2', '-3', ...
@@ -75,9 +77,10 @@ base_path = BASE_PATH
 folders = get_all_folders(base_path)
 
 # 过滤：只保留以流量开头的文件夹（450, 550, 650, 750, 850）
-valid_flow_rates = ['450', '550', '650', '750', '850']
+valid_flow_rates = ["450", "550", "650", "750", "850"]
 folders = [
-    f for f in folders 
+    f
+    for f in folders
     if any(os.path.basename(f).startswith(flow) for flow in valid_flow_rates)
 ]
 print(f"过滤后的文件夹数量: {len(folders)}")
@@ -101,8 +104,7 @@ exp_avg_orb_rev = []  # 存储每次实验的平均公转
 # 设置画布
 num_folders = len(folder_groups)
 fig, axes = plt.subplots(
-    num_folders, 1, figsize=(8, 3.3 * num_folders),
-    gridspec_kw={'hspace': 0.25}
+    num_folders, 1, figsize=(8, 3.3 * num_folders), gridspec_kw={"hspace": 0.25}
 )  # 多个子图,减小子图间距
 
 
@@ -206,6 +208,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         abs_rotations,
         alpha=0.7,
         color="blue",
+        label="Rotation" if i == 0 else None,
     )
 
     # 绘制 Revolution 数据（橙色）
@@ -214,6 +217,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         orbital_revs,
         alpha=0.7,
         color="orange",
+        label="Revolution" if i == 0 else None,
     )
 
     ax.set_xlabel(r"$h$ (cm)")
@@ -238,7 +242,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
 
         # 添加断裂标记（斜线）
         d = 0.015  # 断裂标记的大小
-        kwargs = dict(transform=ax.transAxes, color='k', clip_on=False, linewidth=1.5)
+        kwargs = dict(transform=ax.transAxes, color="k", clip_on=False, linewidth=1.5)
 
         # 在Y轴左侧绘制断裂标记（两条平行斜线）
         ax.plot((-d, +d), (break_pos - d, break_pos + d), **kwargs)
@@ -265,21 +269,31 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
 
     # 添加流量标注
     flow_text = f"{os.path.basename(base_name)} L/h"
-    ax.text(0.98, 0.98, flow_text, transform=ax.transAxes,
-             verticalalignment='top', horizontalalignment='right',
-             fontsize=14)
+    ax.text(
+        0.98,
+        0.98,
+        flow_text,
+        transform=ax.transAxes,
+        verticalalignment="top",
+        horizontalalignment="right",
+        fontsize=14,
+    )
 
     # 添加子图标题 (a), (b), (c), (d), (e)
-    subplot_labels = ['(a)', '(b)', '(c)', '(d)', '(e)']
+    subplot_labels = ["(a)", "(b)", "(c)", "(d)", "(e)"]
     if i < len(subplot_labels):
-        ax.set_title(subplot_labels[i], loc='left', x=-0.13,y=0.87)
+        ax.set_title(subplot_labels[i], loc="left", x=-0.13, y=0.87)
+
+    # 只在第一个子图显示图例
+    if i == 0:
+        ax.legend(loc="upper left", fontsize=12, framealpha=0.9, frameon=False)
 
     # 设置刻度
     ax.xaxis.set_minor_locator(AutoMinorLocator(2))
     ax.yaxis.set_minor_locator(AutoMinorLocator(2))
-    ax.tick_params(which='minor', direction='in')
-    ax.tick_params(which='major', direction='in')
-    
+    ax.tick_params(which="minor", direction="in")
+    ax.tick_params(which="major", direction="in")
+
     # 确保Y轴刻度显示到3000
     ax.set_yticks([0, 1000, 2000, 3000])
 
@@ -319,8 +333,8 @@ ax_summary.set_yticks([0, 1000, 2000, 3000])
 # 设置刻度
 ax_summary.xaxis.set_minor_locator(AutoMinorLocator(2))
 ax_summary.yaxis.set_minor_locator(AutoMinorLocator(2))
-ax_summary.tick_params(which='minor', direction='in')
-ax_summary.tick_params(which='major', direction='in')
+ax_summary.tick_params(which="minor", direction="in")
+ax_summary.tick_params(which="major", direction="in")
 
 # 根据模式决定是显示还是保存图表
 if SAVE_MODE:
@@ -328,14 +342,22 @@ if SAVE_MODE:
     # 获取当前脚本所在目录的父目录（即项目根目录）
     os.makedirs(plot_output_dir, exist_ok=True)
 
-    fig.savefig(os.path.join(plot_output_dir, "particle_analysis_detailed.png"), dpi=300, bbox_inches='tight')
-    fig2.savefig(os.path.join(plot_output_dir, "particle_analysis_summary.png"), dpi=300, bbox_inches='tight')
+    fig.savefig(
+        os.path.join(plot_output_dir, "particle_analysis_detailed.png"),
+        dpi=300,
+        bbox_inches="tight",
+    )
+    fig2.savefig(
+        os.path.join(plot_output_dir, "particle_analysis_summary.png"),
+        dpi=300,
+        bbox_inches="tight",
+    )
 
     print(f"图表已保存到: {plot_output_dir}")
     print("  - particle_analysis_detailed.png (详细分析)")
     print("  - particle_analysis_summary.png (汇总)")
-    
-    plt.close('all')  # 关闭所有图表释放内存
+
+    plt.close("all")  # 关闭所有图表释放内存
 else:
     # 显示图表
     plt.show()
