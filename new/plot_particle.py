@@ -285,12 +285,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
 
 
 # ==== 单独绘制平均趋势图 - 使用单一Y轴 ====
-fig2, ax_summary = plt.subplots(1, 1, figsize=(7, 4.5), constrained_layout=True)
-
-# 获取汇总数据的极值
-all_avg_speeds = exp_avg_abs_rot + exp_avg_orb_rev
-y_min_summary = min(all_avg_speeds)
-y_max_summary = max(all_avg_speeds)
+fig2, ax_summary = plt.subplots(1, 1, figsize=(7, 4.5))
 
 # Average Rotation（蓝色）
 line1 = ax_summary.plot(
@@ -316,7 +311,10 @@ line2 = ax_summary.plot(
 
 ax_summary.set_xlabel("Inlet Flow Rate (L/h)")
 ax_summary.set_ylabel("Speed (rad/s)")
-ax_summary.set_ylim(y_min_summary * 0.9, y_max_summary * 1.1)
+
+# 固定坐标轴范围，与第一张图保持一致
+ax_summary.set_ylim(0, 3000)
+ax_summary.set_yticks([0, 1000, 2000, 3000])
 
 # 设置刻度
 ax_summary.xaxis.set_minor_locator(AutoMinorLocator(2))
