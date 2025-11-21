@@ -310,6 +310,7 @@ line1 = ax_summary.plot(
     marker="o",
     linestyle="-",
     linewidth=2,
+    label="Rotation"
 )
 
 # Average Revolution（橙色）
@@ -321,6 +322,7 @@ line2 = ax_summary.plot(
     marker="s",
     linestyle="-",
     linewidth=2,
+    label="Revolution"
 )
 
 ax_summary.set_xlabel("Inlet Flow Rate (L/h)")
@@ -329,6 +331,9 @@ ax_summary.set_ylabel("Speed (rad/s)")
 # 固定坐标轴范围，与第一张图保持一致
 ax_summary.set_ylim(0, 3000)
 ax_summary.set_yticks([0, 1000, 2000, 3000])
+
+# 添加图例
+ax_summary.legend(loc="upper left", fontsize=12, framealpha=0.9, frameon=False)
 
 # 设置刻度
 ax_summary.xaxis.set_minor_locator(AutoMinorLocator(2))

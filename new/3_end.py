@@ -83,7 +83,7 @@ for key, value in all_stats.items():
         ):  # 这里因为粒子是往下走的所以这个d1_origin可能有点虚高所以这里要乘以0.8，在柱段的话就不可能触发所以对柱段是没有影响
             # radius = max(d1, d2)
             # not_use_revolution = True# 这个参数应该是没有用 
-            if margin > 30:
+            if margin > 30: # 30/101 = 0.297cm
 
                 print(
                     f"{key} 的 d1_origin 大于 radius, radius: {radius}, d1_origin: {d1_origin}, margin: {margin}"
