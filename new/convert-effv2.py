@@ -6,12 +6,12 @@ import cv2
 import torch
 import torch.nn as nn
 from PIL import Image
-from torchvision import transforms
-from torchvision.models import EfficientNet_B1_Weights, efficientnet_b1
+from torchvision import models, transforms
 
 from .process_utils import extract_frame, find_video_files, get_latest_folder
 
 times = []  # 存储所有运行时间
+missing_id_count = 0  # 统计缺少 ID 的检测结果数量
 
 
 def convert_results(
@@ -29,6 +29,8 @@ def convert_results(
     """
     将检测结果转换为 JSON 格式，并保存为以 id 为名字的文件夹中的 JSON 文件
     """
+    global missing_id_count  # 声明使用全局变量
+    
     for index, result in enumerate(detection_results):
         category = int(result[0])  # 物体类别
         x_center = float(result[1]) * image_width  # 中心点 x 坐标
@@ -39,7 +41,7 @@ def convert_results(
             id = int(result[5])  # 物体 ID
         except IndexError:
             id = 99999
-            print("检测结果中缺少 ID, 需要注意")
+            missing_id_count += 1  # 统计缺少 ID 的数量
         # 计算边框的左上角和右下角坐标
         x1 = round(x_center - width / 2)
         y1 = round(y_center - height / 2)
@@ -132,6 +134,12 @@ def convert_results(
 def main_convert(classify=True, y_track_project=None, video_output=None):
     # 因为这里是直接调用函数的所以它这个上面的如果写死全局变量的话它是不会更新的所以只能放在函数里
     # 使用传入的参数或默认值
+    global missing_id_count  # 声明使用全局变量
+    missing_id_count = 0  # 重置计数器
+    start_ts = time.time()
+    start_iso = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start_ts))
+    print(f"\n开始转换 - {start_iso}")
+    
     base_video_path = video_output if video_output else "processed_video_gradio"
     image_width = 768
     image_height = 1024
@@ -147,24 +155,87 @@ def main_convert(classify=True, y_track_project=None, video_output=None):
     base_name, _ = os.path.splitext(video_name)
     new_video_path = os.path.join(base_video_path, f"{base_name}.mp4")
     if classify:
-        model_e = efficientnet_b1(weights=EfficientNet_B1_Weights.DEFAULT)
-        model_e.classifier[1] = nn.Linear(model_e.classifier[1].in_features, 2)
+        # ========================================
+        # 模型初始化：EfficientNet-V2-S
+        # ========================================
+        # EfficientNet-V2 是 EfficientNet 的改进版本，主要优化：
+        # 1. 训练速度更快（比 EfficientNet-B1 快 5-11 倍）
+        # 2. 参数效率更高（更少的参数达到更好的精度）
+        # 3. 使用 Fused-MBConv 模块替代部分 MBConv，减少内存访问
+        # 4. 渐进式学习策略，动态调整图像大小和正则化
+        
+        # 加载预训练模型（在 ImageNet-1K 数据集上训练的权重）
+        # ImageNet1K_V1 是在 ImageNet-1K (1000类) 数据集上训练的权重
+        model_e = models.efficientnet_v2_s(
+            weights=models.EfficientNet_V2_S_Weights.IMAGENET1K_V1
+        )
+        
+        # ========================================
+        # 修改分类器层（迁移学习）
+        # ========================================
+        # EfficientNet-V2 的结构：
+        # - features: 特征提取层（卷积层）
+        # - avgpool: 全局平均池化层
+        # - classifier: 分类器（Sequential 包含 Dropout 和 Linear）
+        #   - classifier[0]: Dropout(p=0.2) - 防止过拟合
+        #   - classifier[1]: Linear(in_features=1280, out_features=1000) - 全连接层
+        
+        # 获取原始全连接层的输入特征数（1280）
+        in_features = model_e.classifier[1].in_features
+        
+        # 替换最后的全连接层为 2 分类（NUM_CLASSES=2）
+        # 保留预训练的特征提取能力，只重新训练分类器
+        NUM_CLASSES = 2  # 二分类任务（例如：柱段/球段）
+        model_e.classifier[1] = nn.Linear(in_features, NUM_CLASSES)
+        
+        # ========================================
+        # 设备配置（GPU/CPU）
+        # ========================================
+        # 检测是否有可用的 CUDA GPU
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+        
+        # 将模型转移到指定设备（GPU 加速推理）
         model_e = model_e.to(device)
+        
+        # ========================================
+        # 加载训练好的权重
+        # ========================================
+        # 加载微调后的模型权重（在你的数据集上训练的）
         model_e.load_state_dict(
-            torch.load("best_model_new_eff1.pth", map_location=device)
-        )  # without_generate.pth  best_model (10).pth
+            torch.load("new_best_model.pth", map_location=device)
+        )  # map_location 确保权重加载到正确的设备
+        
+        # ========================================
+        # 图像预处理转换
+        # ========================================
+        # 定义图像预处理管道，与训练时保持一致
         transform = transforms.Compose(
             [
-                transforms.Resize((224, 224)),  # 调整图像大小
-                transforms.ToTensor(),  # 转换为Tensor
+                # 1. 调整图像大小为 224x224（EfficientNet-V2-S 的输入尺寸）
+                transforms.Resize((224, 224)),
+                
+                # 2. 转换为 PyTorch Tensor（[0, 255] -> [0.0, 1.0]）
+                transforms.ToTensor(),
+                
+                # 3. 标准化（使用 ImageNet 的均值和标准差）
+                #    mean=[0.485, 0.456, 0.406] - RGB 三通道的均值
+                #    std=[0.229, 0.224, 0.225]  - RGB 三通道的标准差
+                #    这与预训练模型的输入要求一致
                 transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-                ),  # 归一化
+                    mean=[0.485, 0.456, 0.406], 
+                    std=[0.229, 0.224, 0.225]
+                ),
             ]
         )
-        model_e.eval()  # 设置模型为推理模式
+        
+        # ========================================
+        # 设置为评估模式
+        # ========================================
+        # eval() 模式会：
+        # - 禁用 Dropout（p=0.2 的丢弃层不再随机丢弃）
+        # - 冻结 Batch Normalization（使用训练时的统计量）
+        # - 确保推理时的确定性和一致性
+        model_e.eval()
     else:
         model_e = None
         device = None
@@ -199,7 +270,27 @@ def main_convert(classify=True, y_track_project=None, video_output=None):
         )
         average_time = sum(times) / len(times)
         if index % 100 == 0:
-            print(f"平均目标分类时间: {average_time:.6f} 秒")
+            elapsed = time.time() - start_ts
+            print(f"已处理 {index+1} 帧 | 平均分类时间: {average_time:.6f}秒 | 已用时: {elapsed:.1f}秒")
+    
+    # 处理完成后显示统计信息
+    total_frames = index + 1
+    end_ts = time.time()
+    duration = end_ts - start_ts
+    end_iso = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_ts))
+    
+    print("\n" + "="*60)
+    print(f"✓ 检测结果转换完成 - {end_iso}")
+    print(f"  - 总帧数: {total_frames}")
+    print(f"  - 总耗时: {duration:.2f}秒 ({duration/60:.1f}分钟)")
+    if times:
+        avg_classify = sum(times) / len(times)
+        print(f"  - 平均分类时间: {avg_classify:.6f}秒")
+    if missing_id_count > 0:
+        print(f"  - ⚠️  缺少 ID 的检测结果: {missing_id_count} 个（已分配 ID=99999）")
+    else:
+        print("  - ✓ 所有检测结果都有 ID")
+    print("="*60 + "\n")
 
 
 if __name__ == "__main__":
