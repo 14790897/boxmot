@@ -196,6 +196,7 @@ def remove_chinese(text):
 def auto_name_from_path(path):
     """
     Determine track/detect name automatically from a directory or file path.
+    就是提取目录最后的序号 xy分别提取
     Rules:
       - Look for one of the flow prefixes: 450, 550, 650, 750, 850 in the parent directory name.
       - Extract the sequence number from the folder name (e.g., S0001 -> 001, Acq_A_002 -> 002).

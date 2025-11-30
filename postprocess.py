@@ -26,7 +26,7 @@ def run_scripts_in_dirs(root_directory):
     for subdir in subdirectories:
 
         print(f"Processing directory: {subdir}")
-        os.environ["LATEST_FOLDER"] = subdir
+        os.environ["LATEST_FOLDER"] = subdir  #通过环境变量设置处理目录
 
         # 执行脚本列表
         for script in scripts:
