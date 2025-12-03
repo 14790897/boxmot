@@ -104,7 +104,7 @@ all_excel_data = []
 num_folders = len(folder_groups)
 num_rows = (num_folders + 1) // 2  # 计算需要的行数
 fig, axes = plt.subplots(
-    num_rows, 2, figsize=(16, 4.5 * num_rows), gridspec_kw={"hspace": 0.3, "wspace": 0.25}
+    num_rows, 2, figsize=(12, 3.5 * num_rows), gridspec_kw={"hspace": 0.2, "wspace": 0.2}
 )  # 一行两张图
 
 # 如果只有一行，确保axes是二维数组
@@ -253,7 +253,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
             label="Revolution" if i == 0 else None,
         )
 
-        ax.set_xlabel(r"h (cm)")
+        ax.set_xlabel(r"h (cm)", labelpad=-5)
         ax.set_ylabel("Speed (rad/s)")
         ax.set_xlim(min_height, max_height)
 
@@ -315,14 +315,14 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         # 添加子图标题 (a), (b), (c), (d), (e)
         subplot_labels = ["(a)", "(b)", "(c)", "(d)", "(e)"]
         if i < len(subplot_labels):
-            ax.set_title(subplot_labels[i], loc="left", x=-0.08, y=0.9)
+            ax.set_title(subplot_labels[i], loc="left", x=-0.19, y=0.9)
 
         # 只在第一个子图显示图例
         if i == 0:
             ax.legend(loc="upper left", fontsize=12, framealpha=0.9, frameon=False)
 
         # 设置刻度
-        ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+        ax.xaxis.set_minor_locator(AutoMinorLocator(5))
         ax.yaxis.set_minor_locator(AutoMinorLocator(2))
         ax.tick_params(which="minor", direction="in")
         ax.tick_params(which="major", direction="in")
@@ -345,7 +345,7 @@ if num_folders < num_rows * 2:
     ax_summary.set_visible(True)
 else:
     # 如果没有空余位置，创建新图
-    fig2, ax_summary = plt.subplots(1, 1, figsize=(7, 4.5))
+    fig2, ax_summary = plt.subplots(1, 1, figsize=(3.5, 2.5))
     create_separate_summary = True
 
 # 如果在原图中绘制平均值
@@ -393,10 +393,10 @@ if num_folders < num_rows * 2:
     ax_summary.set_yticks([0, 500, 1000, 1500, 2000, 2500, 3000])
 
     # 添加子图标题
-    ax_summary.set_title("(f)", loc="left", x=-0.08, y=0.9)
+    ax_summary.set_title("(f)", loc="left", x=-0.19, y=0.9)
 
     # 设置刻度
-    ax_summary.xaxis.set_minor_locator(AutoMinorLocator(2))
+    ax_summary.xaxis.set_minor_locator(AutoMinorLocator(5))
     ax_summary.yaxis.set_minor_locator(AutoMinorLocator(2))
     ax_summary.tick_params(which="minor", direction="in")
     ax_summary.tick_params(which="major", direction="in")
@@ -444,7 +444,7 @@ else:
     ax_summary.set_yticks([0, 500, 1000, 1500, 2000, 2500, 3000])
 
     # 设置刻度
-    ax_summary.xaxis.set_minor_locator(AutoMinorLocator(2))
+    ax_summary.xaxis.set_minor_locator(AutoMinorLocator(5))
     ax_summary.yaxis.set_minor_locator(AutoMinorLocator(2))
     ax_summary.tick_params(which="minor", direction="in")
     ax_summary.tick_params(which="major", direction="in")
