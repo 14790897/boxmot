@@ -327,8 +327,8 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         ax.tick_params(which="minor", direction="in")
         ax.tick_params(which="major", direction="in")
 
-        # 确保Y轴刻度显示到3000
-        ax.set_yticks([0, 1000, 2000, 3000])
+        # 确保Y轴刻度显示到3000，间隔500
+        ax.set_yticks([0, 500, 1000, 1500, 2000, 2500, 3000])
 
 # 如果有空余的子图位置，隐藏它们
 for j in range(num_folders, num_rows * 2):
@@ -390,7 +390,7 @@ if num_folders < num_rows * 2:
 
     # 固定坐标轴范围，与第一张图保持一致
     ax_summary.set_ylim(0, 3000)
-    ax_summary.set_yticks([0, 1000, 2000, 3000])
+    ax_summary.set_yticks([0, 500, 1000, 1500, 2000, 2500, 3000])
 
     # 添加子图标题
     ax_summary.set_title("(f)", loc="left", x=-0.08, y=0.9)
@@ -441,7 +441,7 @@ else:
 
     # 固定坐标轴范围，与第一张图保持一致
     ax_summary.set_ylim(0, 3000)
-    ax_summary.set_yticks([0, 1000, 2000, 3000])
+    ax_summary.set_yticks([0, 500, 1000, 1500, 2000, 2500, 3000])
 
     # 设置刻度
     ax_summary.xaxis.set_minor_locator(AutoMinorLocator(2))
