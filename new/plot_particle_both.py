@@ -16,8 +16,6 @@ import numpy as np
 import pandas as pd
 from matplotlib.ticker import AutoMinorLocator
 from process_utils import get_all_folders
-from openpyxl import Workbook
-from openpyxl.styles import Font, Alignment
 
 # 检查是否需要非交互式模式（用于批处理）
 BASE_PATH_INITIAL = "runs/eff1_new"
@@ -100,11 +98,16 @@ exp_avg_orb_rev = []  # 存储每次实验的平均公转
 # 用于存储所有详细数据以导出Excel
 all_excel_data = []
 
-# 设置画布
+# 设置画布 - 修改为一行两张图的布局
 num_folders = len(folder_groups)
+num_rows = (num_folders + 1) // 2  # 计算需要的行数
 fig, axes = plt.subplots(
-    num_folders, 1, figsize=(8, 3.3 * num_folders), gridspec_kw={"hspace": 0.25}
-)  # 多个子图,减小子图间距
+    num_rows, 2, figsize=(16, 4.5 * num_rows), gridspec_kw={"hspace": 0.3, "wspace": 0.25}
+)  # 一行两张图
+
+# 如果只有一行，确保axes是二维数组
+if num_rows == 1:
+    axes = axes.reshape(1, -1)
 
 
 all_heights = []
@@ -139,6 +142,10 @@ max_height = max(all_heights) if all_heights else 1
 print(len(folder_groups), folder_groups)
 
 for i, (base_name, folder_list) in enumerate(folder_groups.items()):
+    # 计算子图位置
+    row = i // 2
+    col = i % 2
+    
     merged_stats = merge_stats(*folder_list)  # 传入所有相关文件夹进行合并
 
     # 初始化当前文件夹的数据存储
@@ -208,28 +215,32 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
     exp_avg_orb_rev.append(avg_orbital_rev)
 
     # 绘制当前文件夹的图 - 使用单一Y轴
-    ax = axes[i]
+    ax = axes[row, col]
 
     if abs_rotations_both and orbital_revs_both:
         # 合并所有数据以确定整体范围
         all_speeds = abs_rotations_both + orbital_revs_both
         y_min, y_max = min(all_speeds), max(all_speeds)
 
-        # 绘制 Rotation 数据（蓝色）
+        # 绘制 Rotation 数据（蓝色圆形）
         scatter1 = ax.scatter(
             heights_both,
             abs_rotations_both,
             alpha=0.7,
             color="blue",
+            marker="o",
+            s=30,
             label="Rotation" if i == 0 else None,
         )
 
-        # 绘制 Revolution 数据（橙色）
+        # 绘制 Revolution 数据（橙色方形）
         scatter2 = ax.scatter(
             heights_both,
             orbital_revs_both,
             alpha=0.7,
             color="orange",
+            marker="s",
+            s=30,
             label="Revolution" if i == 0 else None,
         )
 
@@ -295,7 +306,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         # 添加子图标题 (a), (b), (c), (d), (e)
         subplot_labels = ["(a)", "(b)", "(c)", "(d)", "(e)"]
         if i < len(subplot_labels):
-            ax.set_title(subplot_labels[i], loc="left", x=-0.13, y=0.87)
+            ax.set_title(subplot_labels[i], loc="left", x=-0.08, y=0.9)
 
         # 只在第一个子图显示图例
         if i == 0:
@@ -310,49 +321,114 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         # 确保Y轴刻度显示到3000
         ax.set_yticks([0, 1000, 2000, 3000])
 
+# 如果有空余的子图位置，隐藏它们
+for j in range(num_folders, num_rows * 2):
+    row = j // 2
+    col = j % 2
+    axes[row, col].set_visible(False)
 
-# ==== 单独绘制平均趋势图 - 使用单一Y轴 ====
-fig2, ax_summary = plt.subplots(1, 1, figsize=(7, 4.5))
+# 在最后一个位置绘制平均值图（如果有空余位置）
+if num_folders < num_rows * 2:
+    # 使用最后一个位置绘制平均值图
+    last_row = (num_rows * 2 - 1) // 2
+    last_col = (num_rows * 2 - 1) % 2
+    ax_summary = axes[last_row, last_col]
+    ax_summary.set_visible(True)
+else:
+    # 如果没有空余位置，创建新图
+    fig2, ax_summary = plt.subplots(1, 1, figsize=(7, 4.5))
+    create_separate_summary = True
 
-# Average Rotation（蓝色）
-line1 = ax_summary.plot(
-    exp_indices,
-    exp_avg_abs_rot,
-    alpha=0.7,
-    color="blue",
-    marker="o",
-    linestyle="-",
-    linewidth=2,
-    label="Rotation"
-)
+# 如果在原图中绘制平均值
+if num_folders < num_rows * 2:
 
-# Average Revolution（橙色）
-line2 = ax_summary.plot(
-    exp_indices,
-    exp_avg_orb_rev,
-    alpha=0.7,
-    color="orange",
-    marker="s",
-    linestyle="-",
-    linewidth=2,
-    label="Revolution"
-)
+    # Average Rotation（蓝色圆形）
+    line1 = ax_summary.plot(
+        exp_indices,
+        exp_avg_abs_rot,
+        alpha=0.7,
+        color="blue",
+        marker="o",
+        linestyle="-",
+        linewidth=2,
+        markersize=8,
+        label="Rotation"
+    )
 
-ax_summary.set_xlabel("Inlet Flow Rate (L/h)")
-ax_summary.set_ylabel("Speed (rad/s)")
+    # Average Revolution（橙色方形）
+    line2 = ax_summary.plot(
+        exp_indices,
+        exp_avg_orb_rev,
+        alpha=0.7,
+        color="orange",
+        marker="s",
+        linestyle="-",
+        linewidth=2,
+        markersize=8,
+        label="Revolution"
+    )
 
-# 固定坐标轴范围，与第一张图保持一致
-ax_summary.set_ylim(0, 3000)
-ax_summary.set_yticks([0, 1000, 2000, 3000])
+    ax_summary.set_xlabel("Inlet Flow Rate (L/h)")
+    ax_summary.set_ylabel("Speed (rad/s)")
 
-# 添加图例
-ax_summary.legend(loc="upper left", fontsize=12, framealpha=0.9, frameon=False)
+    # 固定坐标轴范围，与第一张图保持一致
+    ax_summary.set_ylim(0, 3000)
+    ax_summary.set_yticks([0, 1000, 2000, 3000])
 
-# 设置刻度
-ax_summary.xaxis.set_minor_locator(AutoMinorLocator(2))
-ax_summary.yaxis.set_minor_locator(AutoMinorLocator(2))
-ax_summary.tick_params(which="minor", direction="in")
-ax_summary.tick_params(which="major", direction="in")
+    # 添加图例
+    ax_summary.legend(loc="upper left", fontsize=12, framealpha=0.9, frameon=False)
+
+    # 添加子图标题
+    ax_summary.set_title("(f)", loc="left", x=-0.08, y=0.9)
+
+    # 设置刻度
+    ax_summary.xaxis.set_minor_locator(AutoMinorLocator(2))
+    ax_summary.yaxis.set_minor_locator(AutoMinorLocator(2))
+    ax_summary.tick_params(which="minor", direction="in")
+    ax_summary.tick_params(which="major", direction="in")
+else:
+    # 单独创建平均值图的情况
+    # Average Rotation（蓝色圆形）
+    line1 = ax_summary.plot(
+        exp_indices,
+        exp_avg_abs_rot,
+        alpha=0.7,
+        color="blue",
+        marker="o",
+        linestyle="-",
+        linewidth=2,
+        markersize=8,
+        label="Rotation"
+    )
+
+    # Average Revolution（橙色方形）
+    line2 = ax_summary.plot(
+        exp_indices,
+        exp_avg_orb_rev,
+        alpha=0.7,
+        color="orange",
+        marker="s",
+        linestyle="-",
+        linewidth=2,
+        markersize=8,
+        label="Revolution"
+    )
+
+    ax_summary.set_xlabel("Inlet Flow Rate (L/h)")
+    ax_summary.set_ylabel("Speed (rad/s)")
+
+    # 固定坐标轴范围，与第一张图保持一致
+    ax_summary.set_ylim(0, 3000)
+    ax_summary.set_yticks([0, 1000, 2000, 3000])
+
+    # 添加图例
+    ax_summary.legend(loc="upper left", fontsize=12, framealpha=0.9, frameon=False)
+
+    # 设置刻度
+    ax_summary.xaxis.set_minor_locator(AutoMinorLocator(2))
+    ax_summary.yaxis.set_minor_locator(AutoMinorLocator(2))
+    ax_summary.tick_params(which="minor", direction="in")
+    ax_summary.tick_params(which="major", direction="in")
 
 # ==== 导出数据到Excel ====
 # 创建DataFrame
@@ -377,8 +453,8 @@ with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
 
 print(f"数据已导出到Excel: {excel_path}")
 print(f"  - 总共 {len(df_detailed)} 个同时具有自转和公转的粒子")
-print(f"  - Detailed_Data sheet: 每个粒子的详细数据")
-print(f"  - Summary_Data sheet: 每个流速的平均值汇总")
+print("  - Detailed_Data sheet: 每个粒子的详细数据")
+print("  - Summary_Data sheet: 每个流速的平均值汇总")
 
 # 根据模式决定是显示还是保存图表
 if SAVE_MODE:
@@ -387,19 +463,25 @@ if SAVE_MODE:
     os.makedirs(plot_output_dir, exist_ok=True)
 
     fig.savefig(
-        os.path.join(plot_output_dir, "particle_analysis_detailed.png"),
+        os.path.join(plot_output_dir, "particle_analysis_combined.png"),
         dpi=300,
         bbox_inches="tight",
     )
-    fig2.savefig(
-        os.path.join(plot_output_dir, "particle_analysis_summary.png"),
-        dpi=300,
-        bbox_inches="tight",
-    )
+    
+    # 如果有单独的汇总图，也保存它
+    if 'fig2' in locals():
+        fig2.savefig(
+            os.path.join(plot_output_dir, "particle_analysis_summary.png"),
+            dpi=300,
+            bbox_inches="tight",
+        )
 
     print(f"图表已保存到: {plot_output_dir}")
-    print("  - particle_analysis_detailed.png (详细分析)")
-    print("  - particle_analysis_summary.png (汇总)")
+    if num_folders < num_rows * 2:
+        print("  - particle_analysis_combined.png (包含平均值的组合图)")
+    else:
+        print("  - particle_analysis_combined.png (详细分析)")
+        print("  - particle_analysis_summary.png (汇总)")
 
     plt.close("all")  # 关闭所有图表释放内存
 else:
