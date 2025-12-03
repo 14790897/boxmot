@@ -94,6 +94,8 @@ for folder__ in folders:
 exp_indices = []  # 存储实验序号
 exp_avg_abs_rot = []  # 存储每次实验的平均绝对自转
 exp_avg_orb_rev = []  # 存储每次实验的平均公转
+exp_sem_abs_rot = []  # 存储每次实验的自转标准误差
+exp_sem_orb_rev = []  # 存储每次实验的公转标准误差
 
 # 用于存储所有详细数据以导出Excel
 all_excel_data = []
@@ -207,12 +209,19 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
 
     avg_abs_rotation = np.mean(abs_rotations_both) if abs_rotations_both else 0
     avg_orbital_rev = np.mean(orbital_revs_both) if orbital_revs_both else 0
+    
+    # 计算标准误差 (SEM = std / sqrt(n))
+    sem_abs_rotation = np.std(abs_rotations_both, ddof=1) / np.sqrt(len(abs_rotations_both)) if len(abs_rotations_both) > 1 else 0
+    sem_orbital_rev = np.std(orbital_revs_both, ddof=1) / np.sqrt(len(orbital_revs_both)) if len(orbital_revs_both) > 1 else 0
+    
     folder_name = os.path.basename(base_name)  # 获取文件夹名称
 
     # 存储实验结果
     exp_indices.append(folder_name)
     exp_avg_abs_rot.append(avg_abs_rotation)
     exp_avg_orb_rev.append(avg_orbital_rev)
+    exp_sem_abs_rot.append(sem_abs_rotation)
+    exp_sem_orb_rev.append(sem_orbital_rev)
 
     # 绘制当前文件夹的图 - 使用单一Y轴
     ax = axes[row, col]
@@ -244,7 +253,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
             label="Revolution" if i == 0 else None,
         )
 
-        ax.set_xlabel(r"$h$ (cm)")
+        ax.set_xlabel(r"h (cm)")
         ax.set_ylabel("Speed (rad/s)")
         ax.set_xlim(min_height, max_height)
 
@@ -292,7 +301,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
             )
 
         # 添加流量标注
-        flow_text = f"{os.path.basename(base_name)} L/h"
+        flow_text = f"Qi={os.path.basename(base_name)} L/h"
         ax.text(
             0.98,
             0.98,
@@ -342,29 +351,37 @@ else:
 # 如果在原图中绘制平均值
 if num_folders < num_rows * 2:
 
-    # Average Rotation（蓝色圆形）
-    line1 = ax_summary.plot(
+    # Average Rotation（蓝色圆形）with error bars
+    ax_summary.errorbar(
         exp_indices,
         exp_avg_abs_rot,
-        alpha=0.7,
+        yerr=exp_sem_abs_rot,
         color="blue",
         marker="o",
         linestyle="-",
         linewidth=2,
-        markersize=8,
+        markersize=1,
+        capsize=3,
+        capthick=3,
+        elinewidth=1,
+        alpha=0.7,
         label="Rotation"
     )
 
-    # Average Revolution（橙色方形）
-    line2 = ax_summary.plot(
+    # Average Revolution（橙色方形）with error bars
+    ax_summary.errorbar(
         exp_indices,
         exp_avg_orb_rev,
-        alpha=0.7,
+        yerr=exp_sem_orb_rev,
         color="orange",
         marker="s",
         linestyle="-",
         linewidth=2,
-        markersize=8,
+        markersize=1,
+        capsize=3,
+        capthick=3,
+        elinewidth=1,
+        alpha=0.7,
         label="Revolution"
     )
 
@@ -374,9 +391,6 @@ if num_folders < num_rows * 2:
     # 固定坐标轴范围，与第一张图保持一致
     ax_summary.set_ylim(0, 3000)
     ax_summary.set_yticks([0, 1000, 2000, 3000])
-
-    # 添加图例
-    ax_summary.legend(loc="upper left", fontsize=12, framealpha=0.9, frameon=False)
 
     # 添加子图标题
     ax_summary.set_title("(f)", loc="left", x=-0.08, y=0.9)
@@ -388,29 +402,37 @@ if num_folders < num_rows * 2:
     ax_summary.tick_params(which="major", direction="in")
 else:
     # 单独创建平均值图的情况
-    # Average Rotation（蓝色圆形）
-    line1 = ax_summary.plot(
+    # Average Rotation（蓝色圆形）with error bars
+    ax_summary.errorbar(
         exp_indices,
         exp_avg_abs_rot,
-        alpha=0.7,
+        yerr=exp_sem_abs_rot,
         color="blue",
         marker="o",
         linestyle="-",
         linewidth=2,
-        markersize=8,
+        markersize=5,
+        capsize=3,
+        capthick=3,
+        elinewidth=1,
+        alpha=0.7,
         label="Rotation"
     )
 
-    # Average Revolution（橙色方形）
-    line2 = ax_summary.plot(
+    # Average Revolution（橙色方形）with error bars
+    ax_summary.errorbar(
         exp_indices,
         exp_avg_orb_rev,
-        alpha=0.7,
+        yerr=exp_sem_orb_rev,
         color="orange",
         marker="s",
         linestyle="-",
         linewidth=2,
-        markersize=8,
+        markersize=5,
+        capsize=3,
+        capthick=3,
+        elinewidth=1,
+        alpha=0.7,
         label="Revolution"
     )
 
@@ -420,9 +442,6 @@ else:
     # 固定坐标轴范围，与第一张图保持一致
     ax_summary.set_ylim(0, 3000)
     ax_summary.set_yticks([0, 1000, 2000, 3000])
-
-    # 添加图例
-    ax_summary.legend(loc="upper left", fontsize=12, framealpha=0.9, frameon=False)
 
     # 设置刻度
     ax_summary.xaxis.set_minor_locator(AutoMinorLocator(2))
