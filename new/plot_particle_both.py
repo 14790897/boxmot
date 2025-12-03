@@ -154,6 +154,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
     heights_both = []  # 同时有自转和公转的粒子的高度
     abs_rotations_both = []  # 对应的自转速度
     orbital_revs_both = []  # 对应的公转速度
+    is_high_speed = []  # 标记是否为高速颗粒
 
     # 解析数据 - 只保留同时有自转和公转的粒子
     for key, value in merged_stats.items():
@@ -172,16 +173,32 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
 
             # 只存储同时有自转和公转的粒子数据
             if abs_rotation > 0 and orbital_rev > 0:
+                # 计算旋转半径比值来判断是否为高速颗粒
+                inner_diameter = value.get("inner_diameter", 0)
+                margin = value.get("margin", 0)
+                
+                # radius = (inner_diameter / 2 - margin * 147 / 101)
+                # dz/2 = inner_diameter / 2
+                # ratio = radius / (dz/2) = (inner_diameter / 2 - margin * 147 / 101) / (inner_diameter / 2)
+                if inner_diameter > 0:
+                    radius = inner_diameter / 2 - margin * 147 / 101
+                    dz_half = inner_diameter / 2
+                    ratio = radius / dz_half
+                    high_speed = ratio > 0.9
+                else:
+                    high_speed = False
+                
                 heights_both.append(height)
                 abs_rotations_both.append(abs_rotation)
                 orbital_revs_both.append(orbital_rev)
+                is_high_speed.append(high_speed)
 
                 # 添加到Excel数据列表，包含所有相关数据
                 all_excel_data.append({
                     'Flow_Rate_L_h': os.path.basename(base_name),
                     'Particle_ID': key,
                     'Height_cm': height,
-                    'Inner_Diameter_cm': value.get("inner_diameter", 0),
+                    'Inner_Diameter_cm': value.get("inner_diameter", 0)/147,
                     'Rotation_rad_s': abs_rotation,
                     'Revolution_rad_s': orbital_rev,
                     'Relative_Rotation_rad_s': value.get("rel_rotation", 0),
@@ -195,6 +212,12 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
                     'D1': value.get("d1_with_range_revolution", 0),
                     'D2': value.get("d2_with_range_revolution", 0),
                     'Margin': value.get("margin", 0),
+                    "Inner_Radius_cm": value.get("inner_diameter", 0)/147/2,
+                    "Revolution_Radius_cm": radius/147,
+                    "radius / dz_half": ratio,
+                    "High_Speed": high_speed,
+                    
+                    
                     # 'Closest_Point_Center_X': closest_point.get("Center", [0, 0])[0] if closest_point else 0,
                     # 'Closest_Point_Center_Y': closest_point.get("Center", [0, 0])[1] if closest_point else 0,
                     # 'Closest_Point_Box': str(closest_point.get("Box", [])) if closest_point else "",
@@ -231,27 +254,64 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         all_speeds = abs_rotations_both + orbital_revs_both
         y_min, y_max = min(all_speeds), max(all_speeds)
 
-        # 绘制 Rotation 数据（蓝色圆形）
-        scatter1 = ax.scatter(
-            heights_both,
-            abs_rotations_both,
-            alpha=0.7,
-            color="blue",
-            marker="o",
-            s=30,
-            label="Rotation" if i == 0 else None,
-        )
+        # 分离高速和低速颗粒数据
+        heights_rot_high = [h for h, hs in zip(heights_both, is_high_speed) if hs]
+        abs_rot_high = [r for r, hs in zip(abs_rotations_both, is_high_speed) if hs]
+        heights_rot_low = [h for h, hs in zip(heights_both, is_high_speed) if not hs]
+        abs_rot_low = [r for r, hs in zip(abs_rotations_both, is_high_speed) if not hs]
+        
+        heights_rev_high = [h for h, hs in zip(heights_both, is_high_speed) if hs]
+        orb_rev_high = [r for r, hs in zip(orbital_revs_both, is_high_speed) if hs]
+        heights_rev_low = [h for h, hs in zip(heights_both, is_high_speed) if not hs]
+        orb_rev_low = [r for r, hs in zip(orbital_revs_both, is_high_speed) if not hs]
 
-        # 绘制 Revolution 数据（橙色方形）
-        scatter2 = ax.scatter(
-            heights_both,
-            orbital_revs_both,
-            alpha=0.7,
-            color="orange",
-            marker="s",
-            s=30,
-            label="Revolution" if i == 0 else None,
-        )
+        # 绘制 Rotation 数据 - 高速颗粒（深蓝色圆形）
+        if heights_rot_high:
+            scatter1_high = ax.scatter(
+                heights_rot_high,
+                abs_rot_high,
+                alpha=0.7,
+                color="darkblue",
+                marker="o",
+                s=30,
+                label="Rotation (High)" if i == 0 else None,
+            )
+        
+        # 绘制 Rotation 数据 - 低速颗粒（浅蓝色圆形）
+        if heights_rot_low:
+            scatter1_low = ax.scatter(
+                heights_rot_low,
+                abs_rot_low,
+                alpha=0.7,
+                color="lightblue",
+                marker="o",
+                s=30,
+                label="Rotation (Low)" if i == 0 else None,
+            )
+
+        # 绘制 Revolution 数据 - 高速颗粒（深橙色方形）
+        if heights_rev_high:
+            scatter2_high = ax.scatter(
+                heights_rev_high,
+                orb_rev_high,
+                alpha=0.7,
+                color="red",
+                marker="s",
+                s=30,
+                label="Revolution (High)" if i == 0 else None,
+            )
+        
+        # 绘制 Revolution 数据 - 低速颗粒（浅橙色方形）
+        if heights_rev_low:
+            scatter2_low = ax.scatter(
+                heights_rev_low,
+                orb_rev_low,
+                alpha=0.7,
+                color="gold",
+                marker="s",
+                s=30,
+                label="Revolution (Low)" if i == 0 else None,
+            )
 
         ax.set_xlabel(r"h (cm)", labelpad=-5)
         ax.set_ylabel("Speed (rad/s)")
@@ -284,20 +344,20 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         # 计算趋势线的x值
         x_trend = np.linspace(min_height, max_height, 100)
 
-        # 计算并绘制 Rotation 趋势线（蓝色虚线）
+        # 计算并绘制 Rotation 趋势线（深蓝色虚线）- 使用所有rotation数据
         if len(heights_both) > 1:
             poly_coeffs = np.polyfit(heights_both, abs_rotations_both, 2)
             trend_line = np.poly1d(poly_coeffs)
             line1 = ax.plot(
-                x_trend, trend_line(x_trend), color="blue", linestyle="--", alpha=0.5
+                x_trend, trend_line(x_trend), color="darkblue", linestyle="--", alpha=0.5
             )
 
-        # 计算并绘制 Revolution 趋势线（橙色虚线）
+        # 计算并绘制 Revolution 趋势线（红色虚线）- 使用所有revolution数据
         if len(heights_both) > 1:
             poly_coeffs = np.polyfit(heights_both, orbital_revs_both, 2)
             trend_line = np.poly1d(poly_coeffs)
             line2 = ax.plot(
-                x_trend, trend_line(x_trend), color="orange", linestyle="--", alpha=0.5
+                x_trend, trend_line(x_trend), color="red", linestyle="--", alpha=0.5
             )
 
         # 添加流量标注
