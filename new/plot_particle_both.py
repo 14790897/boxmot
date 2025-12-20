@@ -265,50 +265,50 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         heights_rev_low = [h for h, hs in zip(heights_both, is_high_speed) if not hs]
         orb_rev_low = [r for r, hs in zip(orbital_revs_both, is_high_speed) if not hs]
 
-        # 绘制 Rotation 数据 - 高速颗粒（深蓝色圆形）
+        # 绘制 Rotation 数据 - 高速颗粒（蓝色圆形）
         if heights_rot_high:
             scatter1_high = ax.scatter(
                 heights_rot_high,
                 abs_rot_high,
-                alpha=0.7,
-                color="darkblue",
+                facecolors="blue",
+                edgecolors="blue",
                 marker="o",
                 s=30,
                 label="Rotation (High)" if i == 0 else None,
             )
         
-        # 绘制 Rotation 数据 - 低速颗粒（浅蓝色圆形）
+        # 绘制 Rotation 数据 - 低速颗粒（红色三角）
         if heights_rot_low:
             scatter1_low = ax.scatter(
                 heights_rot_low,
                 abs_rot_low,
-                alpha=0.7,
-                color="lightblue",
-                marker="o",
+                facecolors="red",
+                edgecolors="red",
+                marker="^",
                 s=30,
                 label="Rotation (Low)" if i == 0 else None,
             )
 
-        # 绘制 Revolution 数据 - 高速颗粒（深橙色方形）
+        # 绘制 Revolution 数据 - 高速颗粒（绿色方形）
         if heights_rev_high:
             scatter2_high = ax.scatter(
                 heights_rev_high,
                 orb_rev_high,
-                alpha=0.7,
-                color="red",
+                facecolors="green",
+                edgecolors="green",
                 marker="s",
                 s=30,
                 label="Revolution (High)" if i == 0 else None,
             )
         
-        # 绘制 Revolution 数据 - 低速颗粒（浅橙色方形）
+        # 绘制 Revolution 数据 - 低速颗粒（橙色菱形）
         if heights_rev_low:
             scatter2_low = ax.scatter(
                 heights_rev_low,
                 orb_rev_low,
-                alpha=0.7,
-                color="gold",
-                marker="s",
+                facecolors="orange",
+                edgecolors="orange",
+                marker="D",
                 s=30,
                 label="Revolution (Low)" if i == 0 else None,
             )
@@ -344,31 +344,58 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         # 计算趋势线的x值
         x_trend = np.linspace(min_height, max_height, 100)
 
-        # 计算并绘制 Rotation 趋势线（深蓝色虚线）- 使用所有rotation数据
+        # 计算并绘制 Rotation 趋势线（蓝色虚线）- 使用所有rotation数据
         if len(heights_both) > 1:
             poly_coeffs = np.polyfit(heights_both, abs_rotations_both, 2)
             trend_line = np.poly1d(poly_coeffs)
             line1 = ax.plot(
-                x_trend, trend_line(x_trend), color="darkblue", linestyle="--", alpha=0.5
+                x_trend, trend_line(x_trend), color="blue", linestyle="--", alpha=0.5
             )
 
-        # 计算并绘制 Revolution 趋势线（红色虚线）- 使用所有revolution数据
+        # 计算并绘制 Revolution 趋势线（绿色虚线）- 使用所有revolution数据
         if len(heights_both) > 1:
             poly_coeffs = np.polyfit(heights_both, orbital_revs_both, 2)
             trend_line = np.poly1d(poly_coeffs)
             line2 = ax.plot(
-                x_trend, trend_line(x_trend), color="red", linestyle="--", alpha=0.5
+                x_trend, trend_line(x_trend), color="green", linestyle="--", alpha=0.5
             )
 
-        # 添加流量标注
-        flow_text = f"Qi={os.path.basename(base_name)} L/h"
+        # 添加流量标注 - 智能避让数据点
+        flow_text = f"$Q_i$={os.path.basename(base_name)} L/h"
+        
+        # 检查右上角区域是否有高值数据点
+        # 定义右上角区域：x > 90% 且 y > 80%
+        high_x_threshold = min_height + (max_height - min_height) * 0.9
+        high_y_threshold = 2400  # 80% of 3000
+        
+        has_high_data = False
+        for h, r in zip(heights_both, abs_rotations_both):
+            if h > high_x_threshold and r > high_y_threshold:
+                has_high_data = True
+                break
+        if not has_high_data:
+            for h, r in zip(heights_both, orbital_revs_both):
+                if h > high_x_threshold and r > high_y_threshold:
+                    has_high_data = True
+                    break
+        
+        # 根据是否有数据点冲突选择位置
+        if has_high_data:
+            # 如果右上角有数据，移到左上角
+            text_x, text_y = 0.02, 0.98
+            h_align = 'left'
+        else:
+            # 否则保持右上角
+            text_x, text_y = 0.98, 0.98
+            h_align = 'right'
+        
         ax.text(
-            0.98,
-            0.98,
+            text_x,
+            text_y,
             flow_text,
             transform=ax.transAxes,
             verticalalignment="top",
-            horizontalalignment="right",
+            horizontalalignment=h_align,
             fontsize=14,
         )
 

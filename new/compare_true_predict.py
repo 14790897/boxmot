@@ -1,8 +1,9 @@
+import os
+import sys
+
 import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
-import sys
-import os
 from matplotlib.ticker import AutoMinorLocator
 
 # 检查是否需要非交互式模式（用于批处理）
