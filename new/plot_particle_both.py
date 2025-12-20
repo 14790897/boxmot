@@ -104,7 +104,7 @@ all_excel_data = []
 num_folders = len(folder_groups)
 num_rows = (num_folders + 1) // 2  # 计算需要的行数
 fig, axes = plt.subplots(
-    num_rows, 2, figsize=(12, 3.5 * num_rows), gridspec_kw={"hspace": 0.2, "wspace": 0.2}
+    num_rows, 2, figsize=(12, 3.5 * num_rows), gridspec_kw={"hspace": 0.25, "wspace": 0.3, "left": 0.01, "right": 0.99, "bottom": 0.01, "top": 0.99}
 )  # 一行两张图
 
 # 如果只有一行，确保axes是二维数组
@@ -233,9 +233,9 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
     avg_abs_rotation = np.mean(abs_rotations_both) if abs_rotations_both else 0
     avg_orbital_rev = np.mean(orbital_revs_both) if orbital_revs_both else 0
     
-    # 计算标准误差 (SEM = std / sqrt(n))
-    sem_abs_rotation = np.std(abs_rotations_both, ddof=1) / np.sqrt(len(abs_rotations_both)) if len(abs_rotations_both) > 1 else 0
-    sem_orbital_rev = np.std(orbital_revs_both, ddof=1) / np.sqrt(len(orbital_revs_both)) if len(orbital_revs_both) > 1 else 0
+    # 计算标准差 (std)
+    std_abs_rotation = np.std(abs_rotations_both, ddof=1) if len(abs_rotations_both) > 1 else 0
+    std_orbital_rev = np.std(orbital_revs_both, ddof=1) if len(orbital_revs_both) > 1 else 0
     
     folder_name = os.path.basename(base_name)  # 获取文件夹名称
 
@@ -243,8 +243,8 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
     exp_indices.append(folder_name)
     exp_avg_abs_rot.append(avg_abs_rotation)
     exp_avg_orb_rev.append(avg_orbital_rev)
-    exp_sem_abs_rot.append(sem_abs_rotation)
-    exp_sem_orb_rev.append(sem_orbital_rev)
+    exp_sem_abs_rot.append(std_abs_rotation)
+    exp_sem_orb_rev.append(std_orbital_rev)
 
     # 绘制当前文件夹的图 - 使用单一Y轴
     ax = axes[row, col]
