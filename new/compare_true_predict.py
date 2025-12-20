@@ -114,8 +114,8 @@ def plot_comparison():
             ax.scatter(
                 rotation_data['height'],
                 rotation_data['TRUE_rotation'],
-                alpha=0.8,
-                color='blue',
+                facecolors='blue',
+                edgecolors='blue',
                 marker='o',
                 s=80,
                 label='Rotation (MANUAL)' if i == 0 else None
@@ -124,8 +124,8 @@ def plot_comparison():
             ax.scatter(
                 rotation_data['height'],
                 rotation_data['predict_rotation'],
-                alpha=0.8,
-                color='red',
+                facecolors='red',
+                edgecolors='red',
                 marker='^',
                 s=80,
                 label='Rotation (THIS STUDY)' if i == 0 else None
@@ -147,8 +147,8 @@ def plot_comparison():
             ax.scatter(
                 revolution_data['height'],
                 revolution_data['TRUE_revolution'],
-                alpha=0.8,
-                color='green',
+                facecolors='green',
+                edgecolors='green',
                 marker='s',
                 s=80,
                 label='Revolution (MANUAL)' if i == 0 else None
@@ -157,8 +157,8 @@ def plot_comparison():
             ax.scatter(
                 revolution_data['height'],
                 revolution_data['predict_revolution'],
-                alpha=0.8,
-                color='orange',
+                facecolors='orange',
+                edgecolors='orange',
                 marker='D',
                 s=80,
                 label='Revolution (THIS STUDY)' if i == 0 else None
