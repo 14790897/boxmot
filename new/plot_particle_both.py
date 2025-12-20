@@ -34,9 +34,18 @@ else:
     BASE_PATH = BASE_PATH_INITIAL
 
 print(f"路径:{BASE_PATH}")
-plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams["font.size"] = 16  # 设置全局字体大小
 
+# 配置字体为 Times New Roman（包括数学公式）
+config = {
+    "font.family": 'serif',
+    "font.serif": ['Times New Roman'],  # 1. 设定普通文本字体
+    "mathtext.fontset": 'custom',       # 2. 【关键】设置为自定义模式
+    "mathtext.rm": 'Times New Roman',   # 3. 公式里的正体（如单位）用 Times
+    "mathtext.it": 'Times New Roman:italic', # 4. 公式里的变量（如 x, y）用 Times 斜体
+    "mathtext.bf": 'Times New Roman:bold',   # 5. 公式里的粗体用 Times 粗体
+    "font.size": 16,  # 设置全局字体大小
+}
+plt.rcParams.update(config)
 
 def merge_stats(*folders):
     """
@@ -313,7 +322,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
                 label="Revolution (Low)" if i == 0 else None,
             )
 
-        ax.set_xlabel(r"h (cm)", labelpad=-5)
+        ax.set_xlabel(r"$h$ (cm)", labelpad=-5)
         ax.set_ylabel("Speed (rad/s)")
         ax.set_xlim(min_height, max_height)
 
