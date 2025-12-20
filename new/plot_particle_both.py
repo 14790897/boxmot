@@ -37,6 +37,7 @@ print(f"路径:{BASE_PATH}")
 
 # 配置字体为 Times New Roman（包括数学公式）
 config = {
+    # "text.usetex": True,
     "font.family": 'serif',
     "font.serif": ['Times New Roman'],  # 1. 设定普通文本字体
     "mathtext.fontset": 'custom',       # 2. 【关键】设置为自定义模式
@@ -44,6 +45,7 @@ config = {
     "mathtext.it": 'Times New Roman:italic', # 4. 公式里的变量（如 x, y）用 Times 斜体
     "mathtext.bf": 'Times New Roman:bold',   # 5. 公式里的粗体用 Times 粗体
     "font.size": 16,  # 设置全局字体大小
+    # "text.latex.preamble": r"\usepackage{mathptmx}"
 }
 plt.rcParams.update(config)
 
