@@ -270,6 +270,7 @@ def detect_frame_difference(data):
                         "reason"
                     ] = f"have a long time not change,at frame {current_frame}"
             # **如果帧差为 3 的次数 >= 2，才标记为 not_use**
+            # 12.24.2025  今天我发现这下面这段代码好像并没有作用 因为前面已经注释掉了
             if count_frame_3_diff >= 2:
                 print(
                     f"Detected at least two frame differences of 3 for id: {key}, 由于变化过快，建议删除"

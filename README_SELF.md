@@ -60,7 +60,6 @@ python tracking/val.py --yolo-model yolov9-200.pt --tracking-method bytetrack --
    python tracking/track.py --yolo-model yolov8-particle-best.pt --source assets\MOT17-mini\train\mot_particle\img1 --save --save-txt --conf 0.02 --iou 0.01 --tracking-method bytetrack
 
    python tracking/track.py --yolo-model yolov8-particle-best.pt --source assets\MOT17-mini\train\275_particle\img1 --save --save-txt --conf 0.02 --iou 0.01 --tracking-method bytetrack
-
 2. convert
    python .\convert_mot.py
 3. 使用 easy eval
@@ -122,3 +121,6 @@ python .\sci_paper_plots.py
 ## 新版画图,带有 excel 数据保存功能
 
 python .\new\plot_particle_both.py --save
+
+
+## 我发现生成对抗网络中如果把生成的数据放到他的验证集中在训练模型会效果好一点（这个就是gemini一直反对的做法，不过我觉得没必要搞这么复杂，随便，当然也有可能是因为当时又加了其他的效果，反正就这还那么乱七八糟的训练出来了,等一下我刚刚对比了一下两者区别我发现可能是你的后处理程序可能是不太适合目前的模型） 因为我现在使用纯真实验证效果没有之前好

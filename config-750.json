@@ -1,0 +1,38 @@
+{
+  "yolo_save_directories": {
+    "y_track_project": "runs/old_v1_750",
+    "y_track_name": "exp",
+    "x_detect_project": "runs_x_me/old_v1_750",
+    "x_detect_name": "exp",
+    "video_output": "processed_video_gradio"
+  },
+  "processing_options": {
+    "max_files_per_folder": 7000
+  },
+  "batch_directories": [
+    {
+      "y": "D:/shnu-graduation/alldata/all/20180117-hfq-y/Y1-750/相机No.1_C001H001S0001",
+      "x": "D:/shnu-graduation/alldata/all/20180117hefengqin-x/x1-750/Acq_A_001"
+    },
+        {
+      "y": "D:/shnu-graduation/alldata/all/20180117-hfq-y/Y1-750/相机No.1_C001H001S0002",
+      "x": "D:/shnu-graduation/alldata/all/20180117hefengqin-x/x1-750/Acq_A_002"
+    },
+    {
+      "y": "D:/shnu-graduation/alldata/all/20180117-hfq-y/Y1-750/相机No.1_C001H001S0003",
+      "x": "D:/shnu-graduation/alldata/all/20180117hefengqin-x/x1-750/Acq_A_003"
+    },
+    {
+      "y": "D:/shnu-graduation/alldata/all/20180117-hfq-y/Y1-750/相机No.1_C001H001S0004",
+      "x": "D:/shnu-graduation/alldata/all/20180117hefengqin-x/x1-750/Acq_A_005"
+    },
+    {
+      "y": "D:/shnu-graduation/alldata/all/20180117-hfq-y/Y2-750/相机No.1_C001H001S0001",
+      "x": "D:/shnu-graduation/alldata/all/20180117hefengqin-x/x2-750/Acq_A_001"
+    },
+    {
+      "y": "D:/shnu-graduation/alldata/all/20180117-hfq-y/Y2-750/相机No.1_C001H001S0002",
+      "x": "D:/shnu-graduation/alldata/all/20180117hefengqin-x/x2-750/Acq_A_002"
+    }
+  ]
+}
