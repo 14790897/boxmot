@@ -471,25 +471,31 @@ def process_with_subcommand(
     return None, results, None
 
 
-def generate_plots():
-    """Generate and return plot images"""
+def generate_both_plots():
+    """Generate and return both rotation and revolution plot images"""
     y_track_proj = config["yolo_save_directories"]["y_track_project"]
     
     try:
-        print("正在生成粒子运动分析图表...")
-        plot_script = [sys.executable, "new/plot_particle.py", "--save", y_track_proj]
+        print("正在生成粒子自转和公转分析图表...")
+        plot_script = [sys.executable, "new/plot_particle_both.py", "--save", y_track_proj]
         result = subprocess.run(
             plot_script, check=True, capture_output=True, text=True
         )
         print(f"图表生成完成:\n{result.stdout}")
         
-        # 图表保存在项目根目录的 plots 文件夹
-        output_dir = "plots"
-        detailed_plot = os.path.join(output_dir, "particle_analysis_detailed.png")
+        # 图表保存在项目根目录的 plots-eff1-new-both 文件夹
+        output_dir = "plots-eff1-new-both"
+        combined_plot = os.path.join(output_dir, "particle_analysis_combined.png")
         summary_plot = os.path.join(output_dir, "particle_analysis_summary.png")
         
-        if os.path.exists(detailed_plot) and os.path.exists(summary_plot):
-            return detailed_plot, summary_plot, "图表生成成功！"
+        # 检查图表是否存在
+        if os.path.exists(combined_plot):
+            # 如果有 summary 图，返回两个图
+            if os.path.exists(summary_plot):
+                return combined_plot, summary_plot, "自转和公转图表生成成功！"
+            # 只有 combined 图
+            else:
+                return combined_plot, None, "自转和公转图表生成成功！"
         else:
             return None, None, "图表文件未找到，请确保有处理数据。"
             
@@ -716,7 +722,7 @@ with gr.Blocks() as demo:
             # video_input = gr.Video(label="原始视频", interactive=True)
             # 用户选择输入类型
             input_type = gr.Radio(
-                ["upload video", "upload folder", "batch file"], 
+                [ "upload folder", "batch file"], 
                 label="select input type",
                 value="batch file"
             )
@@ -765,15 +771,15 @@ with gr.Blocks() as demo:
     
     # 添加图表生成和显示部分
     gr.Markdown("---")  # Separator
-    gr.Markdown("## Particle Analysis Plots")
+    gr.Markdown("## Particle Analysis Plots (Rotation & Revolution)")
     
     with gr.Row():
-        generate_plot_button = gr.Button("Generate and Display Plots", variant="secondary")
+        generate_both_plot_button = gr.Button("Generate and Display Plots", variant="primary")
     
     plot_status = gr.Textbox(label="Plot Status", interactive=False)
     
-    detailed_plot_output = gr.Image(label="Detailed Analysis (Rotation & Revolution vs Height)", type="filepath")
-    summary_plot_output = gr.Image(label="Summary (Flow Rate vs Avg Rotation & Revolution)", type="filepath")
+    both_combined_plot_output = gr.Image(label="Combined Analysis", type="filepath")
+    both_summary_plot_output = gr.Image(label="Summary Analysis", type="filepath")
     
     # clear folder
     gr.Markdown("---")  # Separator
@@ -824,10 +830,10 @@ with gr.Blocks() as demo:
         outputs=[video_output, text_output, log_output],
     )
     
-    generate_plot_button.click(
-        fn=generate_plots,
+    generate_both_plot_button.click(
+        fn=generate_both_plots,
         inputs=[],
-        outputs=[detailed_plot_output, summary_plot_output, plot_status],
+        outputs=[both_combined_plot_output, both_summary_plot_output, plot_status],
     )
     # post_process_button.click(
     #     fn=post_process, inputs=classify_checkbox, outputs=text_output

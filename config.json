@@ -1,8 +1,8 @@
 {
   "yolo_save_directories": {
-    "y_track_project": "runs/eff1_new",
+    "y_track_project": "runs/test",
     "y_track_name": "exp",
-    "x_detect_project": "runs_x_me/eff1_new",
+    "x_detect_project": "runs_x_me/test",
     "x_detect_name": "exp",
     "video_output": "processed_video_gradio"
   },
