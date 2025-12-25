@@ -100,7 +100,7 @@ def plot_comparison():
     ncols = 2
     nrows = (n_flows + 1) // 2  # 向上取整
     fig, axes = plt.subplots(nrows, ncols, figsize=(12, 4 * nrows),
-                            gridspec_kw={'hspace': 0.25, 'wspace': 0.25})
+                            gridspec_kw={'hspace': 0.25, 'wspace': 0.35})
 
     # 将axes展平为一维数组以便于访问
     axes = axes.flatten() if n_flows > 1 else [axes]
