@@ -13,8 +13,18 @@ if len(sys.argv) > 1 and sys.argv[1] == "--save":
 else:
     SAVE_MODE = False
 
-plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams["font.size"] = 16  # 设置全局字体大小
+config = {
+    # "text.usetex": True,
+    "font.family": 'serif',
+    "font.serif": ['Times New Roman'],  # 1. 设定普通文本字体
+    "mathtext.fontset": 'custom',       # 2. 【关键】设置为自定义模式
+    "mathtext.rm": 'Times New Roman',   # 3. 公式里的正体（如单位）用 Times
+    "mathtext.it": 'Times New Roman:italic', # 4. 公式里的变量（如 x, y）用 Times 斜体
+    "mathtext.bf": 'Times New Roman:bold',   # 5. 公式里的粗体用 Times 粗体
+    "font.size": 16,  # 设置全局字体大小
+    # "text.latex.preamble": r"\usepackage{mathptmx}"
+}
+plt.rcParams.update(config)
 
 def load_comparison_data():
     """
@@ -85,14 +95,15 @@ def plot_comparison():
     
     print(f"发现 {len(unique_flows)} 个不同的流速条件: {unique_flows}")
     
-    # 创建子图 - 每个流速一个子图
+    # 创建子图 - 每个流速一个子图，一行两列布局
     n_flows = len(unique_flows)
-    fig, axes = plt.subplots(n_flows, 1, figsize=(10, 4.5 * n_flows),
-                            gridspec_kw={'hspace': 0.3})
+    ncols = 2
+    nrows = (n_flows + 1) // 2  # 向上取整
+    fig, axes = plt.subplots(nrows, ncols, figsize=(12, 4 * nrows),
+                            gridspec_kw={'hspace': 0.25, 'wspace': 0.25})
 
-    # 如果只有一个流速，确保axes是数组
-    if n_flows == 1:
-        axes = [axes]
+    # 将axes展平为一维数组以便于访问
+    axes = axes.flatten() if n_flows > 1 else [axes]
 
     # 为每个流速创建合并的对比图
     for i, flow_vel in enumerate(unique_flows):
@@ -188,10 +199,10 @@ def plot_comparison():
         # 添加子图标题 (a), (b), (c), (d), (e)
         subplot_labels = ['(a)', '(b)', '(c)', '(d)', '(e)']
         if i < len(subplot_labels):
-            ax.set_title(subplot_labels[i], loc='left', x=-0.1, y=0.9)
+            ax.set_title(subplot_labels[i], loc='left', x=-0.25, y=0.9)
 
         # 添加流速标注
-        flow_text = f"{flow_vel} L/h"
+        flow_text = f"$Q_i$={flow_vel} L/h"
         ax.text(0.98, 0.98, flow_text, transform=ax.transAxes,
         verticalalignment='top', horizontalalignment='right',
         fontsize=14)
@@ -205,6 +216,63 @@ def plot_comparison():
         ax.yaxis.set_minor_locator(AutoMinorLocator(2))
         ax.tick_params(which='minor', direction='in')
         ax.tick_params(which='major', direction='in')
+
+    # 隐藏未使用的子图
+    for i in range(n_flows, len(axes)):
+        axes[i].set_visible(False)
+
+    # 计算并输出相对误差
+    print("\n" + "="*60)
+    print("相对误差统计（相对误差 = |预测值 - 真实值| / 真实值 × 100%）")
+    print("="*60)
+
+    # 计算旋转（Rotation）的相对误差
+    rotation_valid = data.dropna(subset=['TRUE_rotation', 'predict_rotation'])
+    if len(rotation_valid) > 0:
+        rotation_valid['rotation_error'] = (
+            abs(rotation_valid['predict_rotation'] - rotation_valid['TRUE_rotation'])
+            / rotation_valid['TRUE_rotation'] * 100
+        )
+
+        print("\n【自转 (Rotation) 相对误差】")
+        print(f"  总数据点: {len(rotation_valid)}")
+        print(f"  平均相对误差: {rotation_valid['rotation_error'].mean():.2f}%")
+        print(f"  标准差: {rotation_valid['rotation_error'].std():.2f}%")
+        print(f"  最小误差: {rotation_valid['rotation_error'].min():.2f}%")
+        print(f"  最大误差: {rotation_valid['rotation_error'].max():.2f}%")
+        print(f"  中位数误差: {rotation_valid['rotation_error'].median():.2f}%")
+
+        # 按流速分组输出
+        print("\n  按流速分组:")
+        for flow_vel in sorted(rotation_valid['flow_velocity_std'].unique()):
+            flow_rot = rotation_valid[rotation_valid['flow_velocity_std'] == flow_vel]
+            print(f"    {flow_vel} L/h: 平均={flow_rot['rotation_error'].mean():.2f}%, "
+                  f"std={flow_rot['rotation_error'].std():.2f}%, n={len(flow_rot)}")
+
+    # 计算公转（Revolution）的相对误差
+    revolution_valid = data.dropna(subset=['TRUE_revolution', 'predict_revolution'])
+    if len(revolution_valid) > 0:
+        revolution_valid['revolution_error'] = (
+            abs(revolution_valid['predict_revolution'] - revolution_valid['TRUE_revolution'])
+            / revolution_valid['TRUE_revolution'] * 100
+        )
+
+        print("\n【公转 (Revolution) 相对误差】")
+        print(f"  总数据点: {len(revolution_valid)}")
+        print(f"  平均相对误差: {revolution_valid['revolution_error'].mean():.2f}%")
+        print(f"  标准差: {revolution_valid['revolution_error'].std():.2f}%")
+        print(f"  最小误差: {revolution_valid['revolution_error'].min():.2f}%")
+        print(f"  最大误差: {revolution_valid['revolution_error'].max():.2f}%")
+        print(f"  中位数误差: {revolution_valid['revolution_error'].median():.2f}%")
+
+        # 按流速分组输出
+        print("\n  按流速分组:")
+        for flow_vel in sorted(revolution_valid['flow_velocity_std'].unique()):
+            flow_rev = revolution_valid[revolution_valid['flow_velocity_std'] == flow_vel]
+            print(f"    {flow_vel} L/h: 平均={flow_rev['revolution_error'].mean():.2f}%, "
+                  f"std={flow_rev['revolution_error'].std():.2f}%, n={len(flow_rev)}")
+
+    print("\n" + "="*60 + "\n")
 
     # 根据模式决定是显示还是保存图表
     if SAVE_MODE:
