@@ -4,7 +4,7 @@
 # 450  是 D:\shnu-graduation\alldata\all\20180117-hfq-y\y1-450\相机No.1_C001H001S0002
 # 650 是 D:\shnu-graduation\alldata\all\20180117-hfq-y\Y1-650\相机No.1_C001H001S0002
 
-# h/d = 1.22的地方是拐角  那么 h = 1.22 * d
+# h/d = 1.22的地方是拐角  那么 h = 1.22 * d = 437/147=2.97cm
 import json
 import os
 import sys
@@ -493,6 +493,9 @@ if num_folders < num_rows * 2:
     # 添加子图标题
     ax_summary.set_title("(f)", loc="left", x=-0.19, y=0.9)
 
+    # 添加图例
+    ax_summary.legend(loc="upper left", fontsize=12, framealpha=0.9, frameon=False)
+
     # 设置刻度
     ax_summary.xaxis.set_minor_locator(AutoMinorLocator(5))
     ax_summary.yaxis.set_minor_locator(AutoMinorLocator(2))
@@ -540,6 +543,9 @@ else:
     # 固定坐标轴范围，与第一张图保持一致
     ax_summary.set_ylim(0, 3000)
     ax_summary.set_yticks([0, 500, 1000, 1500, 2000, 2500, 3000])
+
+    # 添加图例
+    ax_summary.legend(loc="upper left", fontsize=12, framealpha=0.9, frameon=False)
 
     # 设置刻度
     ax_summary.xaxis.set_minor_locator(AutoMinorLocator(5))
