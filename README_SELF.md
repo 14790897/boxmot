@@ -108,6 +108,8 @@ python .\new\compare_true_predict.py
 maskrcnn ap=0.84 recall=0.637 链接: https://www.kaggle.com/code/liuweiq/coincide-separation-detectron2-maskrcnn/edit/run/195578923
 还有就是论文的那个750你可以说一下因为他是数据少所以没有体现出趋势。。。
 
+yolov8的F1 Score应该是0.937  写错了
+
 ## 数据文件夹里有一些序号不对的他是按顺序排的 就不用管
 
 需要调研一下为什么新模型它能识别到粒子少十个 (因为他可能是不同文件夹的关系 因为我们本来也就不知道是不是有很多正确的没识别到)
