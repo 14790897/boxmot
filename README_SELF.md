@@ -106,6 +106,7 @@ python .\new\compare_true_predict.py
 那个流程图里面最后的判断条件你要写边距啊要小于某个范围还有什么呃自转时间不能大于一半的时间 算了不写了
 
 maskrcnn ap=0.84 recall=0.637 链接: https://www.kaggle.com/code/liuweiq/coincide-separation-detectron2-maskrcnn/edit/run/195578923
+还有就是论文的那个750你可以说一下因为他是数据少所以没有体现出趋势。。。
 
 ## 数据文件夹里有一些序号不对的他是按顺序排的 就不用管
 
