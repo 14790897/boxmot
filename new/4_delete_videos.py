@@ -8,7 +8,7 @@ import sys
 
 def delete_video_files(base_path, dry_run=False):
     """
-    删除指定目录下的所有 .mp4 视频文件
+    删除指定目录下的所有 _particle_video 的 .mp4/.avi 视频文件
     
     Args:
         base_path: runs/track 的基础路径
@@ -22,11 +22,11 @@ def delete_video_files(base_path, dry_run=False):
     if not os.path.exists(base_path):
         return f"✗ 错误：路径不存在: {base_path}"
     
-    # 查找所有 mp4 文件
+    # 查找所有 _particle_video 的 mp4/avi 文件
     video_files = []
     for root, dirs, files in os.walk(base_path):
         for file in files:
-            if file.endswith('_particle_video.mp4'):
+            if file.endswith("_particle_video.mp4") or file.endswith("_particle_video.avi"):
                 video_files.append(os.path.join(root, file))
     
     if not video_files:

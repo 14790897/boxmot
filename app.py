@@ -544,7 +544,7 @@ def post_process(classify):
     y_track_proj = config["yolo_save_directories"]["y_track_project"]
     x_detect_proj = config["yolo_save_directories"]["x_detect_project"]
     video_out = config["yolo_save_directories"]["video_output"]
-    
+
     y_camera_fps = config["processing_options"]["y_camera_fps"]
     x_camera_fps_ratio = config["processing_options"]["x_camera_fps_ratio"]
     scripts = [
@@ -595,7 +595,7 @@ def post_process(classify):
         except subprocess.CalledProcessError as e:
             print(f"脚本 {script[1]} 执行失败，错误:\n{e.stderr}")
             break
-    
+
     # 生成绘图
     try:
         print("正在生成粒子运动分析图表...")
@@ -608,24 +608,24 @@ def post_process(classify):
         print(f"图表生成失败，错误:\n{e.stderr}")
     except Exception as e:
         print(f"图表生成时发生错误: {e}")
-    
+
     # 自动删除视频文件以释放空间
     try:
         print("\n正在自动删除视频文件以释放磁盘空间...")
-        
+
         # 删除 Y 轴跟踪目录中的视频
-        print(f"\n1. 清理 Y 轴跟踪目录: {y_track_proj}")
-        delete_result_y = delete_video_files(y_track_proj, dry_run=False)
-        print(delete_result_y)
-        
+        # print(f"\n1. 清理 Y 轴跟踪目录: {y_track_proj}")
+        # delete_result_y = delete_video_files(y_track_proj, dry_run=False)
+        # print(delete_result_y)
+
         # 删除视频输出目录中的视频
         print(f"\n2. 清理视频输出目录: {video_out}")
         delete_result_video = delete_video_files(video_out, dry_run=False)
         print(delete_result_video)
-        
+
     except Exception as e:
         print(f"视频删除失败: {e}")
-    
+
     latest_folder_path = get_latest_folder(base_path)
     initial_result_directory = os.path.join(latest_folder_path, "initial_result")
     calculation_results_path = os.path.join(
@@ -657,7 +657,7 @@ with gr.Blocks() as demo:
         Configure the save directories for YOLO tracking and detection results.
         All paths are relative to the project root directory.
         """)
-        
+
         with gr.Row():
             with gr.Column():
                 gr.Markdown("### Y-axis Tracking Configuration")
@@ -666,7 +666,7 @@ with gr.Blocks() as demo:
                     value=config["yolo_save_directories"]["y_track_project"],
                     placeholder="e.g., runs/track"
                 )
-            
+
             with gr.Column():
                 gr.Markdown("### X-axis Detection Configuration")
                 x_detect_project_input = gr.Textbox(
@@ -691,13 +691,13 @@ with gr.Blocks() as demo:
             value=json.dumps(config["batch_directories"], ensure_ascii=False, indent=2),
             lines=6,
         )
-        
+
         with gr.Row():
             save_config_button = gr.Button("Save Configuration", variant="primary")
             reset_config_button = gr.Button("Reset to Default")
-        
+
         config_status = gr.Textbox(label="Configuration Status", interactive=False)
-        
+
         # Configuration button actions
         save_config_button.click(
             fn=update_config_values,
@@ -710,7 +710,7 @@ with gr.Blocks() as demo:
             ],
             outputs=config_status
         )
-        
+
         reset_config_button.click(
             fn=reset_config,
             inputs=[],
@@ -797,21 +797,21 @@ with gr.Blocks() as demo:
                 minimum=1,
                 info="Maximum number of files to process per folder (leave empty or 0 for all files)"
             )
-    
+
     process_button = gr.Button("start process")
     # post_process_button = gr.Button("post process")
     text_output = gr.Textbox(label="result", type="text", lines=10)
     log_output = gr.Textbox(label="log", type="text", lines=10)
-    
+
     # 添加图表生成和显示部分
     gr.Markdown("---")  # Separator
     gr.Markdown("## Particle Analysis Plots (Rotation & Revolution)")
-    
+
     with gr.Row():
         generate_both_plot_button = gr.Button("Generate and Display Plots", variant="primary")
-    
+
     plot_status = gr.Textbox(label="Plot Status", interactive=False)
-    
+
     both_combined_plot_output = gr.Image(label="Combined Analysis", type="filepath")
     both_summary_plot_output = gr.Image(label="Summary Analysis", type="filepath")
 
@@ -827,18 +827,17 @@ with gr.Blocks() as demo:
         value=plots_dir_path,
         interactive=False,
     )
-    
+
     # clear folder
     gr.Markdown("---")  # Separator
     gr.Markdown("## Cleanup Operations")
-    
+
     with gr.Row():
-        clear_button = gr.Button("Clear Working Folders", variant="secondary")
-        preview_delete_videos_button = gr.Button("Preview Video Files", variant="secondary")
-        delete_videos_button = gr.Button("Confirm Delete Videos", variant="stop")
-    
+        clear_button = gr.Button("Clear Working Folders", variant="stop")
+        delete_videos_button = gr.Button("Only Delete Videos", variant="stop")
+
     delete_videos_output = gr.Textbox(label="Video Deletion Status", lines=15, interactive=False)
-    
+
     # 绑定按钮事件
     clear_button.click(
         fn=lambda: (
@@ -849,19 +848,13 @@ with gr.Blocks() as demo:
         inputs=[],
         outputs=[],
     )
-    
-    preview_delete_videos_button.click(
-        fn=lambda: delete_video_files(config["yolo_save_directories"]["y_track_project"], dry_run=True),
-        inputs=[],
-        outputs=delete_videos_output,
-    )
-    
+
     delete_videos_button.click(
         fn=lambda: delete_video_files(config["yolo_save_directories"]["y_track_project"], dry_run=False),
         inputs=[],
         outputs=delete_videos_output,
     )
-    
+
     process_button.click(
         fn=process_with_subcommand,
         inputs=[
@@ -876,7 +869,7 @@ with gr.Blocks() as demo:
         ],
         outputs=[video_output, text_output, log_output],
     )
-    
+
     generate_both_plot_button.click(
         fn=generate_both_plots,
         inputs=[],
