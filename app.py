@@ -44,7 +44,9 @@ DEFAULT_CONFIG = {
         "video_output": "processed_video_gradio"
     },
     "processing_options": {
-        "max_files_per_folder": None  # None means process all files
+        "max_files_per_folder": None,  # None means process all files
+        "y_camera_fps": 8000,
+        "x_camera_fps_ratio": 0.5
     },
     "batch_directories": [
         # Example format:
@@ -107,15 +109,40 @@ base_x_path = config["yolo_save_directories"]["x_detect_project"]
 base_video_path = config["yolo_save_directories"]["video_output"]
 
 
-def update_config_values(y_track_proj, y_track_name, x_detect_proj, x_detect_name, video_out):
+def update_config_values(
+    y_track_proj,
+    y_track_name,
+    x_detect_proj,
+    x_detect_name,
+    video_out,
+    y_camera_fps,
+    x_camera_fps_ratio,
+    batch_directories_text,
+):
     """Update configuration values"""
     global config, base_path, base_x_path, base_video_path
+    try:
+        if batch_directories_text:
+            batch_directories = json.loads(batch_directories_text)
+            if not isinstance(batch_directories, list):
+                return "batch_directories 必须是 JSON 数组。"
+        else:
+            batch_directories = []
+    except json.JSONDecodeError as e:
+        return f"batch_directories JSON 解析失败: {e}"
     
     config["yolo_save_directories"]["y_track_project"] = y_track_proj
     config["yolo_save_directories"]["y_track_name"] = y_track_name
     config["yolo_save_directories"]["x_detect_project"] = x_detect_proj
     config["yolo_save_directories"]["x_detect_name"] = x_detect_name
     config["yolo_save_directories"]["video_output"] = video_out
+    if y_camera_fps is None:
+        y_camera_fps = DEFAULT_CONFIG["processing_options"]["y_camera_fps"]
+    config["processing_options"]["y_camera_fps"] = y_camera_fps
+    if x_camera_fps_ratio is None:
+        x_camera_fps_ratio = DEFAULT_CONFIG["processing_options"]["x_camera_fps_ratio"]
+    config["processing_options"]["x_camera_fps_ratio"] = x_camera_fps_ratio
+    config["batch_directories"] = batch_directories
     
     if save_config(config):
         # Update global variables
@@ -141,6 +168,9 @@ def reset_config():
             base_x_path,
             config["yolo_save_directories"]["x_detect_name"],
             base_video_path,
+            config["processing_options"]["y_camera_fps"],
+            config["processing_options"]["x_camera_fps_ratio"],
+            json.dumps(config["batch_directories"], ensure_ascii=False, indent=2),
             "Configuration reset to default successfully!"
         )
     else:
@@ -150,6 +180,9 @@ def reset_config():
             base_x_path,
             config["yolo_save_directories"]["x_detect_name"],
             base_video_path,
+            config["processing_options"]["y_camera_fps"],
+            config["processing_options"]["x_camera_fps_ratio"],
+            json.dumps(config["batch_directories"], ensure_ascii=False, indent=2),
             "Error resetting configuration!"
         )
 
@@ -516,6 +549,8 @@ def post_process(classify):
     x_detect_proj = config["yolo_save_directories"]["x_detect_project"]
     video_out = config["yolo_save_directories"]["video_output"]
     
+    y_camera_fps = config["processing_options"]["y_camera_fps"]
+    x_camera_fps_ratio = config["processing_options"]["x_camera_fps_ratio"]
     scripts = [
         [
             sys.executable,
@@ -533,11 +568,13 @@ def post_process(classify):
             "new/2_images_x.py",
             y_track_proj,
             x_detect_proj,
+            str(x_camera_fps_ratio),
         ],
         [
             sys.executable,
             "new/3_end.py",
             y_track_proj,
+            str(y_camera_fps),
         ],
     ]
     print("正在执行脚本: main_convert")
@@ -657,6 +694,23 @@ with gr.Blocks() as demo:
             value=config["yolo_save_directories"]["video_output"],
             placeholder="e.g., processed_video_gradio"
         )
+        y_camera_fps_input = gr.Number(
+            label="Y Camera FPS",
+            value=config["processing_options"]["y_camera_fps"],
+            precision=0,
+            minimum=1,
+        )
+        x_camera_fps_ratio_input = gr.Number(
+            label="X Camera FPS Ratio (to Y)",
+            value=config["processing_options"]["x_camera_fps_ratio"],
+            precision=3,
+            minimum=0.01,
+        )
+        batch_directories_input = gr.Textbox(
+            label="Batch Directories (JSON list)",
+            value=json.dumps(config["batch_directories"], ensure_ascii=False, indent=2),
+            lines=6,
+        )
         
         with gr.Row():
             save_config_button = gr.Button("Save Configuration", variant="primary")
@@ -672,7 +726,10 @@ with gr.Blocks() as demo:
                 y_track_name_input,
                 x_detect_project_input,
                 x_detect_name_input,
-                video_output_input
+                video_output_input,
+                y_camera_fps_input,
+                x_camera_fps_ratio_input,
+                batch_directories_input,
             ],
             outputs=config_status
         )
@@ -686,6 +743,9 @@ with gr.Blocks() as demo:
                 x_detect_project_input,
                 x_detect_name_input,
                 video_output_input,
+                y_camera_fps_input,
+                x_camera_fps_ratio_input,
+                batch_directories_input,
                 config_status
             ]
         )

@@ -10,6 +10,12 @@ from process_utils import get_latest_folder
 
 # 支持命令行参数或默认值
 y_track_project = sys.argv[1] if len(sys.argv) > 1 else "runs/track"
+y_camera_fps = 8000
+if len(sys.argv) > 2:
+    try:
+        y_camera_fps = float(sys.argv[2])
+    except ValueError:
+        print(f"无效的帧率参数: {sys.argv[2]}，使用默认值 {y_camera_fps}")
 
 # 规范化路径，确保在 Windows 上正确处理
 base_path = os.path.normpath(y_track_project)
@@ -118,8 +124,8 @@ for key, value in all_stats.items():
 
         alpha1 = math.asin(value1)
         alpha2 = math.asin(value2)
-        # 8000是相机的帧数
-        orbital_rev = (8000 * (alpha1 + alpha2)) / (
+        # y_camera_fps 是相机的帧数
+        orbital_rev = (y_camera_fps * (alpha1 + alpha2)) / (
             total_frames_revolution - 1
         )  # 减一是因为这个才是真正时间
         if not_use_revolution_margin_large:
@@ -156,7 +162,7 @@ for key, value in all_stats.items():
                 )
             else:
                 abs_rotation = (
-                    (changes * 3.1416 * 8000) / 2 / (total_frames_rotation - 1)
+                    (changes * 3.1416 * y_camera_fps) / 2 / (total_frames_rotation - 1)
                 )
                 rel_rotation = orbital_rev + abs_rotation
                 result = (

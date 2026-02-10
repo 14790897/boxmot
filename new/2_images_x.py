@@ -19,6 +19,12 @@ from process_utils import (
 # 支持命令行参数或默认值
 y_track_project = sys.argv[1] if len(sys.argv) > 1 else "runs/track"
 x_detect_project = sys.argv[2] if len(sys.argv) > 2 else "runs_x_me/detect"
+x_camera_fps_ratio = 0.5
+if len(sys.argv) > 3:
+    try:
+        x_camera_fps_ratio = float(sys.argv[3])
+    except ValueError:
+        print(f"无效的帧率倍数参数: {sys.argv[3]}，使用默认值 {x_camera_fps_ratio}")
 
 # 规范化路径，确保在 Windows 上正确处理
 base_path = os.path.normpath(y_track_project)
@@ -58,7 +64,9 @@ for k, v in all_stats.items():
 
         id = closest_point["ID"]
         frame = closest_point["Frame"]
-        half_frame = frame // 2
+        half_frame = int(round(frame * x_camera_fps_ratio))
+        if half_frame < 1:
+            half_frame = 1
         max_frame = max(map(int, x_data.keys()))
         min_frame = min(map(int, x_data.keys()))
         frame_range = list(
