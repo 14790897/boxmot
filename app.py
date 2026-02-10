@@ -102,6 +102,9 @@ def save_config(config):
 
 # Load initial configuration
 config = load_config()
+config["yolo_save_directories"]["y_track_name"] = DEFAULT_CONFIG["yolo_save_directories"]["y_track_name"]
+config["yolo_save_directories"]["x_detect_name"] = DEFAULT_CONFIG["yolo_save_directories"]["x_detect_name"]
+config["yolo_save_directories"]["video_output"] = DEFAULT_CONFIG["yolo_save_directories"]["video_output"]
 
 # 视频输出目录 - Now loaded from config
 base_path = config["yolo_save_directories"]["y_track_project"]
@@ -111,10 +114,7 @@ base_video_path = config["yolo_save_directories"]["video_output"]
 
 def update_config_values(
     y_track_proj,
-    y_track_name,
     x_detect_proj,
-    x_detect_name,
-    video_out,
     y_camera_fps,
     x_camera_fps_ratio,
     batch_directories_text,
@@ -132,10 +132,10 @@ def update_config_values(
         return f"batch_directories JSON 解析失败: {e}"
     
     config["yolo_save_directories"]["y_track_project"] = y_track_proj
-    config["yolo_save_directories"]["y_track_name"] = y_track_name
     config["yolo_save_directories"]["x_detect_project"] = x_detect_proj
-    config["yolo_save_directories"]["x_detect_name"] = x_detect_name
-    config["yolo_save_directories"]["video_output"] = video_out
+    config["yolo_save_directories"]["y_track_name"] = DEFAULT_CONFIG["yolo_save_directories"]["y_track_name"]
+    config["yolo_save_directories"]["x_detect_name"] = DEFAULT_CONFIG["yolo_save_directories"]["x_detect_name"]
+    config["yolo_save_directories"]["video_output"] = DEFAULT_CONFIG["yolo_save_directories"]["video_output"]
     if y_camera_fps is None:
         y_camera_fps = DEFAULT_CONFIG["processing_options"]["y_camera_fps"]
     config["processing_options"]["y_camera_fps"] = y_camera_fps
@@ -148,7 +148,7 @@ def update_config_values(
         # Update global variables
         base_path = y_track_proj
         base_x_path = x_detect_proj
-        base_video_path = video_out
+        base_video_path = config["yolo_save_directories"]["video_output"]
         return "Configuration saved successfully!"
     else:
         return "Error saving configuration!"
@@ -164,10 +164,7 @@ def reset_config():
         base_video_path = config["yolo_save_directories"]["video_output"]
         return (
             base_path,
-            config["yolo_save_directories"]["y_track_name"],
             base_x_path,
-            config["yolo_save_directories"]["x_detect_name"],
-            base_video_path,
             config["processing_options"]["y_camera_fps"],
             config["processing_options"]["x_camera_fps_ratio"],
             json.dumps(config["batch_directories"], ensure_ascii=False, indent=2),
@@ -176,10 +173,7 @@ def reset_config():
     else:
         return (
             base_path,
-            config["yolo_save_directories"]["y_track_name"],
             base_x_path,
-            config["yolo_save_directories"]["x_detect_name"],
-            base_video_path,
             config["processing_options"]["y_camera_fps"],
             config["processing_options"]["x_camera_fps_ratio"],
             json.dumps(config["batch_directories"], ensure_ascii=False, indent=2),
@@ -670,11 +664,6 @@ with gr.Blocks() as demo:
                     value=config["yolo_save_directories"]["y_track_project"],
                     placeholder="e.g., runs/track"
                 )
-                y_track_name_input = gr.Textbox(
-                    label="Y-axis Tracking Name",
-                    value=config["yolo_save_directories"]["y_track_name"],
-                    placeholder="e.g., exp"
-                )
             
             with gr.Column():
                 gr.Markdown("### X-axis Detection Configuration")
@@ -683,17 +672,6 @@ with gr.Blocks() as demo:
                     value=config["yolo_save_directories"]["x_detect_project"],
                     placeholder="e.g., runs_x_me/detect"
                 )
-                x_detect_name_input = gr.Textbox(
-                    label="X-axis Detection Name",
-                    value=config["yolo_save_directories"]["x_detect_name"],
-                    placeholder="e.g., exp"
-                )
-        
-        video_output_input = gr.Textbox(
-            label="Video Output Directory",
-            value=config["yolo_save_directories"]["video_output"],
-            placeholder="e.g., processed_video_gradio"
-        )
         y_camera_fps_input = gr.Number(
             label="Y Camera FPS",
             value=config["processing_options"]["y_camera_fps"],
@@ -723,10 +701,7 @@ with gr.Blocks() as demo:
             fn=update_config_values,
             inputs=[
                 y_track_project_input,
-                y_track_name_input,
                 x_detect_project_input,
-                x_detect_name_input,
-                video_output_input,
                 y_camera_fps_input,
                 x_camera_fps_ratio_input,
                 batch_directories_input,
@@ -739,10 +714,7 @@ with gr.Blocks() as demo:
             inputs=[],
             outputs=[
                 y_track_project_input,
-                y_track_name_input,
                 x_detect_project_input,
-                x_detect_name_input,
-                video_output_input,
                 y_camera_fps_input,
                 x_camera_fps_ratio_input,
                 batch_directories_input,
