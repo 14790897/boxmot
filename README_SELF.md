@@ -99,13 +99,15 @@ python .\new\compare_true_predict.py
 
 一个是高度要改成现在的高度 还有就是机器学习模型 还有那个摄像头的分辨率也其实应该是 1024 乘以 760
 等一下我发现之前确实用的是 efficient net b1 的模型
-还有一点就是你那个 PR 曲线是画错的 但是那也不重要因为我们其实不应该去使用这个 这个没什么用 要用的话 roc 当然也可以不算了这没关系
+<!-- 还有一点就是你那个 PR 曲线是画错的 但是那也不重要因为我们其实不应该去使用这个 这个没什么用 要用的话 roc 当然也可以不算了这没关系 -->
 还有就是说要不要重新测一遍转速 我觉得没有必要为什么因为本来就不是很严谨嘛你顶多就看一下没有出现的那些点是不是也是正确的就行了, 为什么我说不严谨因为他这个旋转时间啊这个人为的因素很大 也就是说你既可以认为它是这个也可以认为它是那个 都有道理 还是不要拖
 那个 y 相机的像素其实是 1024 乘以 768 不是 360 x 相机 640\*360
 
 那个流程图里面最后的判断条件你要写边距啊要小于某个范围还有什么呃自转时间不能大于一半的时间 算了不写了
 
-maskrcnn ap=0.84 recall=0.637 链接: https://www.kaggle.com/code/liuweiq/coincide-separation-detectron2-maskrcnn/edit/run/195578923
+maskrcnn ap=0.849 recall=0.637 链接: https://www.kaggle.com/code/liuweiq/coincide-separation-detectron2-maskrcnn/notebook?scriptVersionId=280522551
+y+e:precision:93.7*99.54=9326.898 recall:94.5*99.55=9407.475
+Y+o:precision:0.87*99.54=86.5998  recall:0.86*99.55=85.613
 还有就是论文的那个750你可以说一下因为他是数据少所以没有体现出趋势。。。
 
 yolov8的F1 Score应该是0.937  写错了
