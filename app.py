@@ -110,6 +110,8 @@ config["yolo_save_directories"]["video_output"] = DEFAULT_CONFIG["yolo_save_dire
 base_path = config["yolo_save_directories"]["y_track_project"]
 base_x_path = config["yolo_save_directories"]["x_detect_project"]
 base_video_path = config["yolo_save_directories"]["video_output"]
+plots_dir_path = "plots-eff1-new-both"
+excel_output_path = os.path.join(plots_dir_path, "particle_both_motion_data.xlsx")
 
 
 def update_config_values(
@@ -812,6 +814,19 @@ with gr.Blocks() as demo:
     
     both_combined_plot_output = gr.Image(label="Combined Analysis", type="filepath")
     both_summary_plot_output = gr.Image(label="Summary Analysis", type="filepath")
+
+    gr.Markdown("---")
+    gr.Markdown("## Output Paths")
+    excel_output_display = gr.Textbox(
+        label="Excel Output",
+        value=excel_output_path,
+        interactive=False,
+    )
+    plots_dir_display = gr.Textbox(
+        label="Plots Directory",
+        value=plots_dir_path,
+        interactive=False,
+    )
     
     # clear folder
     gr.Markdown("---")  # Separator
