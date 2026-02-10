@@ -487,7 +487,7 @@ def process_data():
             height > 10.5
         ):  # 10.68相对于刻度尺的11cm,（1024+751）/147 - (40+147+17)/147=10.68   H/D
             results[id_]["not_use_rotation"] = True
-            print(f"id {i} Category 高度大于10.68，只计算公转速")
+            print(f"id {i} Category 高度大于10.5，只计算公转速")
         if len(category_changes) < 3:
             results[id_]["not_use_rotation"] = True
             print(f"id {i} Category 在指定范围内次数变化小于3，只计算公转速")
