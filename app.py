@@ -813,7 +813,7 @@ with gr.Blocks() as demo:
     plot_status = gr.Textbox(label="Plot Status", interactive=False)
 
     both_combined_plot_output = gr.Image(label="Combined Analysis", type="filepath")
-    both_summary_plot_output = gr.Image(label="Summary Analysis", type="filepath")
+    # both_summary_plot_output = gr.Image(label="Summary Analysis", type="filepath")
 
     gr.Markdown("---")
     gr.Markdown("## Output Paths")
@@ -873,7 +873,7 @@ with gr.Blocks() as demo:
     generate_both_plot_button.click(
         fn=generate_both_plots,
         inputs=[],
-        outputs=[both_combined_plot_output, both_summary_plot_output, plot_status],
+        outputs=[both_combined_plot_output, plot_status],
     )
     # post_process_button.click(
     #     fn=post_process, inputs=classify_checkbox, outputs=text_output
