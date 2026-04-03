@@ -1,8 +1,10 @@
 # Particle Auto Measure - BoxMOT
 
-## 📚 快速开始
+## 相关训练代码
 
-查看 **[USER_GUIDE.md](USER_GUIDE.md)** 获取完整的使用说明。
+gan: https://www.kaggle.com/code/liuweiqing2/sagan-particle
+分类：https://www.kaggle.com/code/liuweiqing2/efficient-net-nice
+识别: https://www.kaggle.com/code/liuweiq/yolov8-v9-v10/
 
 ### 启动 Web 界面
 
