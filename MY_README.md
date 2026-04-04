@@ -22,7 +22,7 @@ python app.py
 
 ---
 
-## 命令行运行追踪示例
+## 命令行运行追踪示例(这个项目的主要功能是追踪和可视化运行整个流程。追踪评估需要有数据集的真实标注以及模型预测的结果)
 
 ### 视频追踪
 
@@ -56,6 +56,7 @@ python tracking/track.py --yolo-model yolov8-particle-best.pt --source example -
 
 2. convert
    python .\convert_mot.py
+
 3. 使用 easy eval（视频：https://www.bilibili.com/video/BV1d8XQBMErv/）
 
 ## 搅拌实验的涂在另一个文件夹里(黑白搅拌)
@@ -66,6 +67,13 @@ python .\sci_paper_plots.py
 
 python .\new\plot_particle_both.py --save
 
-## 误差
+## 误差画图
 
-python .\new\compare_true_predict.py --save
+python .\new\compare_true_predict.py --save  
+
+## 数据裁剪为分类数据集
+python utils\crop_annotation_and_resize.py
+
+## zip打包
+PS C:\git-program\particle_detect\particle_auto_measure\boxmot> 7z a -tzip 代码_MY_README是文档.zip .\* "-xr!.git" "-xr!runs" "-xr!runs_x_me"  
+PS C:\git-program\particle_detect\auto_generate> 7z a -tzip 数据集.zip .\* "-xr!.git"   
