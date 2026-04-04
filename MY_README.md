@@ -2,9 +2,12 @@
 
 ## 相关训练代码
 
-gan: https://www.kaggle.com/code/liuweiqing2/sagan-particle
+生成对抗网络: https://www.kaggle.com/code/liuweiqing2/sagan-particle
 分类：https://www.kaggle.com/code/liuweiqing2/efficient-net-nice
-识别: https://www.kaggle.com/code/liuweiq/yolov8-v9-v10/
+识别: https://www.kaggle.com/code/liuweiq/yolov8-v9-v10
+目标分类数据集：https://www.kaggle.com/datasets/liuweiq/efficientnet-data
+目标识别y相机数据集：https://www.kaggle.com/datasets/liuweiq/yolo-great-particle-data
+目标识别x相机数据集: https://www.kaggle.com/datasets/liuweiq/yolo-x-camera-data
 
 ## 启动 Web 界面
 
@@ -13,8 +16,9 @@ gradio app.py  # 推荐：支持热重载
 # 或
 python app.py
 ```
-
 访问：http://127.0.0.1:7860
+若需修改使用的模型，可以在app.py中搜索 "yolov8" 修改文件名字
+分类模型在new.convert.py的'best_model_new_eff1.pth'修改
 
 ---
 
