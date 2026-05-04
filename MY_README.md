@@ -59,7 +59,7 @@ python tracking/track.py --yolo-model yolov8-particle-best.pt --source example -
 
 3. 使用 easy eval（视频：https://www.bilibili.com/video/BV1d8XQBMErv/）
 
-## 搅拌实验的涂在另一个文件夹里(黑白搅拌)
+## 搅拌实验的图在另一个文件夹里(黑白搅拌)
 
 python .\sci_paper_plots.py
 
