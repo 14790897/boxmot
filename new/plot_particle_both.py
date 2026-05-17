@@ -177,6 +177,9 @@ max_height = max(all_heights) if all_heights else 1
 # 遍历所有子目录
 print(len(folder_groups), folder_groups)
 
+# 顺序标签，用于按显示位置标注 (a)-(f)
+display_labels = ["(a)", "(b)", "(c)", "(d)", "(e)", "(f)"]
+
 for i, (base_name, folder_list) in enumerate(folder_groups.items()):
     # 计算子图位置 - 新模式下，f图在位置0，a-e图从位置1开始
     if REARRANGE_MODE:
@@ -293,64 +296,28 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         all_speeds = abs_rotations_both + orbital_revs_both
         y_min, y_max = min(all_speeds), max(all_speeds)
 
-        # 分离高速和低速颗粒数据
-        heights_rot_high = [h for h, hs in zip(heights_both, is_high_speed) if hs]
-        abs_rot_high = [r for r, hs in zip(abs_rotations_both, is_high_speed) if hs]
-        heights_rot_low = [h for h, hs in zip(heights_both, is_high_speed) if not hs]
-        abs_rot_low = [r for r, hs in zip(abs_rotations_both, is_high_speed) if not hs]
-        
-        heights_rev_high = [h for h, hs in zip(heights_both, is_high_speed) if hs]
-        orb_rev_high = [r for r, hs in zip(orbital_revs_both, is_high_speed) if hs]
-        heights_rev_low = [h for h, hs in zip(heights_both, is_high_speed) if not hs]
-        orb_rev_low = [r for r, hs in zip(orbital_revs_both, is_high_speed) if not hs]
+        # 不区分 high/low，直接绘制 Rotation 与 Revolution，并在每个子图显示图例
+        # Rotation（蓝色圆点）
+        ax.scatter(
+            heights_both,
+            abs_rotations_both,
+            facecolors="blue",
+            edgecolors="blue",
+            marker="o",
+            s=30,
+            label="Rotation",
+        )
 
-        # 绘制 Rotation 数据 - 高速颗粒（蓝色圆形）
-        if heights_rot_high:
-            scatter1_high = ax.scatter(
-                heights_rot_high,
-                abs_rot_high,
-                facecolors="blue",
-                edgecolors="blue",
-                marker="o",
-                s=30,
-                label="Rotation (High)" if i == 0 else None,
-            )
-        
-        # 绘制 Rotation 数据 - 低速颗粒（红色三角）
-        if heights_rot_low:
-            scatter1_low = ax.scatter(
-                heights_rot_low,
-                abs_rot_low,
-                facecolors="red",
-                edgecolors="red",
-                marker="^",
-                s=30,
-                label="Rotation (Low)" if i == 0 else None,
-            )
-
-        # 绘制 Revolution 数据 - 高速颗粒（绿色方形）
-        if heights_rev_high:
-            scatter2_high = ax.scatter(
-                heights_rev_high,
-                orb_rev_high,
-                facecolors="green",
-                edgecolors="green",
-                marker="s",
-                s=30,
-                label="Revolution (High)" if i == 0 else None,
-            )
-        
-        # 绘制 Revolution 数据 - 低速颗粒（橙色菱形）
-        if heights_rev_low:
-            scatter2_low = ax.scatter(
-                heights_rev_low,
-                orb_rev_low,
-                facecolors="orange",
-                edgecolors="orange",
-                marker="D",
-                s=30,
-                label="Revolution (Low)" if i == 0 else None,
-            )
+        # Revolution（橙色方形）
+        ax.scatter(
+            heights_both,
+            orbital_revs_both,
+            facecolors="orange",
+            edgecolors="orange",
+            marker="s",
+            s=30,
+            label="Revolution",
+        )
 
         ax.set_xlabel(r"$h$ (cm)", labelpad=-5)
         ax.set_ylabel("Speed (rad/s)")
@@ -438,20 +405,23 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
             fontsize=14,
         )
 
-        # 添加子图标题 (a), (b), (c), (d), (e)
-        subplot_labels = ["(a)", "(b)", "(c)", "(d)", "(e)"]
-        if REARRANGE_MODE:
-            # 在新模式中，i对应的标签
-            if i < len(subplot_labels):
-                ax.set_title(subplot_labels[i], loc="left", x=-0.19, y=0.9)
-        else:
-            # 在原模式中，i对应的标签
-            if i < len(subplot_labels):
-                ax.set_title(subplot_labels[i], loc="left", x=-0.19, y=0.9)
+        # 按显示位置设置子图标题 (a)-(f)
+        if plot_index < len(display_labels):
+            ax.set_title(display_labels[plot_index], loc="left", x=-0.19, y=0.9)
 
-        # 只在第一个子图显示图例
-        if i == 0:
-            ax.legend(loc="upper left", fontsize=12, framealpha=0.9, frameon=False)
+        # 在每个子图显示 Rotation / Revolution 图例（不区分 high/low）
+        # 将图例放在与流量标注相反的一侧，避免重合
+        try:
+            legend_loc = "upper left" if h_align == 'right' else "upper right"
+        except NameError:
+            # 如果未定义 h_align（极少见），使用自动位置
+            legend_loc = "best"
+
+        # 特例：流量 850 的子图（通常是最后一张）将图例放在接近左下但向右上偏移的位置，避免与数据点重合
+        if folder_name == '850':
+            ax.legend(loc='lower left', bbox_to_anchor=(0.12, 0.18), fontsize=12, framealpha=0.9, frameon=False)
+        else:
+            ax.legend(loc=legend_loc, fontsize=12, framealpha=0.9, frameon=False)
 
         # 设置刻度
         ax.xaxis.set_minor_locator(AutoMinorLocator(5))
@@ -546,7 +516,9 @@ if REARRANGE_MODE:
     ax_summary.set_yticks([0, 500, 1000, 1500, 2000, 2500, 3000])
 
     # 添加子图标题
-    ax_summary.set_title("(f)", loc="left", x=-0.19, y=0.9)
+    # 在重新排列模式下 summary 位于第一个位置 -> 使用 A；否则使用 F
+    summary_label = display_labels[0] if REARRANGE_MODE else display_labels[-1]
+    ax_summary.set_title(summary_label, loc="left", x=-0.19, y=0.9)
 
     # 添加图例
     ax_summary.legend(loc="upper left", fontsize=12, framealpha=0.9, frameon=False)
