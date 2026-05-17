@@ -67,6 +67,10 @@ python .\sci_paper_plots.py
 
 python .\new\plot_particle_both.py --save
 
+### 2026-05-17版本
+python .\new\plot_particle_both.py --save --rearrange
+
+
 ## 误差画图
 
 python .\new\compare_true_predict.py --save  

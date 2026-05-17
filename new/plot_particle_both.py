@@ -22,18 +22,29 @@ BASE_PATH_INITIAL = "runs/eff1_new"
 script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(script_dir)  # 上一级目录
 plot_output_dir = os.path.join(project_root, "plots-eff1-new-both")
-if len(sys.argv) > 1 and sys.argv[1] == "--save":
-    matplotlib.use("Agg")  # 使用非交互式后端
-    SAVE_MODE = True
-    if len(sys.argv) > 2:
-        BASE_PATH = os.path.normpath(sys.argv[2])  # 规范化路径
-    else:
-        BASE_PATH = BASE_PATH_INITIAL
-else:
-    SAVE_MODE = False
-    BASE_PATH = BASE_PATH_INITIAL
+
+# 解析命令行参数
+SAVE_MODE = False
+REARRANGE_MODE = False
+BASE_PATH = BASE_PATH_INITIAL
+
+# 检查命令行参数
+for i, arg in enumerate(sys.argv[1:]):
+    if arg == "--save":
+        matplotlib.use("Agg")  # 使用非交互式后端
+        SAVE_MODE = True
+        # 检查下一个参数是否是路径
+        if i + 1 < len(sys.argv) - 1 and not sys.argv[i+2].startswith("--"):
+            BASE_PATH = os.path.normpath(sys.argv[i+2])  # 规范化路径
+    elif arg == "--rearrange":
+        REARRANGE_MODE = True
 
 print(f"路径:{BASE_PATH}")
+if REARRANGE_MODE:
+    print("使用新的排列模式：f图在前，a,b,c,d,e图依次往后")
+    print("f图数据点采用圆点和三角形标记，无误差棒")
+else:
+    print("使用原有的排列模式")
 
 # 配置字体为 Times New Roman（包括数学公式）
 config = {
@@ -111,12 +122,24 @@ exp_sem_orb_rev = []  # 存储每次实验的公转标准误差
 # 用于存储所有详细数据以导出Excel
 all_excel_data = []
 
-# 设置画布 - 修改为一行两张图的布局
+# 设置画布 - 根据是否使用重新排列模式决定布局
 num_folders = len(folder_groups)
-num_rows = (num_folders + 1) // 2  # 计算需要的行数
+
+if REARRANGE_MODE:
+    # 新模式：f图在最前，然后a,b,c,d,e图
+    # 总共6张图（1个汇总 + 5个详细）
+    num_rows = 3
+    num_cols = 2
+    create_separate_summary = False
+else:
+    # 原有模式：a,b,c,d,e图，然后f图在最后
+    num_rows = (num_folders + 1) // 2  # 计算需要的行数
+    num_cols = 2
+    create_separate_summary = num_folders >= num_rows * 2
+
 fig, axes = plt.subplots(
-    num_rows, 2, figsize=(12, 3.5 * num_rows), gridspec_kw={"hspace": 0.25, "wspace": 0.3, "left": 0.01, "right": 0.99, "bottom": 0.01, "top": 0.99}
-)  # 一行两张图
+    num_rows, num_cols, figsize=(12, 3.5 * num_rows), gridspec_kw={"hspace": 0.25, "wspace": 0.3, "left": 0.01, "right": 0.99, "bottom": 0.01, "top": 0.99}
+)
 
 # 如果只有一行，确保axes是二维数组
 if num_rows == 1:
@@ -155,9 +178,14 @@ max_height = max(all_heights) if all_heights else 1
 print(len(folder_groups), folder_groups)
 
 for i, (base_name, folder_list) in enumerate(folder_groups.items()):
-    # 计算子图位置
-    row = i // 2
-    col = i % 2
+    # 计算子图位置 - 新模式下，f图在位置0，a-e图从位置1开始
+    if REARRANGE_MODE:
+        plot_index = i + 1  # 在新模式下，个别流速的图从1开始
+    else:
+        plot_index = i  # 在原模式下，个别流速的图从0开始
+    
+    row = plot_index // 2
+    col = plot_index % 2
     
     merged_stats = merge_stats(*folder_list)  # 传入所有相关文件夹进行合并
 
@@ -412,8 +440,14 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
 
         # 添加子图标题 (a), (b), (c), (d), (e)
         subplot_labels = ["(a)", "(b)", "(c)", "(d)", "(e)"]
-        if i < len(subplot_labels):
-            ax.set_title(subplot_labels[i], loc="left", x=-0.19, y=0.9)
+        if REARRANGE_MODE:
+            # 在新模式中，i对应的标签
+            if i < len(subplot_labels):
+                ax.set_title(subplot_labels[i], loc="left", x=-0.19, y=0.9)
+        else:
+            # 在原模式中，i对应的标签
+            if i < len(subplot_labels):
+                ax.set_title(subplot_labels[i], loc="left", x=-0.19, y=0.9)
 
         # 只在第一个子图显示图例
         if i == 0:
@@ -428,26 +462,103 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         # 确保Y轴刻度显示到3000，间隔500
         ax.set_yticks([0, 500, 1000, 1500, 2000, 2500, 3000])
 
-# 如果有空余的子图位置，隐藏它们
-for j in range(num_folders, num_rows * 2):
-    row = j // 2
-    col = j % 2
-    axes[row, col].set_visible(False)
-
-# 在最后一个位置绘制平均值图（如果有空余位置）
-if num_folders < num_rows * 2:
-    # 使用最后一个位置绘制平均值图
+# 处理总结图（summary图/f图）的绘制
+if REARRANGE_MODE:
+    # 新模式：在(0,0)位置绘制summary图
+    ax_summary = axes[0, 0]
+    ax_summary.set_visible(True)
+    create_separate_summary = False
+elif num_folders < num_rows * 2:
+    # 原模式：如果有空余的子图位置，使用最后一个位置
     last_row = (num_rows * 2 - 1) // 2
     last_col = (num_rows * 2 - 1) % 2
     ax_summary = axes[last_row, last_col]
     ax_summary.set_visible(True)
+    create_separate_summary = False
 else:
-    # 如果没有空余位置，创建新图
+    # 原模式：如果没有空余位置，创建新图
     fig2, ax_summary = plt.subplots(1, 1, figsize=(3.5, 2.5))
     create_separate_summary = True
 
-# 如果在原图中绘制平均值
-if num_folders < num_rows * 2:
+# 隐藏未使用的子图
+if not REARRANGE_MODE:
+    # 原模式下隐藏空位
+    for j in range(num_folders, num_rows * 2):
+        row = j // 2
+        col = j % 2
+        axes[row, col].set_visible(False)
+else:
+    # 新模式下隐藏除了summary图和数据图外的空位
+    for j in range(num_folders + 1, num_rows * 2):
+        row = j // 2
+        col = j % 2
+        axes[row, col].set_visible(False)
+
+# 绘制平均值图（根据模式选择绘制方式）
+if REARRANGE_MODE:
+    # 新模式：f图在(0,0)，不使用误差棒，使用圆点和三角形标记，并连线
+    
+    # Average Rotation（蓝色圆形）
+    ax_summary.plot(
+        range(len(exp_indices)),
+        exp_avg_abs_rot,
+        color="blue",
+        linestyle="-",
+        linewidth=2,
+        alpha=0.7
+    )
+    ax_summary.scatter(
+        range(len(exp_indices)),
+        exp_avg_abs_rot,
+        color="blue",
+        marker="o",
+        s=80,
+        alpha=0.7,
+        label="Rotation"
+    )
+
+    # Average Revolution（橙色三角形）
+    ax_summary.plot(
+        range(len(exp_indices)),
+        exp_avg_orb_rev,
+        color="orange",
+        linestyle="-",
+        linewidth=2,
+        alpha=0.7
+    )
+    ax_summary.scatter(
+        range(len(exp_indices)),
+        exp_avg_orb_rev,
+        color="orange",
+        marker="^",
+        s=80,
+        alpha=0.7,
+        label="Revolution"
+    )
+
+    ax_summary.set_xlabel("Inlet Flow Rate (L/h)")
+    ax_summary.set_ylabel("Speed (rad/s)")
+    ax_summary.set_xticks(range(len(exp_indices)))
+    ax_summary.set_xticklabels(exp_indices)
+
+    # 固定坐标轴范围，与第一张图保持一致
+    ax_summary.set_ylim(0, 3000)
+    ax_summary.set_yticks([0, 500, 1000, 1500, 2000, 2500, 3000])
+
+    # 添加子图标题
+    ax_summary.set_title("(f)", loc="left", x=-0.19, y=0.9)
+
+    # 添加图例
+    ax_summary.legend(loc="upper left", fontsize=12, framealpha=0.9, frameon=False)
+
+    # 设置刻度
+    ax_summary.xaxis.set_minor_locator(AutoMinorLocator(5))
+    ax_summary.yaxis.set_minor_locator(AutoMinorLocator(2))
+    ax_summary.tick_params(which="minor", direction="in")
+    ax_summary.tick_params(which="major", direction="in")
+
+elif num_folders < num_rows * 2:
+    # 原模式：在原图中绘制平均值（在最后一个位置），使用误差棒
 
     # Average Rotation（蓝色圆形）with error bars
     ax_summary.errorbar(
@@ -502,7 +613,7 @@ if num_folders < num_rows * 2:
     ax_summary.tick_params(which="minor", direction="in")
     ax_summary.tick_params(which="major", direction="in")
 else:
-    # 单独创建平均值图的情况
+    # 原模式：单独创建平均值图，使用误差棒
     # Average Rotation（蓝色圆形）with error bars
     ax_summary.errorbar(
         exp_indices,
