@@ -506,7 +506,13 @@ def generate_both_plots():
     
     try:
         print("正在生成粒子自转和公转分析图表...")
-        plot_script = [sys.executable, "new/plot_particle_both.py", "--save", y_track_proj]
+        plot_script = [
+            sys.executable,
+            "new/plot_particle_both.py",
+            "--save",
+            "--rearrange",
+            y_track_proj,
+        ]
         result = subprocess.run(
             plot_script, check=True, capture_output=True, text=True
         )

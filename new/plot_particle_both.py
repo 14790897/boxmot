@@ -165,10 +165,11 @@ for folder_ in folders:
             box = closest_point.get("Box", [0, 0, 0, 0])
             height = None
             if value.get("height") is None:
-                height = (box[1] + box[3]) / 2 / 147 + 42 / 147  # 高度计算公式
+                height = (box[1] + box[3]) / 2 / 147 + 42 / 147  # 高度计算公式 (cm)
             else:
-                height = value.get("height")
-            all_heights.append(height)
+                height = value.get("height")  # assumed cm
+            # 转换为毫米
+            all_heights.append(height * 10)
 
 # 获取全局的最小和最大高度
 min_height = min(all_heights) if all_heights else 0
@@ -209,9 +210,11 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
             box = closest_point.get("Box", [0, 0, 0, 0])
             height = None
             if value.get("height") is None:
-                height = (box[1] + box[3]) / 2 / 147 + 42 / 147  # 高度计算公式
+                height = (box[1] + box[3]) / 2 / 147 + 42 / 147  # 高度计算公式 (cm)
             else:
-                height = value.get("height")
+                height = value.get("height")  # assumed cm
+            # 使用毫米单位
+            height_mm = height * 10
 
             # 只存储同时有自转和公转的粒子数据
             if abs_rotation > 0 and orbital_rev > 0:
@@ -230,7 +233,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
                 else:
                     high_speed = False
                 
-                heights_both.append(height)
+                heights_both.append(height_mm)
                 abs_rotations_both.append(abs_rotation)
                 orbital_revs_both.append(orbital_rev)
                 is_high_speed.append(high_speed)
@@ -239,8 +242,8 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
                 all_excel_data.append({
                     'Flow_Rate_L_h': os.path.basename(base_name),
                     'Particle_ID': key,
-                    'Height_cm': height,
-                    'Inner_Diameter_cm': value.get("inner_diameter", 0)/147,
+                    'Height_mm': height_mm,
+                    'Inner_Diameter_mm': (value.get("inner_diameter", 0)/147) * 10,
                     'Rotation_rad_s': abs_rotation,
                     'Revolution_rad_s': orbital_rev,
                     'Relative_Rotation_rad_s': value.get("rel_rotation", 0),
@@ -254,8 +257,8 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
                     'D1': value.get("d1_with_range_revolution", 0),
                     'D2': value.get("d2_with_range_revolution", 0),
                     'Margin': value.get("margin", 0),
-                    "Inner_Radius_cm": value.get("inner_diameter", 0)/147/2,
-                    "Revolution_Radius_cm": radius/147,
+                    "Inner_Radius_mm": (value.get("inner_diameter", 0)/147/2) * 10,
+                    "Revolution_Radius_mm": (radius/147) * 10,
                     "radius / dz_half": ratio,
                     "High_Speed": high_speed,
                     
@@ -319,7 +322,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
             label="Revolution",
         )
 
-        ax.set_xlabel(r"$h$ (cm)", labelpad=-5)
+        ax.set_xlabel(r"$h$ (mm)", labelpad=-5)
         ax.set_ylabel("Speed (rad/s)")
         ax.set_xlim(min_height, max_height)
 
