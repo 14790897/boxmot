@@ -67,7 +67,7 @@ python .\sci_paper_plots.py
 
 python .\new\plot_particle_both.py --save
 
-### 2026-05-17版本
+### 2026-05-17版本，重新排序，提示词：图放到最前面，a,b,c,d,e图依次往后放，f图对应的数据点用圆点和三角形标出，再连线， f这个图对应的图标里面不要➕误差棒然后添加一个参数；脚本输入一个参数的时候会按照这个模式排列，不要改原先的模式
 python .\new\plot_particle_both.py --save --rearrange
 
 

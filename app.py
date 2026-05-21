@@ -347,7 +347,7 @@ def process_with_subcommand(
                 shutil.rmtree(y_output_directory)
             # 重命名和增强对比度
             process_images_in_directory(y_input_directory, y_output_directory, max_files=max_files_per_folder)
-            frame_rate = 1  # 每秒帧数
+            frame_rate = 25  # 每秒帧数
             path_parts = os.path.normpath(y_input_directory).split(os.sep)
             # 处理每个路径部分
             processed_parts = [remove_chinese(part) for part in path_parts]
