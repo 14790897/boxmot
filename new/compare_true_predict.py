@@ -124,7 +124,7 @@ def plot_comparison():
         if len(rotation_data) > 0:
             # MANUAL 自转（蓝色圆圈）
             ax.scatter(
-                rotation_data['height'],
+                rotation_data['height'] * 10,
                 rotation_data['TRUE_rotation'],
                 facecolors='blue',
                 edgecolors='blue',
@@ -134,7 +134,7 @@ def plot_comparison():
             )
             # THIS STUDY 自转（红色三角）
             ax.scatter(
-                rotation_data['height'],
+                rotation_data['height'] * 10,
                 rotation_data['predict_rotation'],
                 facecolors='red',
                 edgecolors='red',
@@ -157,7 +157,7 @@ def plot_comparison():
         if len(revolution_data) > 0:
             # MANUAL 公转（绿色方块）
             ax.scatter(
-                revolution_data['height'],
+                revolution_data['height'] * 10,
                 revolution_data['TRUE_revolution'],
                 facecolors='green',
                 edgecolors='green',
@@ -167,7 +167,7 @@ def plot_comparison():
             )
             # THIS STUDY 公转（橙色菱形）
             ax.scatter(
-                revolution_data['height'],
+                revolution_data['height'] * 10,
                 revolution_data['predict_revolution'],
                 facecolors='orange',
                 edgecolors='orange',
@@ -186,11 +186,11 @@ def plot_comparison():
             print("  - 无公转数据")
 
         # 设置坐标轴
-        ax.set_xlabel(r"$h$ (cm)")
+        ax.set_xlabel(r"$h$ (mm)")
         ax.set_ylabel("Speed (rad/s)")
 
         # 固定坐标轴范围
-        ax.set_xlim(0, 11)
+        ax.set_xlim(0, 110)
         ax.set_ylim(0, 3000)
 
         # 设置纵坐标刻度
