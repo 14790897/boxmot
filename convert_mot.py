@@ -6,7 +6,7 @@ import pandas as pd
 from natsort import natsorted  # 需要安装 natsort 库：pip install natsort
 
 # 配置路径
-input_folder = r"runs\track\exp20\labels"  # 预测框文件夹路径
+input_folder = r"exp-bytetrack\labels"  # 预测框文件夹路径 或者exp-ocsort\labels
 gt_file = r"assets\MOT17-mini\train\275_particle\gt\gt.txt"  # 真实 GT 文件路径 assets\MOT17-mini\train\mot_particle\gt\gt.txt
 output_file = r"gt_predfict.txt"  # 过滤后的预测框输出路径
 # gt_file = r"yolov7_result\gt.txt"  # 预测框文件夹路径
