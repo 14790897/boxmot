@@ -26,6 +26,7 @@ plot_output_dir = os.path.join(project_root, "plots-eff1-new-both")
 # 解析命令行参数
 SAVE_MODE = False
 REARRANGE_MODE = False
+HIGH_SPEED_MODE = False  # 是否区分高速/低速颗粒
 BASE_PATH = BASE_PATH_INITIAL
 
 # 检查命令行参数
@@ -38,6 +39,8 @@ for i, arg in enumerate(sys.argv[1:]):
             BASE_PATH = os.path.normpath(sys.argv[i+2])  # 规范化路径
     elif arg == "--rearrange":
         REARRANGE_MODE = True
+    elif arg == "--high-speed":
+        HIGH_SPEED_MODE = True
 
 print(f"路径:{BASE_PATH}")
 if REARRANGE_MODE:
@@ -45,6 +48,10 @@ if REARRANGE_MODE:
     print("f图数据点采用圆点和三角形标记，无误差棒")
 else:
     print("使用原有的排列模式")
+if HIGH_SPEED_MODE:
+    print("开启高速/低速颗粒区分模式")
+else:
+    print("不区分高速/低速颗粒")
 
 # 配置字体为 Times New Roman（包括数学公式）
 config = {
@@ -299,28 +306,88 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         all_speeds = abs_rotations_both + orbital_revs_both
         y_min, y_max = min(all_speeds), max(all_speeds)
 
-        # 不区分 high/low，直接绘制 Rotation 与 Revolution，并在每个子图显示图例
-        # Rotation（蓝色圆点）
-        ax.scatter(
-            heights_both,
-            abs_rotations_both,
-            facecolors="blue",
-            edgecolors="blue",
-            marker="o",
-            s=30,
-            label="Rotation",
-        )
+        if HIGH_SPEED_MODE:
+            # 区分高速和低速颗粒数据
+            heights_rot_high = [h for h, hs in zip(heights_both, is_high_speed) if hs]
+            abs_rot_high = [r for r, hs in zip(abs_rotations_both, is_high_speed) if hs]
+            heights_rot_low = [h for h, hs in zip(heights_both, is_high_speed) if not hs]
+            abs_rot_low = [r for r, hs in zip(abs_rotations_both, is_high_speed) if not hs]
 
-        # Revolution（橙色方形）
-        ax.scatter(
-            heights_both,
-            orbital_revs_both,
-            facecolors="orange",
-            edgecolors="orange",
-            marker="s",
-            s=30,
-            label="Revolution",
-        )
+            heights_rev_high = [h for h, hs in zip(heights_both, is_high_speed) if hs]
+            orb_rev_high = [r for r, hs in zip(orbital_revs_both, is_high_speed) if hs]
+            heights_rev_low = [h for h, hs in zip(heights_both, is_high_speed) if not hs]
+            orb_rev_low = [r for r, hs in zip(orbital_revs_both, is_high_speed) if not hs]
+
+            # 绘制 Rotation 数据 - 高速颗粒（蓝色圆形）
+            if heights_rot_high:
+                ax.scatter(
+                    heights_rot_high,
+                    abs_rot_high,
+                    facecolors="blue",
+                    edgecolors="blue",
+                    marker="o",
+                    s=30,
+                    label="Rotation (High)" if i == 0 else None,
+                )
+
+            # 绘制 Rotation 数据 - 低速颗粒（红色圆形）
+            if heights_rot_low:
+                ax.scatter(
+                    heights_rot_low,
+                    abs_rot_low,
+                    facecolors="red",
+                    edgecolors="red",
+                    marker="o",
+                    s=30,
+                    label="Rotation (Low)" if i == 0 else None,
+                )
+
+            # 绘制 Revolution 数据 - 高速颗粒（绿色方形）
+            if heights_rev_high:
+                ax.scatter(
+                    heights_rev_high,
+                    orb_rev_high,
+                    facecolors="green",
+                    edgecolors="green",
+                    marker="s",
+                    s=30,
+                    label="Revolution (High)" if i == 0 else None,
+                )
+
+            # 绘制 Revolution 数据 - 低速颗粒（橙色方形）
+            if heights_rev_low:
+                ax.scatter(
+                    heights_rev_low,
+                    orb_rev_low,
+                    facecolors="orange",
+                    edgecolors="orange",
+                    marker="s",
+                    s=30,
+                    label="Revolution (Low)" if i == 0 else None,
+                )
+        else:
+            # 不区分 high/low，直接绘制 Rotation 与 Revolution
+            # Rotation（蓝色圆点）
+            ax.scatter(
+                heights_both,
+                abs_rotations_both,
+                facecolors="blue",
+                edgecolors="blue",
+                marker="o",
+                s=30,
+                label="Rotation",
+            )
+
+            # Revolution（橙色方形）
+            ax.scatter(
+                heights_both,
+                orbital_revs_both,
+                facecolors="orange",
+                edgecolors="orange",
+                marker="s",
+                s=30,
+                label="Revolution",
+            )
 
         ax.set_xlabel(r"$h$ (mm)", labelpad=-5)
         ax.set_ylabel("Speed (rad/s)")
@@ -353,7 +420,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         # 计算趋势线的x值
         x_trend = np.linspace(min_height, max_height, 100)
 
-        # 计算并绘制 Rotation 趋势线（蓝色虚线）- 使用所有rotation数据
+        # 计算并绘制 Rotation 趋势线（蓝色虚线）
         if len(heights_both) > 1:
             poly_coeffs = np.polyfit(heights_both, abs_rotations_both, 2)
             trend_line = np.poly1d(poly_coeffs)
@@ -361,7 +428,7 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
                 x_trend, trend_line(x_trend), color="blue", linestyle="--", alpha=0.5
             )
 
-        # 计算并绘制 Revolution 趋势线（绿色虚线）- 使用所有revolution数据
+        # 计算并绘制 Revolution 趋势线（绿色虚线）
         if len(heights_both) > 1:
             poly_coeffs = np.polyfit(heights_both, orbital_revs_both, 2)
             trend_line = np.poly1d(poly_coeffs)
@@ -369,14 +436,12 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
                 x_trend, trend_line(x_trend), color="green", linestyle="--", alpha=0.5
             )
 
-        # 添加流量标注 - 智能避让数据点
+        # 添加流量标注（智能避让数据点）
         flow_text = f"$Q_i$={os.path.basename(base_name)} L/h"
-        
-        # 检查右上角区域是否有高值数据点
-        # 定义右上角区域：x > 90% 且 y > 80%
+
         high_x_threshold = min_height + (max_height - min_height) * 0.9
-        high_y_threshold = 2400  # 80% of 3000
-        
+        high_y_threshold = 2400
+
         has_high_data = False
         for h, r in zip(heights_both, abs_rotations_both):
             if h > high_x_threshold and r > high_y_threshold:
@@ -387,17 +452,14 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
                 if h > high_x_threshold and r > high_y_threshold:
                     has_high_data = True
                     break
-        
-        # 根据是否有数据点冲突选择位置
+
         if has_high_data:
-            # 如果右上角有数据，移到左上角
             text_x, text_y = 0.02, 0.98
             h_align = 'left'
         else:
-            # 否则保持右上角
             text_x, text_y = 0.98, 0.98
             h_align = 'right'
-        
+
         ax.text(
             text_x,
             text_y,
@@ -412,19 +474,18 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         if plot_index < len(display_labels):
             ax.set_title(display_labels[plot_index], loc="left", x=-0.19, y=0.9)
 
-        # 在每个子图显示 Rotation / Revolution 图例（不区分 high/low）
-        # 将图例放在与流量标注相反的一侧，避免重合
-        try:
-            legend_loc = "upper left" if h_align == 'right' else "upper right"
-        except NameError:
-            # 如果未定义 h_align（极少见），使用自动位置
-            legend_loc = "best"
-
-        # 特例：流量 850 的子图（通常是最后一张）将图例放在接近左下但向右上偏移的位置，避免与数据点重合
-        if folder_name == '850':
-            ax.legend(loc='lower left', bbox_to_anchor=(0.12, 0.18), fontsize=12, framealpha=0.9, frameon=False)
+        # 添加图例
+        if HIGH_SPEED_MODE:
+            # 622d407 版本样式：只在第一个子图显示图例
+            if i == 0:
+                ax.legend(loc="upper left", fontsize=12, framealpha=0.9, frameon=False)
         else:
-            ax.legend(loc=legend_loc, fontsize=12, framealpha=0.9, frameon=False)
+            # 新版本样式：每个子图都显示图例
+            legend_loc = "upper left" if h_align == 'right' else "upper right"
+            if folder_name == '850':
+                ax.legend(loc='lower left', bbox_to_anchor=(0.12, 0.18), fontsize=12, framealpha=0.9, frameon=False)
+            else:
+                ax.legend(loc=legend_loc, fontsize=12, framealpha=0.9, frameon=False)
 
         # 设置刻度
         ax.xaxis.set_minor_locator(AutoMinorLocator(5))

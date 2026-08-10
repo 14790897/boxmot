@@ -115,6 +115,8 @@ python .\sci_paper_plots.py
 ## 新版画图,带有 excel 数据保存功能
 
 python .\new\plot_particle_both.py --save
+python .\new\plot_particle_both.py --rearrange --high-speed --save
+
 
 ## 误差
 
