@@ -49,9 +49,9 @@ if REARRANGE_MODE:
 else:
     print("使用原有的排列模式")
 if HIGH_SPEED_MODE:
-    print("开启高速/低速颗粒区分模式")
+    print("开启 Near/Far 颗粒区分模式（区分靠近边界和靠近中心的颗粒）")
 else:
-    print("不区分高速/低速颗粒")
+    print("不区分 Near/Far 颗粒")
 
 # 配置字体为 Times New Roman（包括数学公式）
 config = {
@@ -307,63 +307,65 @@ for i, (base_name, folder_list) in enumerate(folder_groups.items()):
         y_min, y_max = min(all_speeds), max(all_speeds)
 
         if HIGH_SPEED_MODE:
-            # 区分高速和低速颗粒数据
-            heights_rot_high = [h for h, hs in zip(heights_both, is_high_speed) if hs]
-            abs_rot_high = [r for r, hs in zip(abs_rotations_both, is_high_speed) if hs]
-            heights_rot_low = [h for h, hs in zip(heights_both, is_high_speed) if not hs]
-            abs_rot_low = [r for r, hs in zip(abs_rotations_both, is_high_speed) if not hs]
+            # 区分 Near（靠近边界）和 Far（靠近中心）颗粒
+            # is_high_speed=True 表示 ratio>0.9，即靠近中心 -> Far
+            # is_high_speed=False 表示 ratio≤0.9，即靠近边界 -> Near
+            heights_rot_far = [h for h, hs in zip(heights_both, is_high_speed) if hs]
+            abs_rot_far = [r for r, hs in zip(abs_rotations_both, is_high_speed) if hs]
+            heights_rot_near = [h for h, hs in zip(heights_both, is_high_speed) if not hs]
+            abs_rot_near = [r for r, hs in zip(abs_rotations_both, is_high_speed) if not hs]
 
-            heights_rev_high = [h for h, hs in zip(heights_both, is_high_speed) if hs]
-            orb_rev_high = [r for r, hs in zip(orbital_revs_both, is_high_speed) if hs]
-            heights_rev_low = [h for h, hs in zip(heights_both, is_high_speed) if not hs]
-            orb_rev_low = [r for r, hs in zip(orbital_revs_both, is_high_speed) if not hs]
+            heights_rev_far = [h for h, hs in zip(heights_both, is_high_speed) if hs]
+            orb_rev_far = [r for r, hs in zip(orbital_revs_both, is_high_speed) if hs]
+            heights_rev_near = [h for h, hs in zip(heights_both, is_high_speed) if not hs]
+            orb_rev_near = [r for r, hs in zip(orbital_revs_both, is_high_speed) if not hs]
 
-            # 绘制 Rotation 数据 - 高速颗粒（蓝色圆形）
-            if heights_rot_high:
+            # 绘制 Rotation 数据 - Near（靠近边界，蓝色圆形）
+            if heights_rot_near:
                 ax.scatter(
-                    heights_rot_high,
-                    abs_rot_high,
+                    heights_rot_near,
+                    abs_rot_near,
                     facecolors="blue",
                     edgecolors="blue",
                     marker="o",
                     s=30,
-                    label="Rotation (High)" if i == 0 else None,
+                    label="Rotation (Near)" if i == 0 else None,
                 )
 
-            # 绘制 Rotation 数据 - 低速颗粒（红色圆形）
-            if heights_rot_low:
+            # 绘制 Rotation 数据 - Far（靠近中心，红色圆形）
+            if heights_rot_far:
                 ax.scatter(
-                    heights_rot_low,
-                    abs_rot_low,
+                    heights_rot_far,
+                    abs_rot_far,
                     facecolors="red",
                     edgecolors="red",
                     marker="o",
                     s=30,
-                    label="Rotation (Low)" if i == 0 else None,
+                    label="Rotation (Far)" if i == 0 else None,
                 )
 
-            # 绘制 Revolution 数据 - 高速颗粒（绿色方形）
-            if heights_rev_high:
+            # 绘制 Revolution 数据 - Near（靠近边界，绿色方形）
+            if heights_rev_near:
                 ax.scatter(
-                    heights_rev_high,
-                    orb_rev_high,
+                    heights_rev_near,
+                    orb_rev_near,
                     facecolors="green",
                     edgecolors="green",
                     marker="s",
                     s=30,
-                    label="Revolution (High)" if i == 0 else None,
+                    label="Revolution (Near)" if i == 0 else None,
                 )
 
-            # 绘制 Revolution 数据 - 低速颗粒（橙色方形）
-            if heights_rev_low:
+            # 绘制 Revolution 数据 - Far（靠近中心，橙色方形）
+            if heights_rev_far:
                 ax.scatter(
-                    heights_rev_low,
-                    orb_rev_low,
+                    heights_rev_far,
+                    orb_rev_far,
                     facecolors="orange",
                     edgecolors="orange",
                     marker="s",
                     s=30,
-                    label="Revolution (Low)" if i == 0 else None,
+                    label="Revolution (Far)" if i == 0 else None,
                 )
         else:
             # 不区分 high/low，直接绘制 Rotation 与 Revolution
